@@ -4,7 +4,7 @@
 # Usage:
 #   ./rename_dotnet_template.sh NewName
 #
-# This script renames all occurrences of "TestProject" in:
+# This script renames all occurrences of "Telegram.API" in:
 #   1. File names (base name only; directory names remain for later processing)
 #   2. Directory names (deepest first)
 #   3. File contents (text replacements)
@@ -15,7 +15,7 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-OLD="Dotnet.Template"
+OLD="Telegram.API"
 NEW="$1"
 
 echo "Replacing '$OLD' with '$NEW' throughout the project..."

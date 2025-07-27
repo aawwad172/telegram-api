@@ -1,4 +1,4 @@
-# API Template (.NET 8)
+# Telegram.API project (.NET 8)
 
 ## Overview
 
@@ -28,7 +28,7 @@ git clone <your-repo-url> cd <repo-folder>
 dotnet restore
 ```
 3. **Update the connection string**
-   - Edit `API.Template.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:DbConnectionString`.
+   - Edit `Telegram.API.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:DbConnectionString`.
 
 4. **Build the solution**
 ```bash
@@ -36,7 +36,7 @@ dotnet build
 ```
 5. **Run the application**
 ```bash
-dotnet run --project API.Template.WebAPI
+dotnet run --project Telegram.API.WebAPI
 ```
 6. **Access Swagger UI**
    - Navigate to `https://localhost:<port>/swagger` in your browser.
@@ -48,6 +48,8 @@ Husky.Net automates code quality checks (formatting, build, etc.) on Git hooks.
 ### Install Husky.Net as a dotnet tool
 ```bash
 dotnet husky install
+
+chmod +x .husky/*
 ```
 ### Initialize Husky.Net hooks
 
@@ -89,7 +91,6 @@ chmod +x .husky/*
 ```bash
 dotnet husky add <hook-name> -c "dotnet husky run --group <group-name>"
 ```
-
 
 ## License
 MIT
