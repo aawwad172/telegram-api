@@ -4,6 +4,7 @@ using Telegram.API.Infrastructure;
 using Telegram.API.Infrastructure.Persistence;
 using Telegram.API.WebAPI;
 using Telegram.API.WebAPI.Routes.HealthCheck;
+using Telegram.API.WebAPI.Routes.Messages;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,9 +30,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+# region Health Check
 // Add health check endpoint
 app.MapGet("/health", HealthCheck.RegisterRoute)
     .WithName("HealthCheck")
     .WithOpenApi();
+#endregion
+
+# region Messages
+app.MapPost("/message", SendMessage.RegisterRoute)
+    .WithName("SendMessage")
+    .WithOpenApi();
+#endregion
 
 app.Run();
