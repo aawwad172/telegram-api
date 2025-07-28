@@ -20,7 +20,12 @@
   <ItemGroup>
     <Folder Include="CQRS\QueryHandlers\" />
     <Folder Include="CQRS\Queries\" />
-    <Folder Include="HelperServices\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="A2A.Utils">
+      <HintPath>..\..\..\..\..\Downloads\A2A.Utils 1.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

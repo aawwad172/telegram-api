@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using MediatR;
 using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Interfaces;
 using Telegram.API.WebAPI.Models;
@@ -26,8 +27,12 @@ public class SendMessage : IRoute<SendMessageCommand>
             throw new CustomValidationException("Validation failed " + errors);
         }
 
-        SendMessageCommandResult response = await mediator.Send(request);
-
-        return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(response.ReferenceNumber));
+        // Use this to prevent extra memory allocation
+        return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(
+            await mediator.Send(
+                    CommandsSanitizer.SanitizeSendMessageCommand(request)
+                )
+            )
+        );
     }
 }

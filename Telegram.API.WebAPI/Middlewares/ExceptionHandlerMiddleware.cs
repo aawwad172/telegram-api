@@ -20,46 +20,51 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         catch (NotFoundException ex)
         {
             LoggerService.Warning("NotFoundException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "NOT_FOUND", ex.Message, StatusCodes.Status404NotFound);
+            await HandleExceptionAsync(context, "-5", "NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (EnvironmentVariableNotSetException ex)
         {
             LoggerService.Warning("EnvironmentVariableNotSetException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "ENV_VAR_MISSING", ex.Message, StatusCodes.Status500InternalServerError);
+            await HandleExceptionAsync(context, "Internal Server Error", ex.Message, StatusCodes.Status500InternalServerError);
         }
         catch (ValidationException ex)
         {
             LoggerService.Warning("ValidationException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "VALIDATION_ERROR", ex.Message, StatusCodes.Status400BadRequest);
+            await HandleExceptionAsync(context, "-1", "VALIDATION_ERROR", StatusCodes.Status400BadRequest);
         }
         catch (UnauthenticatedException ex)
         {
             LoggerService.Warning("UnauthenticatedException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "UNAUTHENTICATED", ex.Message, StatusCodes.Status401Unauthorized);
+            await HandleExceptionAsync(context, "-2", "UNAUTHENTICATED", StatusCodes.Status401Unauthorized);
         }
         catch (UnauthorizedException ex)
         {
             LoggerService.Warning("UnauthorizedException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "UNAUTHORIZED", ex.Message, StatusCodes.Status403Forbidden);
+            await HandleExceptionAsync(context, "-2", "UNAUTHORIZED", StatusCodes.Status403Forbidden);
         }
         catch (ConflictException ex)
         {
             LoggerService.Warning("ConflictException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "CONFLICT", ex.Message, StatusCodes.Status409Conflict);
+            await HandleExceptionAsync(context, "-10", "CONFLICT", StatusCodes.Status409Conflict);
         }
         catch (CustomValidationException ex)
         {
             LoggerService.Warning("CustomValidationException occurred: {Message}", ex.Message);
             await HandleExceptionAsync(
                 context,
-                "VALIDATION_ERROR",
+                "-1",
                 JoinErrors(ex.Errors),
                 StatusCodes.Status400BadRequest);
+        }
+        catch (DatabaseException ex)
+        {
+            LoggerService.Error("DatabaseException occurred: {Message}", ex.Message);
+            await HandleExceptionAsync(context, "-20", "DATABASE_ERROR", StatusCodes.Status500InternalServerError);
         }
         catch (Exception ex)
         {
             LoggerService.Error("An unexpected error occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "UNEXPECTED_ERROR", "An unexpected error occurred.", StatusCodes.Status500InternalServerError);
+            await HandleExceptionAsync(context, "-99", "An unexpected error occurred.", StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -68,7 +73,9 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        ApiResponse<string> response = ApiResponse<string>.ErrorResponse(errorMessage: message, referenceNumber: null, errorCode: statusCode.ToString());
+        ApiResponse<string> response = ApiResponse<string>.ErrorResponse(response: string.Empty,
+                                                                         errorMessage: message,
+                                                                         errorCode: errorCode);
         string result = JsonSerializer.Serialize(response);
         await context.Response.WriteAsync(result);
     }
