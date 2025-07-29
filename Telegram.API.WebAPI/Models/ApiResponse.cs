@@ -2,10 +2,10 @@
 
 public class ApiResponse<T>
 {
-    private bool Success { get; init; }
-    private T? data { get; init; }
-    private string? Message { get; init; }
-    private string? ErrorCode { get; init; }
+    public bool Success { get; init; }
+    public T Data { get; init; }
+    public string Message { get; init; }
+    public string ErrorCode { get; init; }
 
     private ApiResponse(
         bool success,
@@ -16,7 +16,7 @@ public class ApiResponse<T>
         Success = success;
         Message = message;
         ErrorCode = errorCode;
-        data = response;
+        Data = response;
     }
 
     // Factory methods

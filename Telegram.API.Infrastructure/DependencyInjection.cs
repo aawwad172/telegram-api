@@ -23,6 +23,7 @@ public static class DependencyInjection
 
         services.AddTransient<DbConnectionHealthCheck>();
         services.AddTransient<IMessageRepository, MessageRepository>();
+        services.AddTransient<IUserRepository, UserRepository>();
 
         return services;
     }

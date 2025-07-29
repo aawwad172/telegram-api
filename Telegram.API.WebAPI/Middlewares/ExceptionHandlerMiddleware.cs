@@ -25,7 +25,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         catch (EnvironmentVariableNotSetException ex)
         {
             LoggerService.Warning("EnvironmentVariableNotSetException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "Internal Server Error", ex.Message, StatusCodes.Status500InternalServerError);
+            await HandleExceptionAsync(context, "INTERNAL_SERVER_ERROR", ex.Message, StatusCodes.Status500InternalServerError);
         }
         catch (ValidationException ex)
         {
@@ -51,10 +51,10 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         {
             LoggerService.Warning("CustomValidationException occurred: {Message}", ex.Message);
             await HandleExceptionAsync(
-                context,
-                "-1",
-                JoinErrors(ex.Errors),
-                StatusCodes.Status400BadRequest);
+                context: context,
+                errorCode: "-1",
+                message: JoinErrors(ex.Errors),
+                statusCode: StatusCodes.Status400BadRequest);
         }
         catch (DatabaseException ex)
         {
@@ -80,8 +80,5 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         await context.Response.WriteAsync(result);
     }
 
-    private string JoinErrors(IEnumerable<string> errors)
-    {
-        return string.Join(", ", errors);
-    }
+    private string JoinErrors(IEnumerable<string> errors) => string.Join(", ", errors);
 }

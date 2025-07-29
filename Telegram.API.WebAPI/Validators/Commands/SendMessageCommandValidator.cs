@@ -26,5 +26,11 @@ public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
             .NotEmpty().WithMessage("Message text is required.")
             .MaximumLength(500)
             .WithMessage("Message text cannot exceed 500 characters.");
+
+        RuleFor(x => x.BotKey)
+            .NotEmpty()
+            .MaximumLength(45)
+            .MinimumLength(43)
+            .WithMessage("Bot key must be between 43 and 45 characters long.");
     }
 }

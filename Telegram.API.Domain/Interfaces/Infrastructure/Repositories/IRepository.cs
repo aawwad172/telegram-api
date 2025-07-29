@@ -3,6 +3,4 @@
 public interface IRepository<T>
 {
     Task<T> GetById(int id);
-
-
 }
