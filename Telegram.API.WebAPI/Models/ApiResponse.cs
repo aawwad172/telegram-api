@@ -2,30 +2,27 @@
 
 public class ApiResponse<T>
 {
-    private bool Success { get; init; }
-    private int StatusCode { get; init; }
-    private string? ErrorMessage { get; init; }
-    private string? ErrorCode { get; init; }
-    private string? ReferenceNumber { get; init; }
+    public bool Success { get; init; }
+    public T Data { get; init; }
+    public string Message { get; init; }
+    public string ErrorCode { get; init; }
 
     private ApiResponse(
         bool success,
-        string? referenceNumber,
-        int statusCode,
-        string? errorMessage,
-        string? errorCode)
+        T response,
+        string message,
+        string errorCode)
     {
         Success = success;
-        StatusCode = statusCode;
-        ErrorMessage = errorMessage;
+        Message = message;
         ErrorCode = errorCode;
-        ReferenceNumber = referenceNumber;
+        Data = response;
     }
 
     // Factory methods
-    public static ApiResponse<T> SuccessResponse(string referenceNumber, int statusCode = 200)
-        => new ApiResponse<T>(true, referenceNumber, statusCode, null, null);
+    public static ApiResponse<T> SuccessResponse(T response)
+        => new ApiResponse<T>(success: true, response: response, message: "Success", errorCode: "0");
 
-    public static ApiResponse<T> ErrorResponse(string errorMessage, string errorCode, int statusCode)
-        => new ApiResponse<T>(false, null, statusCode, errorMessage, errorCode);
+    public static ApiResponse<T> ErrorResponse(T response, string errorMessage, string errorCode)
+        => new ApiResponse<T>(success: false, response: response, message: errorMessage, errorCode: errorCode);
 }

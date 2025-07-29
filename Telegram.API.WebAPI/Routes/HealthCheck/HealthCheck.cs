@@ -1,12 +1,17 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Telegram.API.WebAPI.Interfaces;
 
 namespace Telegram.API.WebAPI.Routes.HealthCheck;
 
 public class HealthCheck
 {
-    public static async Task<IResult> RegisterRoute(HealthCheckService healthCheckService)
+    public static async Task<IResult> RegisterRoute(
+        [FromServices] HealthCheckService service)
     {
-        var report = await healthCheckService.CheckHealthAsync();
+        var report = await service.CheckHealthAsync();
         var response = new
         {
             status = report.Status.ToString(),

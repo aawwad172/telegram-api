@@ -3,6 +3,8 @@ using Telegram.API.Domain.Utilities;
 using Telegram.API.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Telegram.API.Infrastructure.Persistence.Repositories;
+using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace Telegram.API.Infrastructure;
 
@@ -18,8 +20,10 @@ public static class DependencyInjection
                     Config.ConnectionStrings.ConStr
                 )
         );
-        services.AddTransient<DbConnectionHealthCheck>();
 
+        services.AddTransient<DbConnectionHealthCheck>();
+        services.AddTransient<IMessageRepository, MessageRepository>();
+        services.AddTransient<IUserRepository, UserRepository>();
 
         return services;
     }
