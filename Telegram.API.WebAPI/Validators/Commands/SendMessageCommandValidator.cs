@@ -29,7 +29,7 @@ public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
 
         RuleFor(x => x.BotKey)
             .NotEmpty()
-            .MaximumLength(45)
+            .MaximumLength(50)
             .MinimumLength(43)
             .WithMessage("Bot key must be between 43 and 45 characters long.");
     }

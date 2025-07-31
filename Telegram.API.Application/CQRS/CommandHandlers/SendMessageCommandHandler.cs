@@ -22,18 +22,21 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
             try
             {
                 // Validate username, and password and return the customer ID
-                int customerId = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
+                User user = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
                 // Get Chat Id depending on the phone number
                 string chatId = await _messageRepository.GetChatId(request.PhoneNumber, request.BotKey);
 
                 // Create the TelegramMessage object
                 TelegramMessage message = new TelegramMessage
                 {
-                    CustomerId = customerId.ToString(),
+                    CustomerId = user.CustomerId.ToString(),
                     ChatId = chatId,
                     BotKey = request.BotKey,
                     MessageText = request.MessageText,
                     PhoneNumber = request.PhoneNumber,
+                    MessageType = 'A', // Always 'A' for API messages
+                    Priority = 6,
+                    IsSystemApproved = !user.RequirSystemApprove
                 };
 
                 // Call the repository to send the message
@@ -44,7 +47,7 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
             catch (Exception ex)
             {
                 // Translate to domain-specific exception
-                throw new DatabaseException("An error occurred while fetching user data.", ex);
+                throw new DatabaseException("An error occurred while fetching user data: " + ex.Message);
             }
         }
     }

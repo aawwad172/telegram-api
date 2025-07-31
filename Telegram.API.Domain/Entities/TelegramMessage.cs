@@ -36,4 +36,9 @@ public class TelegramMessage
     /// Always set to <c>'A'</c> when coming from the API.
     /// </summary>
     public char MessageType { get; set; } = 'A';
+
+    public string CampaignId { get; set; } = string.Empty;
+    public string CampDescription { get; set; } = string.Empty;
+    public required int Priority { get; set; }
+    public required bool IsSystemApproved { get; set; }
 }

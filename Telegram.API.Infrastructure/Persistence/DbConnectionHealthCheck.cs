@@ -18,7 +18,7 @@ public class DbConnectionHealthCheck : IHealthCheck
     {
         try
         {
-            using var connection = await _connectionFactory.CreateOpenConnection();
+            using System.Data.IDbConnection connection = await _connectionFactory.CreateOpenConnection();
             return HealthCheckResult.Healthy("SQL Server connection is healthy");
         }
         catch (Exception ex)

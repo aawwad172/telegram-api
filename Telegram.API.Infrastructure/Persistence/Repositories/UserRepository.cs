@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using System.Data;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure;
@@ -15,30 +16,35 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         throw new NotImplementedException();
     }
 
-    public async Task<User> GetByUsernameAsync(string username)
+    public async Task<User?> GetByUsernameAsync(string username)
     {
-        var conn = await _connectionFactory.CreateOpenConnection();
+        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
-        using var cmd = (SqlCommand)conn.CreateCommand();
+        using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
         cmd.CommandType = System.Data.CommandType.StoredProcedure;
         cmd.CommandText = "usp_GetUserByUsername";
         cmd.Parameters.Add(new SqlParameter("@Username", System.Data.SqlDbType.NVarChar)
         { Value = username }
         );
 
-        SqlDataReader reader = await cmd.ExecuteReaderAsync();
-        if (reader.Read())
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
             return new User
             {
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("Password")),
+                RequirSystemApprove = reader.GetBoolean(reader.GetOrdinal("RequireSystemApprove")),
+                RequireAdminApprove = reader.GetBoolean(reader.GetOrdinal("RequireAdminApprove")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                IsBlocked = reader.GetBoolean(reader.GetOrdinal("IsBlocked")),
+                IsTelegramActive = reader.GetBoolean(reader.GetOrdinal("IsTelegramActive"))
             };
         }
         else
         {
-            throw new NotFoundException($"User with username '{username}' not found.");
+            return null;
         }
     }
 }

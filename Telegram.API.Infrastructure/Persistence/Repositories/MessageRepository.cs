@@ -26,6 +26,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
 
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_GetChatId";
+
         cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
         { Value = phoneNumber }
         );
@@ -33,6 +34,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
         { Value = botKey }
         );
+
         SqlParameter outputParam = cmd.Parameters.Add("@ChatId", SqlDbType.NVarChar, 50);
         outputParam.Direction = ParameterDirection.Output;
 
@@ -78,6 +80,23 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         cmd.Parameters.Add(new SqlParameter("@MessageType", SqlDbType.Char)
         { Value = message.MessageType }
         );
+
+        cmd.Parameters.Add(new SqlParameter("@CampaignId", SqlDbType.NVarChar)
+        { Value = message.CampaignId }
+        );
+
+        cmd.Parameters.Add(new SqlParameter("@CampDescription", SqlDbType.NVarChar)
+        { Value = message.CampDescription }
+        );
+
+        cmd.Parameters.Add(new SqlParameter("@Priority", SqlDbType.Int)
+        { Value = message.Priority }
+        );
+
+        cmd.Parameters.Add(new SqlParameter("@IsSystemApproved", SqlDbType.Bit)
+        { Value = message.IsSystemApproved }
+        );
+
 
         SqlParameter outputParam = cmd.Parameters.Add("@NewId", SqlDbType.Int);
         outputParam.Direction = ParameterDirection.Output;

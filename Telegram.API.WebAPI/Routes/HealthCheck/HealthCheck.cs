@@ -11,7 +11,7 @@ public class HealthCheck
     public static async Task<IResult> RegisterRoute(
         [FromServices] HealthCheckService service)
     {
-        var report = await service.CheckHealthAsync();
+        HealthReport report = await service.CheckHealthAsync();
         var response = new
         {
             status = report.Status.ToString(),

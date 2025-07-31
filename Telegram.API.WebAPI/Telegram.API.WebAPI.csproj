@@ -25,8 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="A2A.Utils">
+      <HintPath>..\lib\A2A.Utils.dll</HintPath>
+    </Reference>
     <Reference Include="A2ASerilog">
-      <HintPath>..\..\..\..\..\Downloads\A2ASerilog.dll</HintPath>
+      <HintPath>..\lib\A2ASerilog.dll</HintPath>
     </Reference>
   </ItemGroup>
 

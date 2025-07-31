@@ -1,15 +1,15 @@
-﻿using Telegram.API.Domain.Entities;
+﻿using A2A.Utils.CryptorRelease2;
+using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
-using A2A.Utils.CryptorRelease2;
-using A2A.Utils;
 
 namespace Telegram.API.Application.HelperServices;
 
 public class AuthenticationService(IUserRepository userRepository) : IAuthenticationService
 {
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly EncryptionEngine _encryptionEngine = new();
     /// <summary>
     /// Checks the provided username and password against the authentication system.
     /// </summary>
@@ -17,19 +17,25 @@ public class AuthenticationService(IUserRepository userRepository) : IAuthentica
     /// <param name="password"></param>
     /// <returns>Returns the CustomerId</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<int> AuthenticateAsync(string username, string password)
+    public async Task<User> AuthenticateAsync(string username, string password)
     {
-        User user = await _userRepository.GetByUsernameAsync(username);
-        if (user is null)
-        {
-            throw new NotFoundException("User not found");
-        }
+        User? user = await _userRepository.GetByUsernameAsync(username) ?? throw new NotFoundException("User not found");
 
         // Hash the pawwrod and return the CustomerId if the password matches
-        var hashedPassword = CryptionEngine.EncryptData(password, false);
+        string encryptedPassword = _encryptionEngine.Encrypt(password);
 
-        return hashedPassword == password
-            ? throw new UnauthenticatedException("Invalid username or password") :
-            user.CustomerId;
+        if (encryptedPassword != user.PasswordHash)
+            throw new UnauthenticatedException("Invalid username or password");
+
+        if (!user.IsActive)
+            throw new UnauthenticatedException("User is not active");
+
+        if (user.IsBlocked)
+            throw new UnauthenticatedException("User is blocked");
+
+        if (!user.IsTelegramActive)
+            throw new UnauthenticatedException("User is not subscriped in Telegram");
+
+        return user;
     }
 }
