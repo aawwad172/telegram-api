@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Data.SqlClient;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
@@ -44,10 +45,10 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
 
                 return new SendMessageCommandResult(referenceNumber.ToString());
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is SqlException sqlEx)
             {
                 // Translate to domain-specific exception
-                throw new DatabaseException("An error occurred while fetching user data: " + ex.Message);
+                throw new DatabaseException($"DB Error: {sqlEx.Message}");
             }
         }
     }

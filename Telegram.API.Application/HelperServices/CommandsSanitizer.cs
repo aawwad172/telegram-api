@@ -18,8 +18,8 @@ public class CommandsSanitizer
         command.BotKey = command.BotKey.Trim();
 
         // Remove leading '+' and '0' from PhoneNumber
-        command.PhoneNumber.Trim('+');
-        command.PhoneNumber.TrimStart('0');
+        command.PhoneNumber = command.PhoneNumber.Trim('+');
+        command.PhoneNumber = command.PhoneNumber.TrimStart('0');
         return command;
     }
 }

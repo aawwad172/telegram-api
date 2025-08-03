@@ -77,7 +77,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
         { Value = message.PhoneNumber }
         );
-        cmd.Parameters.Add(new SqlParameter("@MessageType", SqlDbType.Char)
+        cmd.Parameters.Add(new SqlParameter("@MsgType", SqlDbType.Char)
         { Value = message.MessageType }
         );
 
@@ -98,11 +98,8 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         );
 
 
-        SqlParameter outputParam = cmd.Parameters.Add("@NewId", SqlDbType.Int);
-        outputParam.Direction = ParameterDirection.Output;
-
-        await cmd.ExecuteNonQueryAsync();
-        int referenceNumber = (int)outputParam.Value;
+        object? result = await cmd.ExecuteScalarAsync();
+        int referenceNumber = Convert.ToInt32(result);
 
         return referenceNumber;
     }
