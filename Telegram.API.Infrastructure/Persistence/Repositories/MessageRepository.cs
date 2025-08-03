@@ -48,13 +48,12 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
     }
 
     /// <summary>
-    /// Sends a message to a Telegram user or group.
+    /// Sending message by adding the message to the Queue Table (ReadyTable)
     /// </summary>
     /// <param name="message">The <see cref="TelegramMessage"/> object containing the message content and recipient details. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the unique identifier of the sent
-    /// message.</returns>
+    /// <returns>Returns the ID of the inserted row (reference number), or null if the operation fails</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<int> SendMessage(TelegramMessage message)
+    public async Task<int?> SendMessage(TelegramMessage message)
     {
         IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -97,11 +96,9 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         { Value = message.IsSystemApproved }
         );
 
-
-        object? result = await cmd.ExecuteScalarAsync();
-        int referenceNumber = Convert.ToInt32(result);
-
-        return referenceNumber;
+        return Convert.ToInt32(
+            await cmd.ExecuteScalarAsync()
+        );
     }
 
     public Task<IEnumerable<int>> SendMessages(IEnumerable<TelegramMessage> messages)

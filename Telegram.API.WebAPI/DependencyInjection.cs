@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using A2ASerilog;
+using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Utilities;
 using Telegram.API.Infrastructure.Persistence;
@@ -12,8 +13,11 @@ public static class DependencyInjection
     {
 
         Config.ConnectionStrings = configuration.GetRequiredSection("ConnectionStrings").Get<ConnectionStrings>()!;
-        //Config.AppConfig = configuration.GetRequiredSection("AppConfig").Get<AppConfig>()!;
+        Config.AppConfig = configuration.GetRequiredSection("AppConfig").Get<AppConfig>()!;
         //Config.TelegramGatewayConfig = configuration.GetRequiredSection("TelegramGatewayConfig").Get<TelegramGatewayConfig>()!;
+
+        LoggerService._logPath = Config.AppConfig.LogPath;
+        LoggerService._flushPeriod = Config.AppConfig.LogFlushInterval;
 
         services.AddHealthChecks()
                 .AddCheck<DbConnectionHealthCheck>("Database Connection");

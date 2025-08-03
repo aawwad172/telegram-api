@@ -19,51 +19,51 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         }
         catch (NotFoundException ex)
         {
-            LoggerService.Warning("NotFoundException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"NotFoundException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-5", "NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (EnvironmentVariableNotSetException ex)
         {
-            LoggerService.Warning("EnvironmentVariableNotSetException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"EnvironmentVariableNotSetException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "INTERNAL_SERVER_ERROR", ex.Message, StatusCodes.Status500InternalServerError);
-        }
-        catch (ValidationException ex)
-        {
-            LoggerService.Warning("ValidationException occurred: {Message}", ex.Message);
-            await HandleExceptionAsync(context, "-1", "VALIDATION_ERROR", StatusCodes.Status400BadRequest);
         }
         catch (UnauthenticatedException ex)
         {
-            LoggerService.Warning("UnauthenticatedException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"UnauthenticatedException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-2", "UNAUTHENTICATED", StatusCodes.Status401Unauthorized);
         }
         catch (UnauthorizedException ex)
         {
-            LoggerService.Warning("UnauthorizedException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"UnauthorizedException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-2", "UNAUTHORIZED", StatusCodes.Status403Forbidden);
         }
         catch (ConflictException ex)
         {
-            LoggerService.Warning("ConflictException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"ConflictException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-10", "CONFLICT", StatusCodes.Status409Conflict);
         }
         catch (CustomValidationException ex)
         {
-            LoggerService.Warning("CustomValidationException occurred: {Message}", ex.Message);
+            LoggerService.Warning($"CustomValidationException occurred: {ex.Message}: {JoinErrors(ex.Errors)}");
             await HandleExceptionAsync(
                 context: context,
                 errorCode: "-1",
                 message: JoinErrors(ex.Errors),
                 statusCode: StatusCodes.Status400BadRequest);
         }
+        catch (InvalidOperationException ex)
+        {
+            LoggerService.Error($"InvalidOperationException occurred: {ex.Message}");
+            await HandleExceptionAsync(context, "-3", "INVALID_OPERATION", StatusCodes.Status500InternalServerError);
+        }
         catch (DatabaseException ex)
         {
-            LoggerService.Error("DatabaseException occurred: {Message}", ex.Message);
+            LoggerService.Error($"DatabaseException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-20", "DATABASE_ERROR", StatusCodes.Status500InternalServerError);
         }
         catch (Exception ex)
         {
-            LoggerService.Error("An unexpected error occurred: {Message}", ex.Message);
+            LoggerService.Error($"An unexpected error occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-99", "An unexpected error occurred.", StatusCodes.Status500InternalServerError);
         }
     }
