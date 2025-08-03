@@ -54,7 +54,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
     /// <returns>A task that represents the asynchronous operation. The task result contains the unique identifier of the sent
     /// message.</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<int> SendMessage(TelegramMessage message)
+    public async Task<int?> SendMessage(TelegramMessage message)
     {
         IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -97,11 +97,9 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         { Value = message.IsSystemApproved }
         );
 
-
-        object? result = await cmd.ExecuteScalarAsync();
-        int referenceNumber = Convert.ToInt32(result);
-
-        return referenceNumber;
+        return Convert.ToInt32(
+            await cmd.ExecuteScalarAsync()
+        );
     }
 
     public Task<IEnumerable<int>> SendMessages(IEnumerable<TelegramMessage> messages)

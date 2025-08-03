@@ -41,9 +41,14 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
                 };
 
                 // Call the repository to send the message
-                int referenceNumber = await _messageRepository.SendMessage(message);
+                int? referenceNumber = await _messageRepository.SendMessage(message);
 
-                return new SendMessageCommandResult(referenceNumber.ToString());
+                if (referenceNumber == null)
+                {
+                    throw new InvalidOperationException("Failed to send message. Reference number is null.");
+                }
+
+                return new SendMessageCommandResult(referenceNumber.ToString()!);
             }
             catch (Exception ex) when (ex is SqlException sqlEx)
             {

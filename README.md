@@ -1,4 +1,4 @@
-# Telegram.API project (.NET 8)
+﻿# Telegram.API project (.NET 8)
 
 ## Overview
 
@@ -28,7 +28,7 @@ git clone <your-repo-url> cd <repo-folder>
 dotnet restore
 ```
 3. **Update the connection string**
-   - Edit `Telegram.API.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:DbConnectionString`.
+   - Edit `Telegram.API.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:DatabaseConnectionString`.
 
 4. **Build the solution**
 ```bash
@@ -91,6 +91,47 @@ chmod +x .husky/*
 ```bash
 dotnet husky add <hook-name> -c "dotnet husky run --group <group-name>"
 ```
+
+## 📦 Database Setup and Schema
+
+To get your database up-and-running, we include all DDL and SP scripts in the `/Database` folder. Clone the repo and follow these steps:
+
+1. **Create the database** in your SQL Server instance (e.g. `A2A_iMessaging`).
+2. **Run table-creation scripts** in order:
+
+   * `/Database/01-create-tables.sql` — defines `ReadyTable`, `ArchiveTable`, `RecentMessages`, and `BotChatMapping`.
+3. **Run index-creation scripts** (included at bottom of `01-create-tables.sql`).
+4. **Run stored-procedure scripts**:
+
+   * `/Database/02-usps-enqueue-get-archive.sql` — contains:
+
+     * `usp_EnqueueOrArchiveIfDuplicate` (inserts into `ReadyTable`, returns new ID)
+     * `usp_GetUserByUsername`
+     * `usp_GetChatId` (with OUTPUT parameter)
+5. **Run trigger script**:
+
+   * `/Database/03-trigger-archive-duplicates.sql` — defines `trg_ReadyTable_ArchiveDuplicates` to keep the 5-minute dedupe window.
+6. **Schedule cleanup job**:
+
+   * `/Database/04-job-purge-recentmessages.sql` — creates the SQL Agent job `Purge RecentMessages` to delete aged entries every minute.
+   * 
+---
+
+### Folder Structure
+
+```
+/  
+├─ Database/
+│  ├─ 01-create-tables.sql
+│  ├─ 02-usps-enqueue-get-archive.sql
+│  ├─ 03-trigger-archive-duplicates.sql
+│  └─ 04-job-purge-recentmessages.sql
+├─ src/        ← your application code
+└─ README.md   ← this file
+```
+
+Once each script has executed successfully, your database schema and procedural logic will be in place.  Happy coding!
+
 
 ## License
 MIT
