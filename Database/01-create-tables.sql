@@ -12,7 +12,7 @@ CREATE TABLE dbo.ReadyTable
   ChatId       			NVARCHAR(50)   		NOT NULL,
   CampaignId			NVARCHAR(50)				,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
-  MsgType				CHAR				NOT NULL,
+  MsgType				CHAR(1)				NOT NULL,
   BotKey       			NVARCHAR(100)  		NOT NULL,
   ScheduledSendDateTime  DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ReceivedDateTime		DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
@@ -48,7 +48,7 @@ CREATE TABLE dbo.ArchiveTable
   ChatId       		NVARCHAR(50)  NOT NULL,
   CampaignId		NVARCHAR(50)  	      ,
   MessageText  		NVARCHAR(MAX) NOT NULL,
-  MsgType		CHAR	      NOT NULL,
+  MsgType		    CHAR(1)	      NOT NULL,
   BotKey       		NVARCHAR(100) NOT NULL,
   ScheduledSendDateTime  DATETIME      NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ReceivedDateTime    	DATETIME      NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE dbo.RecentMessages
   MessageHash  		BINARY(32)     NOT NULL,
   ReceivedDateTime      DATETIME       NOT NULL,
   ReadyId      		INT            NOT NULL,
-  CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReceivedDateTime)
+  CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReadyId)
 );
 GO
 
@@ -89,7 +89,7 @@ CREATE NONCLUSTERED INDEX IX_RecentMessages_ReadyDate
 GO
 
 CREATE NONCLUSTERED INDEX IX_RecentMessages_ReadyId
-  ON dbo.RecentMessages (ReceivedDateTime);
+  ON dbo.RecentMessages (ReadyId);
 GO
 
 
@@ -105,7 +105,7 @@ CREATE TABLE dbo.BotChatMapping
   PhoneNumber    NVARCHAR(20)    NOT NULL,
   BotKey         NVARCHAR(100)   NOT NULL,
   ChatId         NVARCHAR(50)    NOT NULL,
-  CreatedDate    DATETIME        NOT NULL
+  CreatedDate    DATETIME        NOT NULL,
 
   CONSTRAINT PK_BotChatMapping PRIMARY KEY CLUSTERED
     (PhoneNumber, BotKey)

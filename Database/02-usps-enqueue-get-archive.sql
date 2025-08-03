@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @ChatId      		NVARCHAR(50),
   @BotKey      		NVARCHAR(100),
   @MessageText 		NVARCHAR(MAX),
-  @PhoneNumber      NVARCHAR(20),
+  -- @PhoneNumber      NVARCHAR(20),
   @MsgType     		CHAR, 
   @CampaignId  		NVARCHAR(50), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required

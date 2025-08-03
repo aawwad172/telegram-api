@@ -45,10 +45,10 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
 
                 if (referenceNumber == null)
                 {
-                    throw new InvalidOperationException("Failed to send message. Reference number is null.");
+                    throw new InvalidOperationException($"Failed to send message to {request.PhoneNumber}. Repository returned null reference number.");
                 }
 
-                return new SendMessageCommandResult(referenceNumber.ToString()!);
+                return new SendMessageCommandResult(referenceNumber.Value.ToString());
             }
             catch (Exception ex) when (ex is SqlException sqlEx)
             {

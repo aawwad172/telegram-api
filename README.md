@@ -28,7 +28,7 @@ git clone <your-repo-url> cd <repo-folder>
 dotnet restore
 ```
 3. **Update the connection string**
-   - Edit `Telegram.API.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:DatabaseConnectionString`.
+   - Edit `Telegram.API.WebAPI/appsettings.json` and set your SQL Server connection string under `ConnectionStrings:ConStr`.
 
 4. **Build the solution**
 ```bash
@@ -99,27 +99,26 @@ To get your database up-and-running, we include all DDL and SP scripts in the `/
 1. **Create the database** in your SQL Server instance (e.g. `A2A_iMessaging`).
 2. **Run table-creation scripts** in order:
 
-   * `/Database/01-create-tables.sql` — defines `ReadyTable`, `ArchiveTable`, `RecentMessages`, and `BotChatMapping`.
+   - `/Database/01-create-tables.sql` — defines `ReadyTable`, `ArchiveTable`, `RecentMessages`, and `BotChatMapping`.
 3. **Run index-creation scripts** (included at bottom of `01-create-tables.sql`).
 4. **Run stored-procedure scripts**:
 
-   * `/Database/02-usps-enqueue-get-archive.sql` — contains:
+   - `/Database/02-usps-enqueue-get-archive.sql` — contains:
 
      * `usp_EnqueueOrArchiveIfDuplicate` (inserts into `ReadyTable`, returns new ID)
      * `usp_GetUserByUsername`
      * `usp_GetChatId` (with OUTPUT parameter)
 5. **Run trigger script**:
 
-   * `/Database/03-trigger-archive-duplicates.sql` — defines `trg_ReadyTable_ArchiveDuplicates` to keep the 5-minute dedupe window.
+   - `/Database/03-trigger-archive-duplicates.sql` — defines `trg_ReadyTable_ArchiveDuplicates` to keep the 5-minute dedupe window.
 6. **Schedule cleanup job**:
 
-   * `/Database/04-job-purge-recentmessages.sql` — creates the SQL Agent job `Purge RecentMessages` to delete aged entries every minute.
-   * 
+   - `/Database/04-job-purge-recentmessages.sql` — creates the SQL Agent job `Purge RecentMessages` to delete aged entries every minute.
 ---
 
 ### Folder Structure
 
-```
+```text
 /  
 ├─ Database/
 │  ├─ 01-create-tables.sql
