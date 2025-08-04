@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @ChatId      		NVARCHAR(50),
   @BotKey      		NVARCHAR(100),
   @MessageText 		NVARCHAR(MAX),
-  -- @PhoneNumber      NVARCHAR(20),
+  @PhoneNumber      NVARCHAR(20),
   @MsgType     		CHAR, 
   @CampaignId  		NVARCHAR(50), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required
@@ -29,28 +29,30 @@ BEGIN
   -- always enqueue; trigger will handle RecentMessages & archiving
  INSERT INTO dbo.ReadyTable
     (ChatId
-    ,MessageText
+    ,CustId
     ,BotKey
-    ,ScheduledSendDateTime     -- ← add this
+    ,PhoneNumber
+    ,MessageText
+    ,MsgType
     ,ReceivedDateTime
+    ,ScheduledSendDateTime     -- ← add this
     ,MessageHash
     ,Priority
-    ,CustId
-    ,MsgType
     ,CampaignId
     ,CampDescription
     ,IsSystemApproved
     ,Paused)
   VALUES
     (@ChatId
-    ,@MessageText
+    ,@CustId
     ,@BotKey
-    ,@ScheduledSendDateTime   -- ← use your variable here
+    ,@PhoneNumber
+    ,@MessageText
+    ,@MsgType
     ,GETDATE()
+    ,@ScheduledSendDateTime   -- ← use your variable here
     ,@hashedMsg
     ,@Priority
-    ,@CustId
-    ,@MsgType
     ,@CampaignId
     ,@CampDescription
     ,@IsSystemApproved

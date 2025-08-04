@@ -8,13 +8,14 @@ GO
 CREATE TABLE dbo.ReadyTable
 (
   ID           			INT					IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
-  CustId			INT				 	NOT NULL,
+  CustId			    INT				 	NOT NULL,
   ChatId       			NVARCHAR(50)   		NOT NULL,
   BotKey       			NVARCHAR(100)  		NOT NULL,
+  PhoneNumber           NVARCHAR(20)        NOT NULL,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
   MsgType				CHAR(1)				NOT NULL,
   ReceivedDateTime		DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
-  ScheduledSendDateTime  DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  ScheduledSendDateTime DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   MessageHash  			BINARY(32)     		NOT NULL, -- Auto Generated from the SP.
   Priority     			SMALLINT       		NOT NULL,
   CampaignId			NVARCHAR(50)				,
@@ -43,27 +44,27 @@ GO
 -- 2) Recreate ArchiveTable without any FK constraint
 CREATE TABLE dbo.ArchiveTable
 (
-  ID           		INT    	      NOT NULL,  -- surrogate PK
-  CustId		INT	      NOT NULL,
-  ChatId       		NVARCHAR(50)  NOT NULL,
-  BotKey       		NVARCHAR(100) NOT NULL,
-  MessageText  		NVARCHAR(MAX) NOT NULL,
-  MsgType		    CHAR(1)	      NOT NULL,
-  ReceivedDateTime    	DATETIME      NOT NULL,
-  ScheduledSendDateTime  DATETIME      NOT NULL, -- Auto Generated using GETDATE() in the SP.
-  GatewayDateTime       DATETIME      NOT NULL,
-  MessageHash  		BINARY(32)    NOT NULL,
-  Priority     	        SMALLINT      NOT NULL,
-  CampaignId		NVARCHAR(50)  	      ,
-  CampDescription	NVARCHAR(512),
-  IsSystemApproved	BIT   	      NOT NULL,
-  Paused		BIT	      NOT NULL,
+  ID           		     INT    	      NOT NULL,  -- surrogate PK
+  CustId		         INT	          NOT NULL,
+  ChatId       		     NVARCHAR(50)     NOT NULL,
+  BotKey       		     NVARCHAR(100)    NOT NULL,
+  PhoneNumber            NVARCHAR(20)     NOT NULL,
+  MessageText  		     NVARCHAR(MAX)    NOT NULL,
+  MsgType		         CHAR(1)	      NOT NULL,
+  ReceivedDateTime    	 DATETIME         NOT NULL,
+  ScheduledSendDateTime  DATETIME         NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  GatewayDateTime        DATETIME         NOT NULL,
+  MessageHash  		     BINARY(32)       NOT NULL,
+  Priority     	         SMALLINT         NOT NULL,
+  MobileCountry          NVARCHAR(10)     NOT NULL,
+  CampaignId		     NVARCHAR(50)             ,
+  CampDescription	     NVARCHAR(512)            ,
+  IsSystemApproved	     BIT   	          NOT NULL,
+  Paused		         BIT	          NOT NULL,
   CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (ID)
 );
 GO
 
-
--- 4) (Optional) index MessageHash if you query on it
 CREATE NONCLUSTERED INDEX IX_ArchiveTable_MessageHash
   ON dbo.ArchiveTable (MessageHash);
 GO
