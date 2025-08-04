@@ -17,20 +17,18 @@ public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
-            .WithMessage("Mobile number is required.")
-            .Matches(@"^\+[1-9]\d{1,14}$")
-            .WithMessage("Mobile number must be in E.164 format (e.g. +12345678901).");
-
+            .WithMessage("Mobile number is required.");
 
         RuleFor(x => x.MessageText)
-            .NotEmpty().WithMessage("Message text is required.")
-            .MaximumLength(500)
-            .WithMessage("Message text cannot exceed 500 characters.");
+            .NotEmpty()
+            .WithMessage("Message text is required.")
+            .MaximumLength(4096)
+            .WithMessage("Message text cannot exceed 4096 characters.");
 
         RuleFor(x => x.BotKey)
             .NotEmpty()
             .MaximumLength(50)
             .MinimumLength(43)
-            .WithMessage("Bot key must be between 43 and 45 characters long.");
+            .WithMessage("Bot key must be between 43 and 50 characters long.");
     }
 }

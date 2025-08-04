@@ -25,15 +25,17 @@ BEGIN
   DECLARE @Dupes TABLE
   (
     ID                  INT,
-    CustomerId          INT,
+    CustId          INT,
     ChatId              NVARCHAR(50),
+    BotKey              NVARCHAR(100),
+    PhoneNumber         NVARCHAR(20),
     MessageText         NVARCHAR(MAX),
     MsgType             CHAR(1),
-    BotKey              NVARCHAR(100),
-    ScheduledSendDateTime DATETIME,
     ReceivedDateTime    DATETIME,
+    ScheduledSendDateTime DATETIME,
     MessageHash         BINARY(32),
     Priority            SMALLINT,
+    MobileCountry      NVARCHAR(10),
     CampaignId          NVARCHAR(50),
     CampDescription     NVARCHAR(512),
     IsSystemApproved    BIT,
@@ -43,15 +45,17 @@ BEGIN
   INSERT INTO @Dupes
   SELECT
     i.ID,
-    i.CustomerId,
+    i.CustId,
     i.ChatId,
+    i.BotKey,
+    i.PhoneNumber,
     i.MessageText,
     i.MsgType,
-    i.BotKey,
-    i.ScheduledSendDateTime,
     i.ReceivedDateTime,
+    i.ScheduledSendDateTime,
     i.MessageHash,
     i.Priority,
+    A2A_iMessaging.dbo.GetCountryCode(i.PhoneNumber),
     i.CampaignId,
     i.CampDescription,
     i.IsSystemApproved,
@@ -73,33 +77,37 @@ BEGIN
   ----------------------------------------------------------------
   INSERT INTO dbo.ArchiveTable
         (ID
-    ,CustomerId
+    ,CustId
     ,ChatId
-    ,CampaignId
+    ,BotKey
+    ,PhoneNumber
     ,MessageText
     ,MsgType
-    ,BotKey
-    ,ScheduledSendDateTime
     ,ReceivedDateTime
+    ,ScheduledSendDateTime
     ,GatewayDateTime
     ,MessageHash
     ,Priority
+    ,MobileCountry
+    ,CampaignId
     ,CampDescription
     ,IsSystemApproved
     ,Paused)  
    SELECT
     d.ID,
-    d.CustomerId,
+    d.CustId,
     d.ChatId,
-    d.CampaignId,
+    d.BotKey,
+    d.PhoneNumber,
     d.MessageText,
     d.MsgType,
-    d.BotKey,
-    d.ScheduledSendDateTime,
     d.ReceivedDateTime,
+    d.ScheduledSendDateTime,
     GETDATE()                  AS GatewayDateTime,
     d.MessageHash,
     d.Priority,
+    d.MobileCountry,
+    d.CampaignId,
     d.CampDescription,
     d.IsSystemApproved,
     d.Paused

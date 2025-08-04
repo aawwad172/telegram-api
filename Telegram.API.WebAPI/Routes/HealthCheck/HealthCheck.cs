@@ -1,8 +1,5 @@
-﻿using FluentValidation;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Telegram.API.WebAPI.Interfaces;
 
 namespace Telegram.API.WebAPI.Routes.HealthCheck;
 

@@ -1,7 +1,6 @@
 ﻿using A2ASerilog;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Models;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
 
@@ -51,10 +50,15 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
                 message: JoinErrors(ex.Errors),
                 statusCode: StatusCodes.Status400BadRequest);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidPhoneNumberException ex)
         {
-            LoggerService.Error($"InvalidOperationException occurred: {ex.Message}");
-            await HandleExceptionAsync(context, "-3", "INVALID_OPERATION", StatusCodes.Status500InternalServerError);
+            LoggerService.Warning($"InvalidPhoneNumberException occurred: {ex.Message}");
+            await HandleExceptionAsync(context, "-30", "INVALID_PHONE_NUMBER", StatusCodes.Status400BadRequest);
+        }
+        catch (ChatIdNotFoundException ex)
+        {
+            LoggerService.Warning($"ChatIdNotFoundException occurred: {ex.Message}");
+            await HandleExceptionAsync(context, "-31", "CHAT_ID_NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (DatabaseException ex)
         {
@@ -73,10 +77,15 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        ApiResponse<string> response = ApiResponse<string>.ErrorResponse(response: string.Empty,
-                                                                         errorMessage: message,
-                                                                         errorCode: errorCode);
-        string result = JsonSerializer.Serialize(response);
+        // Json Serialization Options to make all camelCase
+        JsonSerializerOptions options = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true // Optional: for pretty printing
+        };
+
+        ApiResponse response = ApiResponse.ErrorResponse(errorMessage: message, errorCode: errorCode);
+        string result = JsonSerializer.Serialize(response, options);
         await context.Response.WriteAsync(result);
     }
 

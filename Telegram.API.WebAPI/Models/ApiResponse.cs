@@ -1,28 +1,28 @@
 ﻿namespace Telegram.API.WebAPI.Models;
 
-public class ApiResponse<T>
+public class ApiResponse
 {
     public bool Success { get; init; }
-    public T Data { get; init; }
-    public string Message { get; init; }
+    public string RefNumber { get; init; }
+    public string ErrorMessage { get; init; }
     public string ErrorCode { get; init; }
 
     private ApiResponse(
         bool success,
-        T response,
-        string message,
+        string refNumber,
+        string errorMessage,
         string errorCode)
     {
         Success = success;
-        Message = message;
+        ErrorMessage = errorMessage;
         ErrorCode = errorCode;
-        Data = response;
+        RefNumber = refNumber;
     }
 
     // Factory methods
-    public static ApiResponse<T> SuccessResponse(T response)
-        => new ApiResponse<T>(success: true, response: response, message: "Success", errorCode: "0");
+    public static ApiResponse SuccessResponse(string refNumber)
+        => new(success: true, refNumber: refNumber, errorMessage: "Success", errorCode: "0");
 
-    public static ApiResponse<T> ErrorResponse(T response, string errorMessage, string errorCode)
-        => new ApiResponse<T>(success: false, response: response, message: errorMessage, errorCode: errorCode);
+    public static ApiResponse ErrorResponse(string errorMessage, string errorCode)
+        => new(success: false, refNumber: "", errorMessage: errorMessage, errorCode: errorCode);
 }

@@ -1,4 +1,4 @@
-Telegram Gateway Jobs
+-- Telegram Gateway Jobs
 
 USE msdb;
 GO

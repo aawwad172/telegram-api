@@ -18,7 +18,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
     /// <param name="botKey"></param>
     /// <returns>ChatId if the user is supscribed</returns>
     /// <exception cref="NotFoundException"></exception>
-    public async Task<string> GetChatId(string phoneNumber, string botKey)
+    public async Task<string?> GetChatId(string phoneNumber, string botKey)
     {
         IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -39,10 +39,9 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         outputParam.Direction = ParameterDirection.Output;
 
         await cmd.ExecuteNonQueryAsync();
+
         if (outputParam.Value == DBNull.Value)
-        {
-            throw new NotFoundException("User is not subscribed to the provided bot");
-        }
+            return null;
 
         return outputParam.Value.ToString()!;
     }
@@ -53,7 +52,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
     /// <param name="message">The <see cref="TelegramMessage"/> object containing the message content and recipient details. Cannot be null.</param>
     /// <returns>Returns the ID of the inserted row (reference number), or null if the operation fails</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<int?> SendMessage(TelegramMessage message)
+    public async Task<int> SendMessage(TelegramMessage message)
     {
         IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -61,7 +60,7 @@ public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessag
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_EnqueueOrArchiveIfDuplicate";
 
-        cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int)
+        cmd.Parameters.Add(new SqlParameter("@CustId", SqlDbType.Int)
         { Value = message.CustomerId }
         );
         cmd.Parameters.Add(new SqlParameter("@ChatId", SqlDbType.NVarChar)
