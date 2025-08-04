@@ -1,0 +1,14 @@
+﻿using System.Runtime.Serialization;
+
+namespace Telegram.API.Domain.Exceptions;
+
+public class InvalidPhoneNumberException : Exception
+{
+    public InvalidPhoneNumberException(string? message) : base(message)
+    {
+    }
+
+    public InvalidPhoneNumberException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+}

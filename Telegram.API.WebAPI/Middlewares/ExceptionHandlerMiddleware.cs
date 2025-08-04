@@ -50,6 +50,11 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
                 message: JoinErrors(ex.Errors),
                 statusCode: StatusCodes.Status400BadRequest);
         }
+        catch (InvalidPhoneNumberException ex)
+        {
+            LoggerService.Warning($"InvalidPhoneNumberException occurred: {ex.Message}");
+            await HandleExceptionAsync(context, "-30", "INVALID_PHONE_NUMBER", StatusCodes.Status400BadRequest);
+        }
         catch (ChatIdNotFoundException ex)
         {
             LoggerService.Warning($"ChatIdNotFoundException occurred: {ex.Message}");

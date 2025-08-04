@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace Telegram.API.WebAPI.Models;
+﻿namespace Telegram.API.WebAPI.Models;
 
 public class ApiResponse
 {
