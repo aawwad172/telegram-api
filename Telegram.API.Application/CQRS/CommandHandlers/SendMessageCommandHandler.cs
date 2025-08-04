@@ -25,10 +25,16 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
                 // Validate username, and password and return the customer ID
                 User user = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
                 // Get Chat Id depending on the phone number
-                string chatId = await _messageRepository.GetChatId(request.PhoneNumber, request.BotKey);
+                string? chatId = await _messageRepository.GetChatId(request.PhoneNumber, request.BotKey);
+
+                if (string.IsNullOrEmpty(chatId))
+                {
+                    // If chatId is null or empty, throw an exception or the BotKey is wrong
+                    throw new ChatIdNotFoundException($"Chat ID not found for phone number {request.PhoneNumber} and bot key {request.BotKey}. Or the BotKey is Wrong");
+                }
 
                 // Create the TelegramMessage object
-                TelegramMessage message = new TelegramMessage
+                TelegramMessage message = new()
                 {
                     CustomerId = user.CustomerId.ToString(),
                     ChatId = chatId,
@@ -41,14 +47,9 @@ namespace Telegram.API.Application.CQRS.CommandHandlers
                 };
 
                 // Call the repository to send the message
-                int? referenceNumber = await _messageRepository.SendMessage(message);
+                int referenceNumber = await _messageRepository.SendMessage(message);
 
-                if (referenceNumber == null)
-                {
-                    throw new InvalidOperationException($"Failed to send message to {request.PhoneNumber}. Repository returned null reference number.");
-                }
-
-                return new SendMessageCommandResult(referenceNumber.Value.ToString());
+                return new SendMessageCommandResult(referenceNumber.ToString());
             }
             catch (Exception ex) when (ex is SqlException sqlEx)
             {

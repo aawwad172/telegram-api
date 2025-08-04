@@ -8,16 +8,16 @@ GO
 CREATE TABLE dbo.ReadyTable
 (
   ID           			INT					IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
-  CustomerId			INT				 	NOT NULL,
+  CustId			INT				 	NOT NULL,
   ChatId       			NVARCHAR(50)   		NOT NULL,
-  CampaignId			NVARCHAR(50)				,
+  BotKey       			NVARCHAR(100)  		NOT NULL,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
   MsgType				CHAR(1)				NOT NULL,
-  BotKey       			NVARCHAR(100)  		NOT NULL,
-  ScheduledSendDateTime  DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ReceivedDateTime		DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  ScheduledSendDateTime  DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   MessageHash  			BINARY(32)     		NOT NULL, -- Auto Generated from the SP.
   Priority     			SMALLINT       		NOT NULL,
+  CampaignId			NVARCHAR(50)				,
   CampDescription		NVARCHAR(512)				,
   IsSystemApproved		BIT					NOT NULL,
   Paused				BIT					NOT NULL,
@@ -44,17 +44,17 @@ GO
 CREATE TABLE dbo.ArchiveTable
 (
   ID           		INT    	      NOT NULL,  -- surrogate PK
-  CustomerId		INT	      NOT NULL,
+  CustId		INT	      NOT NULL,
   ChatId       		NVARCHAR(50)  NOT NULL,
-  CampaignId		NVARCHAR(50)  	      ,
+  BotKey       		NVARCHAR(100) NOT NULL,
   MessageText  		NVARCHAR(MAX) NOT NULL,
   MsgType		    CHAR(1)	      NOT NULL,
-  BotKey       		NVARCHAR(100) NOT NULL,
-  ScheduledSendDateTime  DATETIME      NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ReceivedDateTime    	DATETIME      NOT NULL,
+  ScheduledSendDateTime  DATETIME      NOT NULL, -- Auto Generated using GETDATE() in the SP.
   GatewayDateTime       DATETIME      NOT NULL,
   MessageHash  		BINARY(32)    NOT NULL,
   Priority     	        SMALLINT      NOT NULL,
+  CampaignId		NVARCHAR(50)  	      ,
   CampDescription	NVARCHAR(512),
   IsSystemApproved	BIT   	      NOT NULL,
   Paused		BIT	      NOT NULL,

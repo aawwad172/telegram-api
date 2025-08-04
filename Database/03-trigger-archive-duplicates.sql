@@ -25,7 +25,7 @@ BEGIN
   DECLARE @Dupes TABLE
   (
     ID                  INT,
-    CustomerId          INT,
+    CustId          INT,
     ChatId              NVARCHAR(50),
     MessageText         NVARCHAR(MAX),
     MsgType             CHAR(1),
@@ -43,7 +43,7 @@ BEGIN
   INSERT INTO @Dupes
   SELECT
     i.ID,
-    i.CustomerId,
+    i.CustId,
     i.ChatId,
     i.MessageText,
     i.MsgType,
@@ -73,7 +73,7 @@ BEGIN
   ----------------------------------------------------------------
   INSERT INTO dbo.ArchiveTable
         (ID
-    ,CustomerId
+    ,CustId
     ,ChatId
     ,CampaignId
     ,MessageText
@@ -89,7 +89,7 @@ BEGIN
     ,Paused)  
    SELECT
     d.ID,
-    d.CustomerId,
+    d.CustId,
     d.ChatId,
     d.CampaignId,
     d.MessageText,

@@ -28,12 +28,9 @@ public class SendMessage : ICommandRoute<SendMessageCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
+        SendMessageCommandResult result = await mediator.Send(CommandsSanitizer.SanitizeSendMessageCommand(request));
+
         // Use this to prevent extra memory allocation
-        return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(
-            await mediator.Send(
-                    CommandsSanitizer.SanitizeSendMessageCommand(request)
-                )
-            )
-        );
+        return Results.Ok(ApiResponse.SuccessResponse(result.ReferenceNumber));
     }
 }

@@ -2,7 +2,7 @@
  * 2.1) usp_EnqueueOrArchiveIfDuplicate
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
-  @CustomerId  		INT,
+  @CustId  		INT,
   @ChatId      		NVARCHAR(50),
   @BotKey      		NVARCHAR(100),
   @MessageText 		NVARCHAR(MAX),
@@ -35,7 +35,7 @@ BEGIN
     ,ReceivedDateTime
     ,MessageHash
     ,Priority
-    ,CustomerId
+    ,CustId
     ,MsgType
     ,CampaignId
     ,CampDescription
@@ -49,7 +49,7 @@ BEGIN
     ,GETDATE()
     ,@hashedMsg
     ,@Priority
-    ,@CustomerId
+    ,@CustId
     ,@MsgType
     ,@CampaignId
     ,@CampDescription

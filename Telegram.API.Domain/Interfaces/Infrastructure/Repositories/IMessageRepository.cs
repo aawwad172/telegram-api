@@ -9,7 +9,7 @@ public interface IMessageRepository
     /// </summary>
     /// <param name="message"></param>
     /// <returns>It returns the Id of the row that been inserted (reference number)</returns>
-    Task<int?> SendMessage(TelegramMessage message);
+    Task<int> SendMessage(TelegramMessage message);
 
     /// <summary>
     /// Sending messages by adding the messages to the Queue Table (ReadyTable)
@@ -24,7 +24,7 @@ public interface IMessageRepository
     /// <param name="phoneNumber"></param>
     /// <param name="botKey"></param>
     /// <returns>ChatId of telegram for the number</returns>
-    Task<string> GetChatId(string phoneNumber, string botKey);
+    Task<string?> GetChatId(string phoneNumber, string botKey);
 
     //Task<string> SendCampaign(CampaignMessage messege);
 }
