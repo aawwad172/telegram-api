@@ -5,10 +5,10 @@ namespace Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 public interface IUserRepository : IRepository<User>
 {
     /// <summary>
-    /// Getting the chat id from the phone number and the bot key.
+    /// Gets the user information from the phone number and the bot key.
     /// </summary>
     /// <param name="phoneNumber"></param>
     /// <param name="botKey"></param>
-    /// <returns>ChatId of telegram for the number</returns>
+    /// <returns>User entity containing chat information, or null if not found</returns>
     Task<User?> GetUserAsync(string phoneNumber, string botKey);
 }

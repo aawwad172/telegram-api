@@ -18,7 +18,7 @@ public class SubscriptionInfoQueryHandler(
     {
         try
         {
-            // Authenticate the Tenant using the provided username and password
+            // Authenticate the Customer using the provided username and password
             Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
             if (customer is null)

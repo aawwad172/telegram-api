@@ -3,7 +3,7 @@ using Telegram.API.Domain.Interfaces;
 
 namespace Telegram.API.Application.CQRS.Queries;
 
-public record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IBaseCQRS
+public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IBaseCQRS
 {
     public required string Username { get; init; }
     public required string Password { get; init; }

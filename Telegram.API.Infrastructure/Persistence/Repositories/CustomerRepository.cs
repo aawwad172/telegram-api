@@ -34,7 +34,7 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("Password")),
-                RequirSystemApprove = reader.GetBoolean(reader.GetOrdinal("RequireSystemApprove")),
+                RequireSystemApprove = reader.GetBoolean(reader.GetOrdinal("RequireSystemApprove")),
                 RequireAdminApprove = reader.GetBoolean(reader.GetOrdinal("RequireAdminApprove")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 IsBlocked = reader.GetBoolean(reader.GetOrdinal("IsBlocked")),

@@ -21,7 +21,7 @@ public class AuthenticationService(ICustomerRepository customerRepository) : IAu
     {
         Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username) ?? throw new NotFoundException("User not found");
 
-        // Hash the passwrod and return the CustomerId if the password matches
+        // Hash the password and return the CustomerId if the password matches
         string encryptedPassword = _encryptionEngine.Encrypt(password);
 
         if (encryptedPassword != customer.PasswordHash)
@@ -34,7 +34,7 @@ public class AuthenticationService(ICustomerRepository customerRepository) : IAu
             throw new UnauthenticatedException("Customer is blocked");
 
         if (!customer.IsTelegramActive)
-            throw new UnauthenticatedException("Customer is not subscriped in Telegram");
+            throw new UnauthenticatedException("Customer is not subscribed in Telegram");
 
         return customer;
     }

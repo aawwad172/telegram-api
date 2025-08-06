@@ -45,7 +45,7 @@ public class SendMessageCommandHandler(
                 PhoneNumber = request.PhoneNumber,
                 MessageType = 'A', // Always 'A' for API messages
                 Priority = 6,
-                IsSystemApproved = !customer.RequirSystemApprove
+                IsSystemApproved = !customer.RequireSystemApprove
             };
 
             // Call the repository to send the message
