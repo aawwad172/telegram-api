@@ -9,21 +9,26 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-
     public Task<User> GetById(int id)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<User?> GetByUsernameAsync(string username)
+    public async Task<User?> GetUserAsync(string phoneNumber, string botKey)
     {
-        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
+        IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
-        cmd.CommandType = System.Data.CommandType.StoredProcedure;
-        cmd.CommandText = "usp_GetUserByUsername";
-        cmd.Parameters.Add(new SqlParameter("@Username", System.Data.SqlDbType.NVarChar)
-        { Value = username }
+
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "usp_GetTelegramUser";
+
+        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
+        { Value = phoneNumber }
+        );
+
+        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
+        { Value = botKey }
         );
 
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
@@ -31,14 +36,10 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         {
             return new User
             {
-                CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
-                Username = reader.GetString(reader.GetOrdinal("Username")),
-                PasswordHash = reader.GetString(reader.GetOrdinal("Password")),
-                RequirSystemApprove = reader.GetBoolean(reader.GetOrdinal("RequireSystemApprove")),
-                RequireAdminApprove = reader.GetBoolean(reader.GetOrdinal("RequireAdminApprove")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                IsBlocked = reader.GetBoolean(reader.GetOrdinal("IsBlocked")),
-                IsTelegramActive = reader.GetBoolean(reader.GetOrdinal("IsTelegramActive"))
+                ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
+                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                BotKey = reader.GetString(reader.GetOrdinal("BotKey")),
+                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate"))
             };
         }
         else

@@ -84,7 +84,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             WriteIndented = true // Optional: for pretty printing
         };
 
-        ApiResponse response = ApiResponse.ErrorResponse(errorMessage: message, errorCode: errorCode);
+        ApiResponse<object> response = ApiResponse<object>.ErrorResponse(errorMessage: message, errorCode: errorCode);
         string result = JsonSerializer.Serialize(response, options);
         await context.Response.WriteAsync(result);
     }

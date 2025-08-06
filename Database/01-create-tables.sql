@@ -106,7 +106,7 @@ CREATE TABLE dbo.BotChatMapping
   PhoneNumber    NVARCHAR(20)    NOT NULL,
   BotKey         NVARCHAR(100)   NOT NULL,
   ChatId         NVARCHAR(50)    NOT NULL,
-  CreatedDate    DATETIME        NOT NULL,
+  CreationDate    DATETIME        NOT NULL,
 
   CONSTRAINT PK_BotChatMapping PRIMARY KEY CLUSTERED
     (PhoneNumber, BotKey)

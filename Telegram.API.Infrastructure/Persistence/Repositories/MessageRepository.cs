@@ -10,42 +10,6 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessageRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-
-    /// <summary>
-    ///     Getting the chat ID for a given phone number and bot key.
-    /// </summary>
-    /// <param name="phoneNumber"></param>
-    /// <param name="botKey"></param>
-    /// <returns>ChatId if the user is supscribed</returns>
-    /// <exception cref="NotFoundException"></exception>
-    public async Task<string?> GetChatId(string phoneNumber, string botKey)
-    {
-        IDbConnection conn = await _connectionFactory.CreateOpenConnection();
-
-        using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
-
-        cmd.CommandType = CommandType.StoredProcedure;
-        cmd.CommandText = "usp_GetChatId";
-
-        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
-        { Value = phoneNumber }
-        );
-
-        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
-        { Value = botKey }
-        );
-
-        SqlParameter outputParam = cmd.Parameters.Add("@ChatId", SqlDbType.NVarChar, 50);
-        outputParam.Direction = ParameterDirection.Output;
-
-        await cmd.ExecuteNonQueryAsync();
-
-        if (outputParam.Value == DBNull.Value)
-            return null;
-
-        return outputParam.Value.ToString()!;
-    }
-
     /// <summary>
     /// Sending message by adding the message to the Queue Table (ReadyTable)
     /// </summary>

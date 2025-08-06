@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Telegram.API.Application.CQRS.CommandHandlers;
+using Telegram.API.Application.CQRS.QueryHandlers;
 using Telegram.API.Application.HelperServices;
+using Telegram.API.Application.Utilities;
 using Telegram.API.Domain.Interfaces.Application;
 
 namespace Telegram.API.Application;
@@ -17,7 +19,10 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(SendMessageCommandHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(SubscriptionInfoQueryHandler).Assembly);
         });
+
+        MapsterConfiguration.RegisterMappings();
 
 
         return services;

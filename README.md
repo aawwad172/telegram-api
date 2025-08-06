@@ -107,7 +107,7 @@ To get your database up-and-running, we include all DDL and SP scripts in the `/
 
      * `usp_EnqueueOrArchiveIfDuplicate` (inserts into `ReadyTable`, returns new ID)
      * `usp_GetUserByUsername`
-     * `usp_GetChatId` (with OUTPUT parameter)
+     * `usp_GetTelegramUser` (with OUTPUT parameter)
 5. **Run trigger script**:
 
    - `/Database/03-trigger-archive-duplicates.sql` — defines `trg_ReadyTable_ArchiveDuplicates` to keep the 5-minute dedupe window.
