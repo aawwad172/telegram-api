@@ -21,7 +21,7 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
 
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
         cmd.CommandType = CommandType.StoredProcedure;
-        cmd.CommandText = "usp_GetUserByUsername";
+        cmd.CommandText = "usp_GetCustomerByUsername";
         cmd.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar)
         { Value = username }
         );

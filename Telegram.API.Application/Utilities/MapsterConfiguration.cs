@@ -19,6 +19,6 @@ public static class MapsterConfiguration
         TypeAdapterConfig<User, SubscriptionInfoQueryResult>.NewConfig()
             .Map(dest => dest.ChatId, src => src.ChatId)
             .Map(dest => dest.CreationDate, src => src.CreationDate)
-            .Map(dest => dest.Subscribed, src => !string.IsNullOrWhiteSpace(src.ChatId));
+            .Map(dest => dest.Subscribed, _ => true);
     }
 }

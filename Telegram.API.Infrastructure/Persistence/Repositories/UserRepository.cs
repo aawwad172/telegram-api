@@ -16,7 +16,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
 
     public async Task<User?> GetUserAsync(string phoneNumber, string botKey)
     {
-        IDbConnection conn = await _connectionFactory.CreateOpenConnection();
+        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
 

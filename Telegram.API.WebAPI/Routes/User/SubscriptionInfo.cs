@@ -9,7 +9,7 @@ using Telegram.API.WebAPI.Models;
 
 namespace Telegram.API.WebAPI.Routes.User;
 
-public class SubscriptionInfo : IParametarizedQueryRoute<SubscriptionInfoQuery>
+public class SubscriptionInfo : IParameterizedQueryRoute<SubscriptionInfoQuery>
 {
     public static async Task<IResult> RegisterRoute(
         [AsParameters] SubscriptionInfoQuery query,

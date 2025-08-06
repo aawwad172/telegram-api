@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Telegram.API.WebAPI.Interfaces;
 
@@ -7,10 +8,10 @@ namespace Telegram.API.WebAPI.Interfaces;
 /// This interface is used to define a route for a parameterized query so we can validate the query params.
 /// </summary>
 /// <typeparam name="TQuery"></typeparam>
-public interface IParametarizedQueryRoute<TQuery> where TQuery : notnull
+public interface IParameterizedQueryRoute<TQuery> where TQuery : notnull
 {
     static abstract Task<IResult> RegisterRoute(
     [AsParameters] TQuery query,
     IMediator mediator,
-    IValidator<TQuery> validator);
+    [FromServices] IValidator<TQuery> validator);
 }

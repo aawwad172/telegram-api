@@ -42,7 +42,7 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
 #endregion
 
 #region User
-app.MapGet("user/subscription/info", SubscriptionInfo.RegisterRoute)
+app.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
     .WithTags("user")
     .WithOpenApi();

@@ -22,7 +22,7 @@ public class SubscriptionInfoQueryHandler(
             Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
             if (customer is null)
-                throw new UnauthorizedAccessException("Invalid username or password.");
+                throw new UnauthorizedException("Invalid username or password.");
 
             User? user = await _userRepository.GetUserAsync(request.PhoneNumber, request.BotKey) ?? throw new NotFoundException("User Not Subscribed!");
 
@@ -30,15 +30,10 @@ public class SubscriptionInfoQueryHandler(
 
             return result;
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedException ex)
         {
             // Handle unauthorized access
-            throw new UnauthorizedAccessException($"Authentication failed: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            // Handle other exceptions
-            throw new Exception($"An error occurred while processing the request: {ex.Message}");
+            throw new UnauthorizedException($"Authentication failed: {ex.Message}");
         }
     }
 }

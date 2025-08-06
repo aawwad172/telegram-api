@@ -9,7 +9,7 @@ public class SubscriptionInfoQueryValidator : AbstractValidator<SubscriptionInfo
     {
         RuleFor(x => x.Username)
             .NotEmpty()
-            .WithMessage("Username is required and must not exceed 50 characters.");
+            .WithMessage("Username is required.");
 
         RuleFor(x => x.Password)
             .NotEmpty()
