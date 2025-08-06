@@ -65,9 +65,9 @@ GO
 
 
 /*******************************************
- * 2.4) usp_GetUserByUsername
+ * 2.4) usp_GetCustomerByUsername
  *******************************************/
-ALTER PROCEDURE [dbo].[usp_GetUserByUsername]
+ALTER PROCEDURE [dbo].[usp_GetCustomerByUsername]
     @Username NVARCHAR(100)
 AS
 BEGIN
@@ -81,19 +81,17 @@ GO
 
 
 /*******************************************
- * 2.5) usp_GetChatId
+ * 2.5) usp_GetTelegramUser
  *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_GetChatId
+CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
   @BotKey       NVARCHAR(100),
-  @PhoneNumber  NVARCHAR(20),
-  @ChatId       NVARCHAR(50) OUTPUT
+  @PhoneNumber  NVARCHAR(20)
 AS
 BEGIN
   SET NOCOUNT ON;
 
   -- assign the output param directly
-  SELECT
-    @ChatId = ChatId
+  SELECT *
   FROM 
     dbo.BotChatMapping WITH (INDEX(PK_BotChatMapping))
   WHERE 

@@ -18,13 +18,5 @@ public interface IMessageRepository
     /// <returns>It returns array of id's for each message</returns>
     Task<IEnumerable<int>> SendMessages(IEnumerable<TelegramMessage> messages);
 
-    /// <summary>
-    /// Getting the chat id from the phone number and the bot key.
-    /// </summary>
-    /// <param name="phoneNumber"></param>
-    /// <param name="botKey"></param>
-    /// <returns>ChatId of telegram for the number</returns>
-    Task<string?> GetChatId(string phoneNumber, string botKey);
-
     //Task<string> SendCampaign(CampaignMessage messege);
 }

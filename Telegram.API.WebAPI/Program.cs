@@ -6,6 +6,7 @@ using Telegram.API.WebAPI;
 using Telegram.API.WebAPI.Middlewares;
 using Telegram.API.WebAPI.Routes.HealthCheck;
 using Telegram.API.WebAPI.Routes.Messages;
+using Telegram.API.WebAPI.Routes.User;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -40,9 +41,16 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
     .WithOpenApi();
 #endregion
 
+#region User
+app.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
+    .WithName("Subscription Info")
+    .WithTags("user")
+    .WithOpenApi();
+#endregion
+
 # region Messages
 app.MapPost("/message/send", SendMessage.RegisterRoute)
-    .WithName("SendMessage")
+    .WithName("Send Message")
     .WithTags("messages")
     .WithOpenApi();
 #endregion
