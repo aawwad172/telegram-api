@@ -53,6 +53,11 @@ app.MapPost("/message/send", SendMessage.RegisterRoute)
     .WithName("Send Message")
     .WithTags("messages")
     .WithOpenApi();
+
+app.MapPost("/message/send/batch", SendBatchMessage.RegisterRoute)
+    .WithName("Send Batch Message")
+    .WithTags("messages")
+    .WithOpenApi();
 #endregion
 
 app.Run();

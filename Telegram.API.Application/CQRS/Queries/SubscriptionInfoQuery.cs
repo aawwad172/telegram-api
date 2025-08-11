@@ -1,9 +1,10 @@
 ﻿using MediatR;
-using Telegram.API.Domain.Interfaces;
+using Telegram.API.Domain.Interfaces.Application;
+using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Application.CQRS.Queries;
 
-public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IBaseCQRS
+public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IAuthenticatedBotRequest, IPhoneNumber
 {
     public required string Username { get; init; }
     public required string Password { get; init; }

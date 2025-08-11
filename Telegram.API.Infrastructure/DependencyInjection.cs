@@ -3,8 +3,8 @@ using Telegram.API.Domain.Utilities;
 using Telegram.API.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.API.Infrastructure.Persistence.Repositories;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
+using Telegram.API.Infrastructure.Persistence.Repositories;
 
 namespace Telegram.API.Infrastructure;
 

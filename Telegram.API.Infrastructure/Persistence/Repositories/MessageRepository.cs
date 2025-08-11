@@ -10,6 +10,12 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class MessageRepository(IDbConnectionFactory connectionFactory) : IMessageRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
+
+    public Task SendBatchMessages(TelegramMessage[] messages)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Sending message by adding the message to the Queue Table (ReadyTable)
     /// </summary>

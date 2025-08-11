@@ -1,9 +1,14 @@
-﻿namespace Telegram.API.Domain.Entities;
+﻿using Telegram.API.Domain.Interfaces;
+using Telegram.API.Domain.Interfaces.Domain;
+
+namespace Telegram.API.Domain.Entities;
 
 /// <summary>
 /// Represents a Telegram message stored in the database.
 /// </summary>
-public class TelegramMessage
+public class TelegramMessage :
+    IMessageText, IBotKey, IPhoneNumber, IChatId,
+    ICustomerId, IDispatchInfo, IBusinessTags, IMessageType
 {
     /// <summary>
     /// Unique customer identifier.  
@@ -14,7 +19,7 @@ public class TelegramMessage
     /// <summary>
     /// Telegram chat identifier (provided by the user).
     /// </summary>
-    public required string ChatId { get; set; }
+    public string ChatId { get; set; } = null!;
 
     /// <summary>
     /// Telegram bot API key (provided by the user).
