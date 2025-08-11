@@ -1,15 +1,53 @@
 /*******************************************
- * 1.1) ReadyTable: pending messages queue
+ * 0) Dropping Tables
  *******************************************/
+
 IF OBJECT_ID('dbo.ReadyTable','U') IS NOT NULL
   DROP TABLE dbo.ReadyTable;
 GO
 
+IF OBJECT_ID('dbo.ArchiveTable', 'U') IS NOT NULL
+  DROP TABLE dbo.ArchiveTable;
+GO
+
+ IF OBJECT_ID('dbo.MessageStatus','U') IS NOT NULL
+  DROP TABLE dbo.MessageStatus;
+GO
+
+IF OBJECT_ID('dbo.RecentMessages','U') IS NOT NULL
+  DROP TABLE dbo.RecentMessages;
+GO
+
+IF OBJECT_ID('dbo.BotChatMapping','U') IS NOT NULL
+  DROP TABLE dbo.BotChatMapping;
+GO
+
+/*******************************************
+ * 1.1) MessageStatus: Enum for message status
+ *******************************************/
+CREATE TABLE dbo.MessageStatus (
+    StatusID SMALLINT NOT NULL PRIMARY KEY,
+    StatusDescription NVARCHAR(50) NOT NULL UNIQUE,
+);
+
+-- Insert your enum values
+INSERT INTO dbo.MessageStatus (StatusID, StatusDescription)
+VALUES 
+    (1, 'Sent'),
+    (2, 'Read'),
+    (-1, 'Blocked'),
+    (-2, 'NotSubscribed'),
+    (-3, 'Duplicate');
+
+
+/*******************************************
+ * 1.2) ReadyTable: pending messages queue
+ *******************************************/
 CREATE TABLE dbo.ReadyTable
 (
   ID           			INT					IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
   CustId			    INT				 	NOT NULL,
-  ChatId       			NVARCHAR(50)   		NOT NULL,
+  ChatId       			NVARCHAR(50)   		    NULL,
   BotKey       			NVARCHAR(100)  		NOT NULL,
   PhoneNumber           NVARCHAR(20)        NOT NULL,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
@@ -18,8 +56,8 @@ CREATE TABLE dbo.ReadyTable
   ScheduledSendDateTime DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   MessageHash  			BINARY(32)     		NOT NULL, -- Auto Generated from the SP.
   Priority     			SMALLINT       		NOT NULL,
-  CampaignId			NVARCHAR(50)				,
-  CampDescription		NVARCHAR(512)				,
+  CampaignId			NVARCHAR(50)			NULL,
+  CampDescription		NVARCHAR(512)			NULL,
   IsSystemApproved		BIT					NOT NULL,
   Paused				BIT					NOT NULL,
 );
@@ -35,33 +73,36 @@ GO
 
 
 /*******************************************
- * 1.2) ArchiveTable: all sent or deduped msgs
+ * 1.3) ArchiveTable: all sent or deduped msgs
  *******************************************/
-IF OBJECT_ID('dbo.ArchiveTable', 'U') IS NOT NULL
-  DROP TABLE dbo.ArchiveTable;
-GO
-
--- 2) Recreate ArchiveTable without any FK constraint
 CREATE TABLE dbo.ArchiveTable
 (
-  ID           		     INT    	      NOT NULL,  -- surrogate PK
-  CustId		         INT	          NOT NULL,
-  ChatId       		     NVARCHAR(50)     NOT NULL,
-  BotKey       		     NVARCHAR(100)    NOT NULL,
-  PhoneNumber            NVARCHAR(20)     NOT NULL,
-  MessageText  		     NVARCHAR(MAX)    NOT NULL,
-  MsgType		         CHAR(1)	      NOT NULL,
-  ReceivedDateTime    	 DATETIME         NOT NULL,
-  ScheduledSendDateTime  DATETIME         NOT NULL, -- Auto Generated using GETDATE() in the SP.
-  GatewayDateTime        DATETIME         NOT NULL,
-  MessageHash  		     BINARY(32)       NOT NULL,
-  Priority     	         SMALLINT         NOT NULL,
-  MobileCountry          NVARCHAR(10)     NOT NULL,
-  CampaignId		     NVARCHAR(50)             ,
-  CampDescription	     NVARCHAR(512)            ,
-  IsSystemApproved	     BIT   	          NOT NULL,
-  Paused		         BIT	          NOT NULL,
-  CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (ID)
+  ID                      INT             NOT NULL,  -- surrogate PK
+  CustId                  INT             NOT NULL,
+  ChatId                  NVARCHAR(50)        NULL,
+  BotKey                  NVARCHAR(100)   NOT NULL,
+  PhoneNumber             NVARCHAR(20)    NOT NULL,
+  MessageText             NVARCHAR(MAX)   NOT NULL,
+  MsgType                 CHAR(1)         NOT NULL,
+  ReceivedDateTime        DATETIME        NOT NULL,
+  ScheduledSendDateTime   DATETIME        NOT NULL, -- set by SP
+  GatewayDateTime         DATETIME        NOT NULL,
+  MessageHash             BINARY(32)      NOT NULL,
+  Priority                SMALLINT        NOT NULL,
+
+  -- Enum + denormalized text
+  StatusId                SMALLINT        NOT NULL,
+  StatusDescription       NVARCHAR(512)   NULL,  -- No default, will be NULL until set
+
+  MobileCountry           NVARCHAR(10)    NOT NULL,
+  CampaignId              NVARCHAR(50)        NULL,
+  CampDescription         NVARCHAR(512)       NULL,
+  IsSystemApproved        BIT             NOT NULL,
+  Paused                  BIT             NOT NULL,
+
+  CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (ID),
+  CONSTRAINT FK_ArchiveTable_Status FOREIGN KEY (StatusId) 
+      REFERENCES dbo.MessageStatus(StatusID)
 );
 GO
 
@@ -70,16 +111,12 @@ CREATE NONCLUSTERED INDEX IX_ArchiveTable_MessageHash
 GO
 
 /*******************************************
- * 1.3) RecentMessages: 5-minute dedupe window
+ * 1.4) RecentMessages: 5-minute dedupe window
  *******************************************/
-IF OBJECT_ID('dbo.RecentMessages','U') IS NOT NULL
-  DROP TABLE dbo.RecentMessages;
-GO
-
 CREATE TABLE dbo.RecentMessages
 (
   MessageHash  		BINARY(32)     NOT NULL,
-  ReceivedDateTime      DATETIME       NOT NULL,
+  ReceivedDateTime  DATETIME       NOT NULL,
   ReadyId      		INT            NOT NULL,
   CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReadyId)
 );
@@ -95,18 +132,14 @@ GO
 
 
 /*******************************************
- * 1.4) BotChatMapping: Mapping for ChatId along with PhoneNumber and BotKey
+ * 1.5) BotChatMapping: Mapping for ChatId along with PhoneNumber and BotKey
  *******************************************/
-IF OBJECT_ID('dbo.BotChatMapping','U') IS NOT NULL
-  DROP TABLE dbo.BotChatMapping;
-GO
-
 CREATE TABLE dbo.BotChatMapping
 (
   PhoneNumber    NVARCHAR(20)    NOT NULL,
   BotKey         NVARCHAR(100)   NOT NULL,
   ChatId         NVARCHAR(50)    NOT NULL,
-  CreationDate    DATETIME        NOT NULL,
+  CreationDate    DATETIME       NOT NULL,
 
   CONSTRAINT PK_BotChatMapping PRIMARY KEY CLUSTERED
     (PhoneNumber, BotKey)
@@ -117,6 +150,3 @@ GO
 CREATE NONCLUSTERED INDEX IX_BotChatMapping_ChatId
   ON dbo.BotChatMapping(ChatId);
 GO
-
-
-
