@@ -38,18 +38,27 @@ public class SendBatchMessageCommandHandler(
                 Priority = 6,
             };
 
-            foreach (BatchMessageItem item in request.Items)
+            // 1) Get all phone numbers once
+            var phones = request.Items.Select(x => x.PhoneNumber);
+
+            // 2) One DB call
+            var phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+
+            // 3) Build messages without further DB calls
+            var messages = new List<BatchMessage>(request.Items.Count());
+            foreach (var item in request.Items)
             {
-                User? user = await _userRepository.GetUserAsync(item.PhoneNumber, request.BotKey);
+                phoneToChat.TryGetValue(item.PhoneNumber, out var chatId);
 
-                BatchMessage message = new()
+                messages.Add(new BatchMessage
                 {
-                    ChatId = user is not null ? user.ChatId : null!,
-                    MessageText = item.MessageText,
-                };
-
-                batchMessages.Items.Add(message);
+                    ChatId = chatId,             // null if not mapped
+                    MessageText = item.MessageText
+                });
             }
+
+            // assign to your container
+            batchMessages.Items = messages;
 
             if (batchMessages.Items is null || !batchMessages.Items.Any())
             {

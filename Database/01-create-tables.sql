@@ -150,6 +150,11 @@ CREATE TABLE dbo.BotChatMapping
 );
 GO
 
+-- Cover lookups: (BotKey, PhoneNumber) INCLUDE (ChatId)
+CREATE INDEX IX_BotChatMapping_BotKey_Phone
+  ON dbo.BotChatMapping (BotKey, PhoneNumber)
+  INCLUDE (ChatId);
+
 -- if you need to look up by ChatId later:
 CREATE NONCLUSTERED INDEX IX_BotChatMapping_ChatId
   ON dbo.BotChatMapping(ChatId);
@@ -184,3 +189,14 @@ GO
 -- Helpful indexes
 CREATE INDEX IX_TelegramSentFiles_Campaign
   ON dbo.TelegramSentFiles (CampaignID);
+
+
+ /*******************************************
+ * 1.7) PhoneList: Table type for passing phone numbers
+ *******************************************/
+  -- Table type to pass phone numbers
+CREATE TYPE dbo.PhoneList AS TABLE
+(
+  PhoneNumber NVARCHAR(20) NOT NULL PRIMARY KEY
+);
+GO
