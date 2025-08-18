@@ -9,8 +9,8 @@ public sealed record SendMessageCommand : IRequest<SendMessageCommandResult>, IA
     public required string Username { get; init; }
     public required string Password { get; init; }
     public required string BotKey { get; init; }
-    public required string PhoneNumber { get; set; }
-    public required string MessageText { get; set; }
+    public required string PhoneNumber { get; init; }
+    public required string MessageText { get; init; }
 }
 
 public sealed record SendMessageCommandResult(string ReferenceNumber);

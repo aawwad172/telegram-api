@@ -17,7 +17,8 @@ public class SendMessage : ICommandRoute<SendMessageCommand>
         [FromServices] IMediator mediator,
         [FromServices] IValidator<SendMessageCommand> validator)
     {
-        ValidationResult validationResult = await validator.ValidateAsync(request);
+        SendMessageCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
+        ValidationResult validationResult = await validator.ValidateAsync(sanitizedRequest);
 
         if (!validationResult.IsValid)
         {
@@ -28,7 +29,7 @@ public class SendMessage : ICommandRoute<SendMessageCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
-        SendMessageCommandResult result = await mediator.Send(CommandsSanitizer.SanitizeSendMessageCommand(request));
+        SendMessageCommandResult result = await mediator.Send(sanitizedRequest);
 
         // Use this to prevent extra memory allocation
         return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(result));

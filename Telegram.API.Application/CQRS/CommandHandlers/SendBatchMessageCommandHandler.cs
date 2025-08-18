@@ -1,5 +1,7 @@
 ﻿using MediatR;
+using System.Data.Common;
 using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
@@ -39,16 +41,16 @@ public class SendBatchMessageCommandHandler(
             };
 
             // 1) Get all phone numbers once
-            var phones = request.Items.Select(x => x.PhoneNumber);
+            IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
 
             // 2) One DB call
-            var phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+            IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
 
             // 3) Build messages without further DB calls
-            var messages = new List<BatchMessage>(request.Items.Count());
-            foreach (var item in request.Items)
+            List<BatchMessage> messages = new(request.Items.Count());
+            foreach (BatchMessageItem item in request.Items)
             {
-                phoneToChat.TryGetValue(item.PhoneNumber, out var chatId);
+                phoneToChat.TryGetValue(item.PhoneNumber, out string? chatId);
 
                 messages.Add(new BatchMessage
                 {

@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Interfaces;
 using Telegram.API.WebAPI.Models;
@@ -16,7 +17,9 @@ public class SendBatchMessage : ICommandRoute<SendBatchMessagesCommand>
         [FromServices] IMediator mediator,
         [FromServices] IValidator<SendBatchMessagesCommand> validator)
     {
-        ValidationResult validationResult = await validator.ValidateAsync(request);
+        SendBatchMessagesCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
+
+        ValidationResult validationResult = await validator.ValidateAsync(sanitizedRequest);
 
         if (!validationResult.IsValid)
         {
@@ -27,7 +30,7 @@ public class SendBatchMessage : ICommandRoute<SendBatchMessagesCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
-        SendBatchMessageCommandResult result = await mediator.Send(request);
+        SendBatchMessageCommandResult result = await mediator.Send(sanitizedRequest);
 
         return Results.Ok(ApiResponse<SendBatchMessageCommandResult>.SuccessResponse(result));
     }
