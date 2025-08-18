@@ -2,5 +2,5 @@
 
 public interface IBatch<TItem>
 {
-    IEnumerable<TItem> Items { get; }
+    List<TItem> Items { get; }
 }

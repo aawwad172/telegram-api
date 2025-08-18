@@ -22,6 +22,10 @@ IF OBJECT_ID('dbo.BotChatMapping','U') IS NOT NULL
   DROP TABLE dbo.BotChatMapping;
 GO
 
+ IF OBJECT_ID('dbo.TelegramSentFiles','U') IS NOT NULL
+  DROP TABLE dbo.TelegramSentFiles;
+GO
+
 /*******************************************
  * 1.1) MessageStatus: Enum for message status
  *******************************************/
@@ -51,7 +55,7 @@ CREATE TABLE dbo.ReadyTable
   BotKey       			NVARCHAR(100)  		NOT NULL,
   PhoneNumber           NVARCHAR(20)        NOT NULL,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
-  MsgType				CHAR(1)				NOT NULL,
+  MsgType				NVARCHAR(10)		NOT NULL,
   ReceivedDateTime		DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ScheduledSendDateTime DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   MessageHash  			BINARY(32)     		NOT NULL, -- Auto Generated from the SP.
@@ -83,7 +87,7 @@ CREATE TABLE dbo.ArchiveTable
   BotKey                  NVARCHAR(100)   NOT NULL,
   PhoneNumber             NVARCHAR(20)    NOT NULL,
   MessageText             NVARCHAR(MAX)   NOT NULL,
-  MsgType                 CHAR(1)         NOT NULL,
+  MsgType                 NVARCHAR(10)    NOT NULL,
   ReceivedDateTime        DATETIME        NOT NULL,
   ScheduledSendDateTime   DATETIME        NOT NULL, -- set by SP
   GatewayDateTime         DATETIME        NOT NULL,
@@ -150,3 +154,33 @@ GO
 CREATE NONCLUSTERED INDEX IX_BotChatMapping_ChatId
   ON dbo.BotChatMapping(ChatId);
 GO
+
+/*******************************************
+ * 1.6) TelegramSentFiles: Table for files sent via Telegram (Batch or Campaign)
+ *******************************************/
+CREATE TABLE dbo.TelegramSentFiles
+(
+    [ID]                     BIGINT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_TelegramSentFiles PRIMARY KEY,
+
+    [CustID]                 INT            NOT NULL,
+    [BotKey]                 NVARCHAR(100)  NOT NULL,   -- e.g., bot key or sender alias
+    [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
+    [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
+    [Priority]               SMALLINT       NOT NULL,
+    [FilePath]               NVARCHAR(260)  NOT NULL,       -- Windows path max
+    [FileType]               NVARCHAR(16)   NOT NULL,       -- Batch or Campaign.
+    [CampaignID]             NVARCHAR(50)   NOT NULL UNIQUE,
+    [CampDesc]               NVARCHAR(256)  NULL,
+    [ScheduledSendDateTime]  DATETIME2      NOT NULL,       -- NULL = send ASAP
+    [CreationDate]           DATETIME2      NOT NULL,
+    [isSystemApproved]       BIT            NOT NULL,
+    [isAdminApproved]        BIT            NOT NULL,
+    [IsProcessed]            BIT            NOT NULL
+    
+    );
+GO
+
+-- Helpful indexes
+CREATE INDEX IX_TelegramSentFiles_Campaign
+  ON dbo.TelegramSentFiles (CampaignID);

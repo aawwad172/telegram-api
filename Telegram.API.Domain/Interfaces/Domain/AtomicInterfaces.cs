@@ -36,5 +36,5 @@ public interface ICampaignInfo
 }
 public interface IMessageType
 {
-    char MessageType { get; }
+    string MessageType { get; }
 }

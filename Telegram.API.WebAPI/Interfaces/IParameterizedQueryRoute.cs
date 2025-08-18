@@ -12,6 +12,6 @@ public interface IParameterizedQueryRoute<TQuery> where TQuery : notnull
 {
     static abstract Task<IResult> RegisterRoute(
     [AsParameters] TQuery query,
-    IMediator mediator,
+    [FromServices] IMediator mediator,
     [FromServices] IValidator<TQuery> validator);
 }

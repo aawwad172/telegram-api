@@ -16,7 +16,7 @@ public class CommandsSanitizer
             throw new ArgumentNullException(nameof(command), "Command cannot be null");
 
         // Clone original to avoid side effects
-        SendMessageCommand sanitized = new SendMessageCommand
+        SendMessageCommand sanitized = new()
         {
             Username = command.Username.Trim(),
             Password = command.Password.Trim(),

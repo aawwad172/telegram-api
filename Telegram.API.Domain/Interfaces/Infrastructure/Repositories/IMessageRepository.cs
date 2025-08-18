@@ -9,7 +9,7 @@ public interface IMessageRepository
     /// </summary>
     /// <param name="message"></param>
     /// <returns>It returns the Id of the row that been inserted (reference number)</returns>
-    Task<int> SendMessage(TelegramMessage message);
+    Task<int> SendMessageAsync(TelegramMessage message);
 
-    Task SendBatchMessages(TelegramMessage[] messages);
+    Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages);
 }

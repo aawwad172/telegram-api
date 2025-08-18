@@ -40,7 +40,7 @@ public class TelegramMessage :
     /// Indicates the type of message.  
     /// Always set to <c>'A'</c> when coming from the API.
     /// </summary>
-    public char MessageType { get; set; } = 'A';
+    public string MessageType { get; set; } = "A";
 
     public string CampaignId { get; set; } = string.Empty;
     public string CampDescription { get; set; } = string.Empty;

@@ -29,6 +29,7 @@ public static class DependencyInjection
 
         services.AddTransient<IValidator<SendMessageCommand>, SendMessageCommandValidator>();
         services.AddTransient<IValidator<SubscriptionInfoQuery>, SubscriptionInfoQueryValidator>();
+        services.AddTransient<IValidator<SendBatchMessagesCommand>, SendBatchMessagesCommandValidator>();
         return services;
     }
 }

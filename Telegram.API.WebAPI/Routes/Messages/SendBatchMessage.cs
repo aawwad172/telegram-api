@@ -9,12 +9,12 @@ using Telegram.API.WebAPI.Models;
 
 namespace Telegram.API.WebAPI.Routes.Messages;
 
-public class SendBatchMessage : ICommandRoute<SendBatchMessageCommand>
+public class SendBatchMessage : ICommandRoute<SendBatchMessagesCommand>
 {
     public static async Task<IResult> RegisterRoute(
-        [FromBody] SendBatchMessageCommand request,
+        [FromBody] SendBatchMessagesCommand request,
         [FromServices] IMediator mediator,
-        [FromServices] IValidator<SendBatchMessageCommand> validator)
+        [FromServices] IValidator<SendBatchMessagesCommand> validator)
     {
         ValidationResult validationResult = await validator.ValidateAsync(request);
 

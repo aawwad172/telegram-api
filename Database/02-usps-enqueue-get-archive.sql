@@ -7,7 +7,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @BotKey      		NVARCHAR(100),
   @MessageText 		NVARCHAR(MAX),
   @PhoneNumber      NVARCHAR(20),
-  @MsgType     		CHAR, 
+  @MsgType     		NVARCHAR(10), 
   @CampaignId  		NVARCHAR(50), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required
   @Priority    		SMALLINT,
@@ -99,4 +99,66 @@ BEGIN
     AND BotKey   = @BotKey;
 END;
 GO
+
+
+/*******************************************
+ * 2.6) usp_AddBatchFile to add the batch data into DB
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
+    @CustId               INT,
+    @BotKey               NVARCHAR(100),
+    @MsgText              NVARCHAR(MAX) = NULL,
+    @MsgType              NVARCHAR(10),
+    @CampaignId           NVARCHAR(50) = NULL,
+    @CampDesc             NVARCHAR(256) = NULL,
+    @Priority             SMALLINT,           -- table uses SMALLINT
+    @IsSystemApproved     BIT,
+    @IsAdminApproved      BIT,
+    @ScheduledSendDateTime DATETIME2 = NULL,  -- if NULL => GETDATE()
+    @FilePath             NVARCHAR(260),
+    @FileType             NVARCHAR(16),
+    @IsProcessed          BIT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Now DATETIME2 = GETDATE();
+
+    INSERT INTO dbo.TelegramSentFiles
+    (
+        CustID,
+        BotKey,
+        MsgText,
+        MsgType,
+        Priority,
+        FilePath,
+        FileType,
+        CampaignID,
+        CampDesc,
+        ScheduledSendDateTime,
+        CreationDate,
+        isSystemApproved,
+        isAdminApproved,
+        IsProcessed
+    )
+    VALUES
+    (
+        @CustId,
+        @BotKey,
+        @MsgText,
+        @MsgType,
+        @Priority,
+        @FilePath,
+        @FileType,
+        @CampaignId,
+        @CampDesc,
+        ISNULL(@ScheduledSendDateTime, @Now),
+        @Now,
+        @IsSystemApproved,
+        @IsAdminApproved,
+        @IsProcessed
+    );
+END
+GO
+
 

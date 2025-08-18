@@ -2,8 +2,8 @@
 
 namespace Telegram.API.Domain.Entities;
 
-public class BatchMessage : IMessageText, IPhoneNumber
+public class BatchMessage : IMessageText, IChatId
 {
-    public required string PhoneNumber { get; init; }
+    public required string ChatId { get; init; }
     public required string MessageText { get; init; }
 }
