@@ -32,7 +32,7 @@ public class JsonFileRepository : IJsonFileRepository
         Directory.CreateDirectory(folder); // idempotent
 
         // Use CreateNew to avoid accidental overwrite; switch to Create to overwrite.
-        await using FileStream fs = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+        await using FileStream fs = new(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         await JsonSerializer.SerializeAsync(fs, items, _jsonOptions, ct);
         await fs.FlushAsync(ct);
     }

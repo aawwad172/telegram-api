@@ -102,7 +102,28 @@ GO
 
 
 /*******************************************
- * 2.6) usp_AddBatchFile to add the batch data into DB
+ * 2.6) usp_GetChatIdsForPhones
+ *******************************************/
+-- Proc: returns (PhoneNumber, ChatId) for a given BotKey
+CREATE OR ALTER PROCEDURE dbo.usp_GetChatIdsForPhones
+  @BotKey       NVARCHAR(100),
+  @PhoneNumbers dbo.PhoneList READONLY
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  SELECT p.PhoneNumber,
+         u.ChatId
+  FROM @PhoneNumbers AS p
+  LEFT JOIN dbo.BotChatMapping AS u
+    ON u.BotKey = @BotKey
+   AND u.PhoneNumber = p.PhoneNumber;
+END
+GO
+
+
+/*******************************************
+ * 2.7) usp_AddBatchFile to add the batch data into DB
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
     @CustId               INT,

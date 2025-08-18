@@ -21,11 +21,12 @@ public class MessageRepository(
         string finalName = FileNameHelper.ComposeCampaignFileName(messages.CampaignId);
         string fullPath = Path.Combine(_folderPath, finalName);
 
-        // 1) Save the file
+        // 1) Insert DB row, storing the same path (or store just finalName if you prefer)
+        await AddBatchFileAsync(messages, fullPath);
+
+        // 2) Save the file
         await _jsonFileRepository.SaveToFileAsync(messages.Items, fullPath);
 
-        // 2) Insert DB row, storing the same path (or store just finalName if you prefer)
-        await AddBatchFileAsync(messages, fullPath);
     }
 
     /// <summary>

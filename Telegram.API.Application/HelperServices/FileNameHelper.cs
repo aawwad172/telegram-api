@@ -8,7 +8,7 @@ public class FileNameHelper
     public static string MakeSafeFileName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "campaign";
-        string invalid = new string(Path.GetInvalidFileNameChars());
+        string invalid = new(Path.GetInvalidFileNameChars());
         string pattern = $"[{Regex.Escape(invalid)}]+";
         string cleaned = Regex.Replace(name, pattern, "_");
         cleaned = Regex.Replace(cleaned, @"\s+", "_").Trim('_');
