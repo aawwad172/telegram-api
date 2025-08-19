@@ -1,40 +1,54 @@
 ﻿namespace Telegram.API.Domain.Interfaces.Domain;
 
-public interface IMessageText
+public interface IHasMessageText
 {
     string MessageText { get; }
 }
-public interface IPhoneNumber
+public interface IHasPhoneNumber
 {
     string PhoneNumber { get; }
 }
 
-public interface IChatId
+public interface IHasChatId
 {
     string ChatId { get; }
 }
-public interface IBotKey
+public interface IHasBotKey
 {
     string BotKey { get; }
 }
-public interface ICustomerId
+public interface IHasCustomerId
 {
     string CustomerId { get; }
 }
-public interface IPriority
+public interface IHasPriority
 {
     int Priority { get; }
 }
-public interface IApprovalStatus
+public interface IHasApprovalStatus
 {
     bool IsSystemApproved { get; }
 }
-public interface ICampaignInfo
+public interface IHasCamaignId
 {
     string CampaignId { get; }
-    string CampDescription { get; }
 }
-public interface IMessageType
+public interface IHasMessageType
 {
     string MessageType { get; }
+}
+
+public interface IHasCampDescription
+{
+    string? CampDescription { get; }
+}
+
+public interface IHasSchedule
+{
+    public DateTime? ScheduledDatetime { get; }
+}
+
+public interface IHasItems<TItem>
+{
+    List<TItem> Items { get; }
 }

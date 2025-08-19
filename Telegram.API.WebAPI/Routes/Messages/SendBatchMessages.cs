@@ -10,7 +10,7 @@ using Telegram.API.WebAPI.Models;
 
 namespace Telegram.API.WebAPI.Routes.Messages;
 
-public class SendBatchMessage : ICommandRoute<SendBatchMessagesCommand>
+public class SendBatchMessages : ICommandRoute<SendBatchMessagesCommand>
 {
     public static async Task<IResult> RegisterRoute(
         [FromBody] SendBatchMessagesCommand request,

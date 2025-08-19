@@ -30,6 +30,8 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendMessageCommand>, SendMessageCommandValidator>();
         services.AddTransient<IValidator<SubscriptionInfoQuery>, SubscriptionInfoQueryValidator>();
         services.AddTransient<IValidator<SendBatchMessagesCommand>, SendBatchMessagesCommandValidator>();
+        services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
+
         return services;
     }
 }

@@ -4,7 +4,7 @@ using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Application.CQRS.Queries;
 
-public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IAuthenticatedBotRequest, IPhoneNumber
+public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResult>, IAuthenticatedBotRequest, IHasPhoneNumber
 {
     public required string Username { get; init; }
     public required string Password { get; init; }

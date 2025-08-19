@@ -25,8 +25,8 @@ public static class DependencyInjection
         services.AddTransient<IMessageRepository, MessageRepository>();
         services.AddTransient<ICustomerRepository, CustomerRepository>();
         services.AddTransient<IUserRepository, UserRepository>();
-
         services.AddTransient<IJsonFileRepository, JsonFileRepository>();
+
         return services;
     }
 }

@@ -1,9 +1,8 @@
-﻿using Telegram.API.Domain.Interfaces.Application;
-using Telegram.API.Domain.Interfaces.Domain;
+﻿using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Domain.Entities;
 
-public class TelegramMessagePackage<TItem> : ICampaignInfo, IBatch<TItem>, ICustomerId, IApprovalStatus, IMessageType, IPriority
+public class TelegramMessagePackage<TItem> : ITelegramMessagePackage<TItem>
 {
     public required string CustomerId { get; set; }
     public required string BotKey { get; set; }

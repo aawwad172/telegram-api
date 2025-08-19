@@ -6,9 +6,8 @@ namespace Telegram.API.Domain.Entities;
 /// <summary>
 /// Represents a Telegram message stored in the database.
 /// </summary>
-public class TelegramMessage :
-    IMessageText, IBotKey, IPhoneNumber, IChatId,
-    ICustomerId, IDispatchInfo, IBusinessTags, IMessageType
+public class TelegramMessage : ITelegramMessage
+
 {
     /// <summary>
     /// Unique customer identifier.  

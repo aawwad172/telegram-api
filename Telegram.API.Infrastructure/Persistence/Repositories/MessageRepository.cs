@@ -26,7 +26,6 @@ public class MessageRepository(
 
         // 2) Save the file
         await _jsonFileRepository.SaveToFileAsync(messages.Items, fullPath);
-
     }
 
     /// <summary>

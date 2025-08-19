@@ -35,6 +35,21 @@ public class CommandsSanitizer
         };
     }
 
+    public static SendCampaignMessageCommand Sanitize(SendCampaignMessageCommand command)
+    {
+        return command with
+        {
+            Username = command.Username.Trim(),
+            Password = command.Password.Trim(),
+            BotKey = command.BotKey.Trim(),
+            MessageText = command.MessageText.Trim(),
+            Items = command.Items.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList()
+        };
+    }
+
     // 🔧 Shared helper
     private static string NormalizeOrThrow(string raw)
     {

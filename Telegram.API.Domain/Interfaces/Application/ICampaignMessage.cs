@@ -2,4 +2,7 @@
 
 namespace Telegram.API.Domain.Interfaces.Application;
 
-public interface IAuthenticatedBotRequest : ICredentials, IHasBotKey { }
+public interface ICampaignMessage : IHasMessageText, IHasSchedule, IHasCampDescription
+{
+
+}

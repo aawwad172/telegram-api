@@ -13,7 +13,7 @@ public class SubscriptionInfo : IParameterizedQueryRoute<SubscriptionInfoQuery>
 {
     public static async Task<IResult> RegisterRoute(
         [AsParameters] SubscriptionInfoQuery query,
-        IMediator mediator,
+        [FromServices] IMediator mediator,
         [FromServices] IValidator<SubscriptionInfoQuery> validator)
     {
         ValidationResult validationResult = await validator.ValidateAsync(query);
