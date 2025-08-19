@@ -6,31 +6,55 @@ namespace Telegram.API.Application.HelperServices;
 
 public class CommandsSanitizer
 {
-    /// <summary>
-    /// Returns a new, sanitized command instance without mutating the original.
-    /// Throws InvalidPhoneNumberException when phone normalization fails.
-    /// </summary>
-    public static SendMessageCommand SanitizeSendMessageCommand(SendMessageCommand command)
+    public static SendBatchMessagesCommand Sanitize(SendBatchMessagesCommand command)
     {
-        if (command == null)
-            throw new ArgumentNullException(nameof(command), "Command cannot be null");
-
-        // Clone original to avoid side effects
-        SendMessageCommand sanitized = new SendMessageCommand
+        return command with
         {
-            Username = command.Username.Trim(),
-            Password = command.Password.Trim(),
-            PhoneNumber = command.PhoneNumber, // will normalize next
-            MessageText = command.MessageText.Trim(),
-            BotKey = command.BotKey.Trim()
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            Items = command.Items.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+                MessageText = i.MessageText.Trim() ?? string.Empty
+            }).ToList()
         };
+    }
 
-        // Normalize and validate PhoneNumber
-        if (!TryNormalizePhoneNumber(sanitized.PhoneNumber, out string? normalized))
-            throw new InvalidPhoneNumberException($"Unable to normalize phone number '{command.PhoneNumber}'");
+    public static SendMessageCommand Sanitize(SendMessageCommand command)
+    {
+        return command with
+        {
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            PhoneNumber = NormalizeOrThrow(command.PhoneNumber),
+            MessageText = command.MessageText.Trim()
+        };
+    }
 
-        sanitized.PhoneNumber = normalized;
-        return sanitized;
+    public static SendCampaignMessageCommand Sanitize(SendCampaignMessageCommand command)
+    {
+        return command with
+        {
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            MessageText = command.MessageText.Trim() ?? string.Empty,
+            Items = command.Items.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList()
+        };
+    }
+
+    // 🔧 Shared helper
+    private static string NormalizeOrThrow(string raw)
+    {
+        if (!TryNormalizePhoneNumber(raw, out string? normalized))
+            throw new InvalidPhoneNumberException($"Unable to normalize phone number '{raw}'");
+
+        return normalized;
     }
 
     private static bool TryNormalizePhoneNumber(string raw, out string result)
@@ -42,7 +66,6 @@ public class CommandsSanitizer
         // Strip formatting characters
         string clean = Regex.Replace(raw, @"[\s\-\(\)\+]+", "");
 
-        // Country-specific normalization
         if (clean.StartsWith("00962") || clean.StartsWith("962") || raw.StartsWith("+962"))
             result = NormalizeJordan(clean);
         else if (clean.StartsWith("0020") || clean.StartsWith("20") || raw.StartsWith("+20"))

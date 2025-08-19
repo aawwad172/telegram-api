@@ -38,18 +38,18 @@ public class SendMessageCommandHandler(
             // Create the TelegramMessage object
             TelegramMessage message = new()
             {
-                CustomerId = customer.CustomerId.ToString(),
+                CustomerId = customer.CustomerId,
                 ChatId = user.ChatId,
                 BotKey = request.BotKey,
                 MessageText = request.MessageText,
                 PhoneNumber = request.PhoneNumber,
-                MessageType = 'A', // Always 'A' for API messages
+                MessageType = "A", // Always 'A' for API messages
                 Priority = 6,
-                IsSystemApproved = !customer.RequireSystemApprove
+                IsSystemApproved = true // Any request we will in this API will be system approved
             };
 
             // Call the repository to send the message
-            int referenceNumber = await _messageRepository.SendMessage(message);
+            int referenceNumber = await _messageRepository.SendMessageAsync(message);
 
             return new SendMessageCommandResult(referenceNumber.ToString());
         }

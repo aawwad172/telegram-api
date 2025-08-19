@@ -9,14 +9,7 @@ public interface IMessageRepository
     /// </summary>
     /// <param name="message"></param>
     /// <returns>It returns the Id of the row that been inserted (reference number)</returns>
-    Task<int> SendMessage(TelegramMessage message);
+    Task<int> SendMessageAsync(TelegramMessage message);
 
-    /// <summary>
-    /// Sending messages by adding the messages to the Queue Table (ReadyTable)
-    /// </summary>
-    /// <param name="messages"></param>
-    /// <returns>It returns array of id's for each message</returns>
-    Task<IEnumerable<int>> SendMessages(IEnumerable<TelegramMessage> messages);
-
-    //Task<string> SendCampaign(CampaignMessage messege);
+    Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages);
 }

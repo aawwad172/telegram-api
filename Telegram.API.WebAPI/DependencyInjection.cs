@@ -2,7 +2,7 @@
 using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Queries;
-using Telegram.API.Domain.Utilities;
+using Telegram.API.Domain.Settings;
 using Telegram.API.Infrastructure.Persistence;
 using Telegram.API.WebAPI.Validators.Commands;
 using Telegram.API.WebAPI.Validators.Queries;
@@ -14,12 +14,14 @@ public static class DependencyInjection
     public static IServiceCollection AddWebAPIServices(this IServiceCollection services, IConfiguration configuration)
     {
 
-        Config.ConnectionStrings = configuration.GetRequiredSection("ConnectionStrings").Get<ConnectionStrings>()!;
-        Config.AppConfig = configuration.GetRequiredSection("AppConfig").Get<AppConfig>()!;
-        //Config.TelegramGatewayConfig = configuration.GetRequiredSection("TelegramGatewayConfig").Get<TelegramGatewayConfig>()!;
+        services.Configure<DbSettings>(configuration.GetSection(nameof(DbSettings)));
+        services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
+        services.Configure<TelegramOptions>(configuration.GetSection(nameof(TelegramOptions)));
 
-        LoggerService._logPath = Config.AppConfig.LogPath;
-        LoggerService._flushPeriod = Config.AppConfig.LogFlushInterval;
+        AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>();
+
+        LoggerService._logPath = appSettings!.LogPath;
+        LoggerService._flushPeriod = appSettings.LogFlushInterval;
 
         services.AddHealthChecks()
                 .AddCheck<DbConnectionHealthCheck>("Database Connection");
@@ -29,6 +31,9 @@ public static class DependencyInjection
 
         services.AddTransient<IValidator<SendMessageCommand>, SendMessageCommandValidator>();
         services.AddTransient<IValidator<SubscriptionInfoQuery>, SubscriptionInfoQueryValidator>();
+        services.AddTransient<IValidator<SendBatchMessagesCommand>, SendBatchMessagesCommandValidator>();
+        services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
+
         return services;
     }
 }
