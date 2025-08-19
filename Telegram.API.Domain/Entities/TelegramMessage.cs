@@ -1,5 +1,4 @@
-﻿using Telegram.API.Domain.Interfaces;
-using Telegram.API.Domain.Interfaces.Domain;
+﻿using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Domain.Entities;
 
@@ -13,7 +12,7 @@ public class TelegramMessage : ITelegramMessage
     /// Unique customer identifier.  
     /// This value is derived from the combination of username and password.
     /// </summary>
-    public required string CustomerId { get; set; } = string.Empty;
+    public int CustomerId { get; set; }
 
     /// <summary>
     /// Telegram chat identifier (provided by the user).

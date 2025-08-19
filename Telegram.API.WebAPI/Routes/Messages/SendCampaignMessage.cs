@@ -16,11 +16,11 @@ public class SendCampaignMessage : ICommandRoute<SendCampaignMessageCommand>
         [FromServices] IMediator mediator,
         [FromServices] FluentValidation.IValidator<SendCampaignMessageCommand> validator)
     {
-        var sanitizedRequest = CommandsSanitizer.Sanitize(request);
+        SendCampaignMessageCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
         ValidationResult validationResult = validator.Validate(sanitizedRequest);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors
+            List<string> errors = validationResult.Errors
                 .Select(e => e.ErrorMessage)
                 .ToList();
             throw new CustomValidationException("Validation failed ", errors);

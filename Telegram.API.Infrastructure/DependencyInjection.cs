@@ -1,9 +1,10 @@
-﻿using Telegram.API.Domain.Interfaces.Infrastructure;
-using Telegram.API.Domain.Utilities;
-using Telegram.API.Infrastructure.Persistence;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
+using Telegram.API.Domain.Settings;
+using Telegram.API.Infrastructure.Persistence;
 using Telegram.API.Infrastructure.Persistence.Repositories;
 
 namespace Telegram.API.Infrastructure;
@@ -15,11 +16,8 @@ public static class DependencyInjection
         // Register your infrastructure services here
         // Example: services.AddSingleton<IMyService, MyService>();
 
-        services.AddTransient<IDbConnectionFactory>(sp =>
-                new DbConnectionFactory(
-                    Config.ConnectionStrings.ConStr
-                )
-        );
+        // Register your infrastructure services
+        services.AddTransient<IDbConnectionFactory, DbConnectionFactory>();
 
         services.AddTransient<DbConnectionHealthCheck>();
         services.AddTransient<IMessageRepository, MessageRepository>();

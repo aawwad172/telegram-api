@@ -1,7 +1,5 @@
 ﻿using MediatR;
-using System.Data.Common;
 using Telegram.API.Application.CQRS.Commands;
-using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
@@ -27,7 +25,7 @@ public class SendBatchMessageCommandHandler(
 
         TelegramMessagePackage<BatchMessage> batchMessages = new()
         {
-            CustomerId = customer.CustomerId.ToString(),
+            CustomerId = customer.CustomerId,
             BotKey = request.BotKey,
             IsSystemApproved = true,
             MessageType = "AF",

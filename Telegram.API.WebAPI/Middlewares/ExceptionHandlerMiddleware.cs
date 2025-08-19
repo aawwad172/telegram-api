@@ -74,6 +74,12 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             LoggerService.Warning($"EmptyMessagesBatchException occurred: {ex.Message}");
             await HandleExceptionAsync(context, "-40", "EMPTY_MESSAGES_BATCH", StatusCodes.Status400BadRequest);
         }
+        catch (CouldntDeleteFileException ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+            LoggerService.Error($"CouldntDeleteFileException occurred: {ex.Message}");
+            await HandleExceptionAsync(context, "-50", "COULDNT_DELETE_FILE", StatusCodes.Status500InternalServerError);
+        }
         catch (DatabaseException ex)
         {
             Console.WriteLine("Error: " + ex.Message);

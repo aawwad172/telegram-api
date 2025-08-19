@@ -1,31 +1,50 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
 using System.Data;
-using System.Runtime.CompilerServices;
 using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
+using Telegram.API.Domain.Settings;
 
 namespace Telegram.API.Infrastructure.Persistence.Repositories;
 
 public class MessageRepository(
     IDbConnectionFactory connectionFactory,
-    IJsonFileRepository jsonFileRepository) : IMessageRepository
+    IJsonFileRepository jsonFileRepository, IOptionsMonitor<TelegramOptions> options) : IMessageRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
     private readonly IJsonFileRepository _jsonFileRepository = jsonFileRepository;
-    private readonly string _folderPath = "C:\\A2A_Telegram_Message\\A2A TelegramAPI - Async\\";
+    private readonly IOptionsMonitor<TelegramOptions> _telegramOtions = options;
 
     public async Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages)
     {
         string finalName = FileNameHelper.ComposeCampaignFileName(messages.CampaignId);
-        string fullPath = Path.Combine(_folderPath, finalName);
+        string fullPath = Path.Combine(_telegramOtions.CurrentValue.BulkFolderPath, finalName);
 
-        // 1) Insert DB row, storing the same path (or store just finalName if you prefer)
-        await AddBatchFileAsync(messages, fullPath);
-
-        // 2) Save the file
+        // 1) Save the file
         await _jsonFileRepository.SaveToFileAsync(messages.Items, fullPath);
+
+        // 2) Insert DB row, storing the same path (or store just finalName if you prefer)
+        try
+        {
+            await AddBatchFileAsync(messages, fullPath);
+        }
+        catch (Exception)
+        {
+            try
+            {
+                File.Delete(fullPath);
+            }
+            catch
+            {
+                throw new CouldntDeleteFileException(
+                    $"Failed to delete the file {fullPath} after an error occurred while inserting into the database."
+                );
+            }
+            throw;
+        }
     }
 
     /// <summary>
@@ -36,7 +55,7 @@ public class MessageRepository(
     /// <exception cref="NotImplementedException"></exception>
     public async Task<int> SendMessageAsync(TelegramMessage message)
     {
-        IDbConnection conn = await _connectionFactory.CreateOpenConnection();
+        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
 
         cmd.CommandType = CommandType.StoredProcedure;
@@ -45,19 +64,24 @@ public class MessageRepository(
         cmd.Parameters.Add(new SqlParameter("@CustId", SqlDbType.Int)
         { Value = message.CustomerId }
         );
+
         cmd.Parameters.Add(new SqlParameter("@ChatId", SqlDbType.NVarChar)
         { Value = message.ChatId }
         );
+
         cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
         { Value = message.BotKey }
         );
+
         cmd.Parameters.Add(new SqlParameter("@MessageText", SqlDbType.NVarChar)
         { Value = message.MessageText }
         );
+
         cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
         { Value = message.PhoneNumber }
         );
-        cmd.Parameters.Add(new SqlParameter("@MsgType", SqlDbType.Char)
+
+        cmd.Parameters.Add(new SqlParameter("@MsgType", SqlDbType.NVarChar, 10)
         { Value = message.MessageType }
         );
 
@@ -127,7 +151,7 @@ public class MessageRepository(
         );
 
         cmd.Parameters.Add(new SqlParameter("@ScheduledSendDateTime", SqlDbType.DateTime2)
-        { Value = messages.ScheduledSendDateTime }
+        { Value = (object)messages.ScheduledSendDateTime! ?? DBNull.Value }
         );
         cmd.Parameters.Add(new SqlParameter("@FilePath", SqlDbType.NVarChar)
         { Value = $"{fullPath}{messages.CampaignId}.json" }

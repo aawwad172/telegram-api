@@ -1,8 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Exceptions;
-using Telegram.API.Domain.Interfaces.Application;
-using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Application.HelperServices;
 
@@ -12,13 +10,13 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim(),
-            Password = command.Password.Trim(),
-            BotKey = command.BotKey.Trim(),
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
             Items = command.Items.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
-                MessageText = i.MessageText.Trim()
+                MessageText = i.MessageText.Trim() ?? string.Empty
             }).ToList()
         };
     }
@@ -27,9 +25,9 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim(),
-            Password = command.Password.Trim(),
-            BotKey = command.BotKey.Trim(),
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
             PhoneNumber = NormalizeOrThrow(command.PhoneNumber),
             MessageText = command.MessageText.Trim()
         };
@@ -39,10 +37,10 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim(),
-            Password = command.Password.Trim(),
-            BotKey = command.BotKey.Trim(),
-            MessageText = command.MessageText.Trim(),
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            MessageText = command.MessageText.Trim() ?? string.Empty,
             Items = command.Items.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),

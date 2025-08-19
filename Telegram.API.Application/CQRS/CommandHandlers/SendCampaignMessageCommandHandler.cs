@@ -25,7 +25,7 @@ public class SendCampaignMessageCommandHandler(
 
         TelegramMessagePackage<CampaignMessage> campaignMessage = new()
         {
-            CustomerId = customer.CustomerId.ToString(),
+            CustomerId = customer.CustomerId,
             BotKey = request.BotKey,
             IsSystemApproved = true,
             MessageType = "AC",
@@ -35,9 +35,9 @@ public class SendCampaignMessageCommandHandler(
             Priority = 2,
         };
 
-        var phones = request.Items.Select(x => x.PhoneNumber);
+        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
 
-        var phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
 
         // 3) Build messages without further DB calls
         List<CampaignMessage> messages = new(request.Items.Count());

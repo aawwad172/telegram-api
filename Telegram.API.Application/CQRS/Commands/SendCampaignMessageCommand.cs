@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Identity.Client;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Domain;
 

@@ -130,7 +130,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
     @BotKey               NVARCHAR(100),
     @MsgText              NVARCHAR(MAX) = NULL,
     @MsgType              NVARCHAR(10),
-    @CampaignId           NVARCHAR(50) = NULL,
+    @CampaignId           NVARCHAR(50),
     @CampDesc             NVARCHAR(256) = NULL,
     @Priority             SMALLINT,           -- table uses SMALLINT
     @IsSystemApproved     BIT,
@@ -158,8 +158,8 @@ BEGIN
         CampDesc,
         ScheduledSendDateTime,
         CreationDate,
-        isSystemApproved,
-        isAdminApproved,
+        IsSystemApproved,
+        IsAdminApproved,
         IsProcessed
     )
     VALUES

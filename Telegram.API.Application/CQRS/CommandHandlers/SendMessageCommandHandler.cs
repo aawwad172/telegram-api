@@ -38,7 +38,7 @@ public class SendMessageCommandHandler(
             // Create the TelegramMessage object
             TelegramMessage message = new()
             {
-                CustomerId = customer.CustomerId.ToString(),
+                CustomerId = customer.CustomerId,
                 ChatId = user.ChatId,
                 BotKey = request.BotKey,
                 MessageText = request.MessageText,

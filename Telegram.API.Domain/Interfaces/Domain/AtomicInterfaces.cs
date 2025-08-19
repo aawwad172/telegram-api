@@ -19,7 +19,7 @@ public interface IHasBotKey
 }
 public interface IHasCustomerId
 {
-    string CustomerId { get; }
+    int CustomerId { get; }
 }
 public interface IHasPriority
 {
