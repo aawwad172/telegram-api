@@ -33,7 +33,7 @@ public class FileNameHelper
         if (!hasTrailingStamp)
         {
             string stamp = (now ?? DateTime.Now).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
-            baseName = $"{baseName}_{stamp}_{Guid.NewGuid()}";
+            baseName = $"{baseName}_{stamp}_{Guid.NewGuid():N}";
         }
 
         return baseName + ".json";
