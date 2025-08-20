@@ -18,7 +18,6 @@ builder.Services.AddDomainServices()
                 .AddInfrastructureServices(builder.Configuration)
                 .AddWebAPIServices(builder.Configuration);
 
-
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

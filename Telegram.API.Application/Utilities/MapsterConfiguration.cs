@@ -1,6 +1,7 @@
 ﻿using Mapster;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Queries;
+using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Enums;
 using Telegram.API.Domain.Interfaces.Domain;
@@ -34,7 +35,7 @@ public static class MapsterConfiguration
             .Map(dest => dest.PhoneNumber, src => src.request.PhoneNumber)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.A.ToString())
             .Map(dest => dest.IsSystemApproved, _ => true)
-            .Map(dest => dest.Priority, _ => 6);
+            .Map(dest => dest.Priority, _ => MessagePriorityEnum.SingleMessage);
 
         TypeAdapterConfig<(Customer customer, SendBatchMessagesCommand request), TelegramMessagePackage<BatchMessage>>
             .NewConfig()
@@ -45,7 +46,7 @@ public static class MapsterConfiguration
             .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
             .Map(dest => dest.CampDescription, src => src.request.CampDescription ?? string.Empty)
             .Map(dest => dest.ScheduledSendDateTime, src => src.request.ScheduledDatetime)
-            .Map(dest => dest.Priority, _ => 2);
+            .Map(dest => dest.Priority, _ => MessagePriorityEnum.BatchMessage);
 
         TypeAdapterConfig<(Customer customer, SendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
             .NewConfig()
@@ -57,6 +58,6 @@ public static class MapsterConfiguration
             .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
             .Map(dest => dest.CampDescription, src => src.request.CampDescription ?? string.Empty)
             .Map(dest => dest.ScheduledSendDateTime, src => src.request.ScheduledDatetime)
-            .Map(dest => dest.Priority, _ => 2);
+            .Map(dest => dest.Priority, _ => MessagePriorityEnum.CampaignMessage);
     }
 }
