@@ -18,6 +18,12 @@ builder.Services.AddDomainServices()
                 .AddInfrastructureServices(builder.Configuration)
                 .AddWebAPIServices(builder.Configuration);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null; // unlimited
+    // or set in bytes, e.g. 200 MB:
+    // options.Limits.MaxRequestBodySize = 200 * 1024 * 1024;
+});
 
 WebApplication app = builder.Build();
 
