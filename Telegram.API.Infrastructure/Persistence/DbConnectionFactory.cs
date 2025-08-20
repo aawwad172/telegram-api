@@ -1,18 +1,18 @@
 ﻿using System.Data;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using Telegram.API.Domain.Settings;
 
 namespace Telegram.API.Infrastructure.Persistence;
 
-public class DbConnectionFactory : IDbConnectionFactory
+public class DbConnectionFactory(IOptionsMonitor<DbSettings> options) : IDbConnectionFactory
 {
-    private readonly string _connString;
-    public DbConnectionFactory(string connString)
-        => _connString = connString;
+    private readonly IOptionsMonitor<DbSettings> _options = options;
 
     public async Task<IDbConnection> CreateOpenConnection()
     {
-        SqlConnection conn = new(_connString);
+        SqlConnection conn = new(_options.CurrentValue.ConStr);
         await conn.OpenAsync().ConfigureAwait(false);
         return conn;
     }

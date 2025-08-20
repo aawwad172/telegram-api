@@ -6,107 +6,54 @@ namespace Telegram.API.Application.HelperServices;
 
 public class CommandsSanitizer
 {
-    /// <summary>
-    /// Returns a new, sanitized command instance without mutating the original.
-    /// Throws InvalidPhoneNumberException when phone normalization fails.
-    /// </summary>
-    public static SendMessageCommand SanitizeSendMessageCommand(SendMessageCommand command)
+    public static SendBatchMessagesCommand Sanitize(SendBatchMessagesCommand command)
     {
-        if (command == null)
-            throw new ArgumentNullException(nameof(command), "Command cannot be null");
-
-        // Clone original to avoid side effects
-        SendMessageCommand sanitized = new SendMessageCommand
+        return command with
         {
-            Username = command.Username.Trim(),
-            Password = command.Password.Trim(),
-            PhoneNumber = command.PhoneNumber, // will normalize next
-            MessageText = command.MessageText.Trim(),
-            BotKey = command.BotKey.Trim()
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            Items = command.Items.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+                MessageText = i.MessageText.Trim() ?? string.Empty
+            }).ToList()
         };
-
-        // Normalize and validate PhoneNumber
-        if (!TryNormalizePhoneNumber(sanitized.PhoneNumber, out string? normalized))
-            throw new InvalidPhoneNumberException($"Unable to normalize phone number '{command.PhoneNumber}'");
-
-        sanitized.PhoneNumber = normalized;
-        return sanitized;
     }
 
-    private static bool TryNormalizePhoneNumber(string raw, out string result)
+    public static SendMessageCommand Sanitize(SendMessageCommand command)
     {
-        result = string.Empty;
-        if (string.IsNullOrWhiteSpace(raw))
-            return false;
-
-        // Strip formatting characters
-        string clean = Regex.Replace(raw, @"[\s\-\(\)\+]+", "");
-
-        // Country-specific normalization
-        if (clean.StartsWith("00962") || clean.StartsWith("962") || raw.StartsWith("+962"))
-            result = NormalizeJordan(clean);
-        else if (clean.StartsWith("0020") || clean.StartsWith("20") || raw.StartsWith("+20"))
-            result = NormalizeEgypt(clean);
-        else if (clean.StartsWith("00968") || clean.StartsWith("968") || raw.StartsWith("+968"))
-            result = NormalizeOman(clean);
-        else
-            result = DetectAndNormalizeLocal(clean);
-
-        return !string.IsNullOrEmpty(result);
+        return command with
+        {
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            PhoneNumber = NormalizeOrThrow(command.PhoneNumber),
+            MessageText = command.MessageText.Trim()
+        };
     }
 
-    private static string NormalizeJordan(string n)
+    public static SendCampaignMessageCommand Sanitize(SendCampaignMessageCommand command)
     {
-        // strip any prefix
-        if (n.StartsWith("00962")) n = n[5..];
-        else if (n.StartsWith("962")) n = n[3..];
-
-        if (n.StartsWith("0")) n = n[1..];
-
-        // must be 9 digits (starts with 7, + country code yields 11 total)
-        return Regex.IsMatch(n, @"^7\d{8}$")
-           ? "962" + n
-           : string.Empty;
+        return command with
+        {
+            Username = command.Username.Trim() ?? string.Empty,
+            Password = command.Password.Trim() ?? string.Empty,
+            BotKey = command.BotKey.Trim() ?? string.Empty,
+            MessageText = command.MessageText.Trim() ?? string.Empty,
+            Items = command.Items.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList()
+        };
     }
 
-    private static string NormalizeEgypt(string n)
+    // 🔧 Shared helper
+    private static string NormalizeOrThrow(string raw)
     {
-        if (n.StartsWith("0020")) n = n[4..];
-        else if (n.StartsWith("20")) n = n[2..];
+        if (!CommandSanitizerHelpers.TryNormalizePhoneNumber(raw, out string? normalized))
+            throw new InvalidPhoneNumberException($"Unable to normalize phone number '{raw}'");
 
-        if (n.StartsWith("0")) n = n[1..];
-
-        return Regex.IsMatch(n, @"^1\d{9}$")
-           ? "20" + n
-           : string.Empty;
-    }
-
-    private static string NormalizeOman(string n)
-    {
-        if (n.StartsWith("00968")) n = n[5..];
-        else if (n.StartsWith("968")) n = n[3..];
-
-        if (n.StartsWith("0")) n = n[1..];
-
-        return Regex.IsMatch(n, @"^[79]\d{7}$")
-           ? "968" + n
-           : string.Empty;
-    }
-
-    private static string DetectAndNormalizeLocal(string n)
-    {
-        // strip leading zero if any
-        if (n.StartsWith("0"))
-            n = n[1..];
-
-        // Jordan local
-        if (Regex.IsMatch(n, @"^7\d{8}$")) return "962" + n;
-        // Egypt local
-        if (Regex.IsMatch(n, @"^1\d{9}$")) return "20" + n;
-        // Oman local
-        if (Regex.IsMatch(n, @"^[79]\d{7}$")) return "968" + n;
-
-        // nothing matched
-        return string.Empty;
+        return normalized;
     }
 }

@@ -30,7 +30,7 @@ BEGIN
     BotKey              NVARCHAR(100),
     PhoneNumber         NVARCHAR(20),
     MessageText         NVARCHAR(MAX),
-    MsgType             CHAR(1),
+    MsgType             NVARCHAR(10),
     ReceivedDateTime    DATETIME,
     ScheduledSendDateTime DATETIME,
     MessageHash         BINARY(32),

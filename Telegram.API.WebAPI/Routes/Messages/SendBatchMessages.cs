@@ -10,28 +10,28 @@ using Telegram.API.WebAPI.Models;
 
 namespace Telegram.API.WebAPI.Routes.Messages;
 
-public class SendMessage : ICommandRoute<SendMessageCommand>
+public class SendBatchMessages : ICommandRoute<SendBatchMessagesCommand>
 {
     public static async Task<IResult> RegisterRoute(
-        [FromBody] SendMessageCommand request,
+        [FromBody] SendBatchMessagesCommand request,
         [FromServices] IMediator mediator,
-        [FromServices] IValidator<SendMessageCommand> validator)
+        [FromServices] IValidator<SendBatchMessagesCommand> validator)
     {
-        SendMessageCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
+        SendBatchMessagesCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
+
         ValidationResult validationResult = await validator.ValidateAsync(sanitizedRequest);
 
         if (!validationResult.IsValid)
         {
             List<string> errors = validationResult.Errors
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
+                   .Select(e => e.ErrorMessage)
+                   .ToList();
 
             throw new CustomValidationException("Validation failed ", errors);
         }
 
-        SendMessageCommandResult result = await mediator.Send(sanitizedRequest);
+        SendBatchMessageCommandResult result = await mediator.Send(sanitizedRequest);
 
-        // Use this to prevent extra memory allocation
-        return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(result));
+        return Results.Ok(ApiResponse<SendBatchMessageCommandResult>.SuccessResponse(result));
     }
 }

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Mapster;
+using MediatR;
 using Microsoft.Data.SqlClient;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
@@ -35,21 +36,12 @@ public class SendMessageCommandHandler(
                 throw new ChatIdNotFoundException($"Chat ID not found for phone number {request.PhoneNumber} and bot key {request.BotKey}. Or the BotKey is Wrong");
             }
 
-            // Create the TelegramMessage object
-            TelegramMessage message = new()
-            {
-                CustomerId = customer.CustomerId.ToString(),
-                ChatId = user.ChatId,
-                BotKey = request.BotKey,
-                MessageText = request.MessageText,
-                PhoneNumber = request.PhoneNumber,
-                MessageType = 'A', // Always 'A' for API messages
-                Priority = 6,
-                IsSystemApproved = !customer.RequireSystemApprove
-            };
+            // Create the TelegramMessage object and Map it
+            // Adapt the tuple to TelegramMessage using Mapster
+            TelegramMessage message = ((customer, user), request).Adapt<TelegramMessage>();
 
             // Call the repository to send the message
-            int referenceNumber = await _messageRepository.SendMessage(message);
+            int referenceNumber = await _messageRepository.SendMessageAsync(message);
 
             return new SendMessageCommandResult(referenceNumber.ToString());
         }

@@ -17,7 +17,10 @@ public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
 
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
-            .WithMessage("Mobile number is required.");
+            .WithMessage("Mobile number is required.")
+            .Matches(@"^\+?[0-9]+$")
+            .WithMessage("Phone number must start with '+' optionally and contain digits only.");
+
 
         RuleFor(x => x.MessageText)
             .NotEmpty()

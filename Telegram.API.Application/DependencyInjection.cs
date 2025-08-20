@@ -20,10 +20,11 @@ public static class DependencyInjection
         {
             cfg.RegisterServicesFromAssembly(typeof(SendMessageCommandHandler).Assembly);
             cfg.RegisterServicesFromAssembly(typeof(SubscriptionInfoQueryHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(SendBatchMessageCommandHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(SendCampaignMessageCommandHandler).Assembly);
         });
 
         MapsterConfiguration.RegisterMappings();
-
 
         return services;
     }
