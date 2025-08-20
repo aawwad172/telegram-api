@@ -42,8 +42,9 @@ public static class MapsterConfiguration
             .Map(dest => dest.BotKey, src => src.request.BotKey)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AF.ToString())
-            .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}")
-            .Map(dest => dest.CampDescription, src => src.request.CampDescription!)
+            .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
+            .Map(dest => dest.CampDescription, src => src.request.CampDescription ?? string.Empty)
+            .Map(dest => dest.ScheduledSendDateTime, src => src.request.ScheduledDatetime)
             .Map(dest => dest.Priority, _ => 2);
 
         TypeAdapterConfig<(Customer customer, SendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
@@ -53,8 +54,9 @@ public static class MapsterConfiguration
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AC.ToString())
-            .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}")
-            .Map(dest => dest.CampDescription, src => src.request.CampDescription!)
+            .Map(dest => dest.CampaignId, src => $"{src.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
+            .Map(dest => dest.CampDescription, src => src.request.CampDescription ?? string.Empty)
+            .Map(dest => dest.ScheduledSendDateTime, src => src.request.ScheduledDatetime)
             .Map(dest => dest.Priority, _ => 2);
     }
 }
