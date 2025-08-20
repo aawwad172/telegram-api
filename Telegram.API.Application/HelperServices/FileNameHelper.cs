@@ -25,12 +25,15 @@ public class FileNameHelper
         baseName = MakeSafeFileName(baseName);
 
         // matches "..._20250817170250" at the END
-        bool hasTrailingStamp = Regex.IsMatch(baseName, @"(?:^|_)\d{14}$");
+        bool hasTrailingStamp = Regex.IsMatch(
+            baseName,
+            @"(_(\d{14}(_[0-9a-fA-F]{32})?|[0-9a-fA-F]{32}))$"
+        );
 
         if (!hasTrailingStamp)
         {
             string stamp = (now ?? DateTime.Now).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
-            baseName = $"{baseName}_{stamp}";
+            baseName = $"{baseName}_{stamp}_{Guid.NewGuid()}";
         }
 
         return baseName + ".json";

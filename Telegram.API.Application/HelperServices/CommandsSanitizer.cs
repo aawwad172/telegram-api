@@ -10,14 +10,14 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim() ?? string.Empty,
-            Password = command.Password.Trim() ?? string.Empty,
-            BotKey = command.BotKey.Trim() ?? string.Empty,
-            Items = command.Items.Select(i => i with
+            Username = command.Username?.Trim() ?? string.Empty,
+            Password = command.Password?.Trim() ?? string.Empty,
+            BotKey = command.BotKey?.Trim() ?? string.Empty,
+            Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
-                MessageText = i.MessageText.Trim() ?? string.Empty
-            }).ToList()
+                MessageText = i.MessageText?.Trim() ?? string.Empty
+            }).ToList() ?? []
         };
     }
 
@@ -25,11 +25,11 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim() ?? string.Empty,
-            Password = command.Password.Trim() ?? string.Empty,
-            BotKey = command.BotKey.Trim() ?? string.Empty,
+            Username = command.Username?.Trim() ?? string.Empty,
+            Password = command.Password?.Trim() ?? string.Empty,
+            BotKey = command.BotKey?.Trim() ?? string.Empty,
             PhoneNumber = NormalizeOrThrow(command.PhoneNumber),
-            MessageText = command.MessageText.Trim()
+            MessageText = command.MessageText?.Trim() ?? string.Empty
         };
     }
 
@@ -37,14 +37,14 @@ public class CommandsSanitizer
     {
         return command with
         {
-            Username = command.Username.Trim() ?? string.Empty,
-            Password = command.Password.Trim() ?? string.Empty,
-            BotKey = command.BotKey.Trim() ?? string.Empty,
+            Username = command.Username?.Trim() ?? string.Empty,
+            Password = command.Password?.Trim() ?? string.Empty,
+            BotKey = command.BotKey?.Trim() ?? string.Empty,
             MessageText = command.MessageText.Trim() ?? string.Empty,
-            Items = command.Items.Select(i => i with
+            Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
-            }).ToList()
+            }).ToList() ?? []
         };
     }
 
