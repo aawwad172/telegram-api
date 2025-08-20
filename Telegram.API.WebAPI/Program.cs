@@ -1,7 +1,6 @@
 
 using Telegram.API.Application;
 using Telegram.API.Domain;
-using Telegram.API.Domain.Settings;
 using Telegram.API.Infrastructure;
 using Telegram.API.WebAPI;
 using Telegram.API.WebAPI.Middlewares;
