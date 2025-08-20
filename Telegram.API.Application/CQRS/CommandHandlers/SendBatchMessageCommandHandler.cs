@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Mapster;
+using MediatR;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Exceptions;
@@ -23,16 +24,7 @@ public class SendBatchMessageCommandHandler(
         if (customer is null)
             throw new UnauthenticatedException("Invalid username or password.");
 
-        TelegramMessagePackage<BatchMessage> batchMessages = new()
-        {
-            CustomerId = customer.CustomerId,
-            BotKey = request.BotKey,
-            IsSystemApproved = true,
-            MessageType = "AF",
-            CampaignId = $"{customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}",
-            CampDescription = request.CampDescription!,
-            Priority = 2,
-        };
+        TelegramMessagePackage<BatchMessage> batchMessages = (customer, request).Adapt<TelegramMessagePackage<BatchMessage>>();
 
         // 1) Get all phone numbers once
         IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);

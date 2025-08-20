@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Mapster;
+using MediatR;
 using Microsoft.Data.SqlClient;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
@@ -29,31 +30,22 @@ public class SendMessageCommandHandler(
             // Get Chat Id depending on the phone number
             User? user = await _userRepository.GetUserAsync(request.PhoneNumber, request.BotKey);
 
-            if (string.IsNullOrEmpty(user!.ChatId))
+            if (user is null || string.IsNullOrWhiteSpace(user.ChatId))
             {
                 // If chatId is null or empty, throw an exception or the BotKey is wrong
                 throw new ChatIdNotFoundException($"Chat ID not found for phone number {request.PhoneNumber} and bot key {request.BotKey}. Or the BotKey is Wrong");
             }
 
-            // Create the TelegramMessage object
-            TelegramMessage message = new()
-            {
-                CustomerId = customer.CustomerId,
-                ChatId = user.ChatId,
-                BotKey = request.BotKey,
-                MessageText = request.MessageText,
-                PhoneNumber = request.PhoneNumber,
-                MessageType = "A", // Always 'A' for API messages
-                Priority = 6,
-                IsSystemApproved = true // Any request we will in this API will be system approved
-            };
+            // Create the TelegramMessage object and Map it
+            // Adapt the tuple to TelegramMessage using Mapster
+            TelegramMessage message = ((customer, user), request).Adapt<TelegramMessage>();
 
             // Call the repository to send the message
             int referenceNumber = await _messageRepository.SendMessageAsync(message);
 
             return new SendMessageCommandResult(referenceNumber.ToString());
         }
-        catch (Exception ex) when (ex is SqlException sqlEx)
+        catch (SqlException sqlEx)
         {
             // Translate to domain-specific exception
             throw new DatabaseException($"DB Error: {sqlEx.Message}");
