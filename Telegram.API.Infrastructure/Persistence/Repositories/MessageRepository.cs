@@ -21,7 +21,7 @@ public class MessageRepository(
     public async Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages)
     {
         string finalName = FileNameHelper.ComposeCampaignFileName(messages.CampaignId);
-        string fullPath = Path.Combine(_telegramOtions.CurrentValue.BulkFolderPath, finalName);
+        string fullPath = Path.Combine(_telegramOtions.CurrentValue.DropFolderPath, finalName);
 
         // 1) Save the file
         await _jsonFileRepository.SaveToFileAsync(messages.Items, fullPath);

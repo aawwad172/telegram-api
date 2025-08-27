@@ -14,5 +14,5 @@ public class AppSettings
 
 public class TelegramOptions
 {
-    public string BulkFolderPath { get; set; } = string.Empty;
+    public string DropFolderPath { get; set; } = string.Empty;
 }

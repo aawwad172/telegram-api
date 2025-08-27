@@ -26,6 +26,18 @@ GO
   DROP TABLE dbo.TelegramSentFiles;
 GO
 
+IF OBJECT_ID('dbo.TelegramFiles','U') IS NOT NULL
+  DROP TABLE dbo.TelegramFiles;
+GO
+
+IF TYPE_ID('dbo.PhoneList') IS NOT NULL
+  DROP TYPE dbo.PhoneList;
+GO
+
+IF TYPE_ID('dbo.TelegramMessage_Tvp') IS NOT NULL
+  DROP TYPE dbo.TelegramMessage_Tvp;
+GO
+
 /*******************************************
  * 1.1) MessageStatus: Enum for message status
  *******************************************/
@@ -49,14 +61,14 @@ VALUES
  *******************************************/
 CREATE TABLE dbo.ReadyTable
 (
-  ID           			INT					IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
-  CustId			    INT				 	NOT NULL,
+  ID           			INT					      IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
+  CustId			      INT				 	      NOT NULL,
   ChatId       			NVARCHAR(50)   		    NULL,
   BotKey       			NVARCHAR(100)  		NOT NULL,
-  PhoneNumber           NVARCHAR(20)        NOT NULL,
+  PhoneNumber       NVARCHAR(20)      NOT NULL,
   MessageText  			NVARCHAR(MAX)  		NOT NULL,
-  MsgType				NVARCHAR(10)		NOT NULL,
-  ReceivedDateTime		DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  MsgType				    NVARCHAR(10)		  NOT NULL,
+  ReceivedDateTime		  DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   ScheduledSendDateTime DATETIME       		NOT NULL, -- Auto Generated using GETDATE() in the SP.
   MessageHash  			BINARY(32)     		NOT NULL, -- Auto Generated from the SP.
   Priority     			SMALLINT       		NOT NULL,
@@ -181,8 +193,7 @@ CREATE TABLE dbo.TelegramSentFiles
     [CreationDate]           DATETIME2      NOT NULL,
     [isSystemApproved]       BIT            NOT NULL,
     [isAdminApproved]        BIT            NOT NULL,
-    [IsProcessed]            BIT            NOT NULL
-    
+    [IsProcessed]            BIT            NOT NULL DEFAULT 1
     );
 GO
 
@@ -200,3 +211,57 @@ CREATE TYPE dbo.PhoneList AS TABLE
   PhoneNumber NVARCHAR(20) NOT NULL PRIMARY KEY
 );
 GO
+
+  /*******************************************
+  * 1.8) TelegramMessage_Tvp: Table type for passing batch messages
+  *******************************************/
+    -- Table type to pass batch messages
+    -- 1) Table type for TVP (what C# will send)
+CREATE TYPE dbo.TelegramMessage_Tvp AS TABLE
+(
+    CustomerId              INT             NOT NULL,
+    ChatId                  NVARCHAR(50)    NULL,
+    BotKey                  NVARCHAR(100)   NOT NULL,
+    PhoneNumber             NVARCHAR(20)    NOT NULL,
+    MessageText             NVARCHAR(MAX)   NOT NULL,  -- if your SQL version disallows MAX in TVP, use NVARCHAR(4000)
+    MessageType             NVARCHAR(10)    NOT NULL,
+    ScheduledSendDateTime   DATETIME        NULL,      -- optional; defaulted in proc when NULL
+    Priority                SMALLINT        NOT NULL,
+    CampaignId              NVARCHAR(50)    NULL,
+    CampDescription         NVARCHAR(512)   NULL,
+    IsSystemApproved        BIT             NOT NULL
+);
+GO
+
+/*******************************************
+ * 1.9) TelegramFiles: Table for files to be processed via Telegram (Batch or Campaign)
+ *******************************************/
+  -- Table to store batch files to be processed
+
+CREATE TABLE dbo.TelegramFiles
+(
+    [ID]                     BIGINT IDENTITY(1,1) NOT NULL
+        CONSTRAINT PK_TelegramFiles PRIMARY KEY,
+
+    [CustID]                 INT            NOT NULL,
+    [BotKey]                 NVARCHAR(100)  NOT NULL,   -- e.g., bot key or sender alias
+    [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
+    [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
+    [Priority]               SMALLINT       NOT NULL,
+    [FilePath]               NVARCHAR(260)  NOT NULL,   -- Windows path max
+    [FileType]               NVARCHAR(16)   NOT NULL,   -- Batch or Campaign
+    [CampaignID]             NVARCHAR(50)   NOT NULL UNIQUE,
+    [CampDesc]               NVARCHAR(256)  NULL,
+    [ScheduledSendDateTime]  DATETIME2      NOT NULL,
+    [CreationDate]           DATETIME2      NOT NULL,
+    [isSystemApproved]       BIT            NOT NULL,
+    [isAdminApproved]        BIT            NOT NULL,
+    [IsProcessed]            BIT            NOT NULL DEFAULT 0
+);
+GO
+
+-- Index for quick lookup by CampaignID
+CREATE INDEX IX_TelegramFiles_Campaign
+  ON dbo.TelegramFiles (CampaignID);
+GO
+
