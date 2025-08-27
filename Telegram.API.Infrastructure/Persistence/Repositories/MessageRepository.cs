@@ -154,7 +154,7 @@ public class MessageRepository(
         { Value = (object)messages.ScheduledSendDateTime! ?? DBNull.Value }
         );
         cmd.Parameters.Add(new SqlParameter("@FilePath", SqlDbType.NVarChar)
-        { Value = $"{fullPath}{messages.CampaignId}.json" }
+        { Value = fullPath }
         );
 
         cmd.Parameters.Add(new SqlParameter("@FileType", SqlDbType.NVarChar)
