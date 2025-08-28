@@ -1,8 +1,7 @@
-﻿using A2ASerilog;
+﻿using System.Text.Json;
+using A2ASerilog;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Models;
-using System.Text.Json;
-
 
 namespace Telegram.API.WebAPI.Middlewares;
 
@@ -18,78 +17,81 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         }
         catch (NotFoundException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"NotFoundException occurred: {ex.Message}");
+            Console.WriteLine($"NotFoundException {ex.Message}");
+            LoggerService.Warning("NotFoundException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-5", "NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (EnvironmentVariableNotSetException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"EnvironmentVariableNotSetException occurred: {ex.Message}");
+            Console.WriteLine($"EnvironmentVariableNotSetException {ex.Message}");
+            LoggerService.Warning("EnvironmentVariableNotSetException {Message}", ex.Message);
             await HandleExceptionAsync(context, "INTERNAL_SERVER_ERROR", ex.Message, StatusCodes.Status500InternalServerError);
         }
         catch (UnauthenticatedException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"UnauthenticatedException occurred: {ex.Message}");
+            Console.WriteLine($"UnauthenticatedException {ex.Message}");
+            LoggerService.Warning("UnauthenticatedException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-2", "UNAUTHENTICATED", StatusCodes.Status401Unauthorized);
         }
         catch (UnauthorizedException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"UnauthorizedException occurred: {ex.Message}");
+            Console.WriteLine($"UnauthorizedException {ex.Message}");
+            LoggerService.Warning("UnauthorizedException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-2", "UNAUTHORIZED", StatusCodes.Status403Forbidden);
         }
         catch (ConflictException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"ConflictException occurred: {ex.Message}");
+            Console.WriteLine($"ConflictException {ex.Message}");
+            LoggerService.Warning("ConflictException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-10", "CONFLICT", StatusCodes.Status409Conflict);
         }
         catch (CustomValidationException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"CustomValidationException occurred: {ex.Message}: {JoinErrors(ex.Errors)}");
-            await HandleExceptionAsync(
-                context: context,
-                errorCode: "-1",
-                message: JoinErrors(ex.Errors),
-                statusCode: StatusCodes.Status400BadRequest);
+            var joined = JoinErrors(ex.Errors);
+            Console.WriteLine($"CustomValidationException {ex.Message} {joined}");
+            LoggerService.Warning("CustomValidationException {Message} {Errors}", ex.Message, joined);
+            await HandleExceptionAsync(context, "-1", joined, StatusCodes.Status400BadRequest);
         }
         catch (InvalidPhoneNumberException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"InvalidPhoneNumberException occurred: {ex.Message}");
+            Console.WriteLine($"InvalidPhoneNumberException {ex.Message}");
+            LoggerService.Warning("InvalidPhoneNumberException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-30", "INVALID_PHONE_NUMBER", StatusCodes.Status400BadRequest);
         }
         catch (ChatIdNotFoundException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"ChatIdNotFoundException occurred: {ex.Message}");
+            Console.WriteLine($"ChatIdNotFoundException {ex.Message}");
+            LoggerService.Warning("ChatIdNotFoundException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-31", "CHAT_ID_NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (EmptyMessagesPackageException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Warning($"EmptyMessagesBatchException occurred: {ex.Message}");
+            Console.WriteLine($"EmptyMessagesPackageException {ex.Message}");
+            LoggerService.Warning("EmptyMessagesPackageException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-40", "EMPTY_MESSAGES_BATCH", StatusCodes.Status400BadRequest);
         }
         catch (CouldntDeleteFileException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Error($"CouldntDeleteFileException occurred: {ex.Message}");
+            Console.WriteLine($"CouldntDeleteFileException {ex.Message}");
+            LoggerService.Error("CouldntDeleteFileException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-50", "COULDNT_DELETE_FILE", StatusCodes.Status500InternalServerError);
+        }
+        catch (InvalidBotKeyException ex)
+        {
+            Console.WriteLine($"InvalidBotKeyException {ex.Message}");
+            LoggerService.Warning("InvalidBotKeyException {Message}", ex.Message);
+            await HandleExceptionAsync(context, "-32", "INVALID_BOT_KEY", StatusCodes.Status400BadRequest);
         }
         catch (DatabaseException ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Error($"DatabaseException occurred: {ex.Message}");
+            Console.WriteLine($"DatabaseException {ex.Message}");
+            LoggerService.Error("DatabaseException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-20", "DATABASE_ERROR", StatusCodes.Status500InternalServerError);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error: " + ex.Message);
-            LoggerService.Error($"An unexpected error occurred: {ex.Message}");
+            Console.WriteLine($"UnhandledException {ex}");
+            LoggerService.Error("UnhandledException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-99", "An unexpected error occurred.", StatusCodes.Status500InternalServerError);
         }
     }
@@ -99,11 +101,10 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        // Json Serialization Options to make all camelCase
         JsonSerializerOptions options = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true // Optional: for pretty printing
+            WriteIndented = true
         };
 
         ApiResponse<object> response = ApiResponse<object>.ErrorResponse(errorMessage: message, errorCode: errorCode);

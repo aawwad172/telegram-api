@@ -41,9 +41,6 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
                 IsTelegramActive = reader.GetBoolean(reader.GetOrdinal("IsTelegramActive"))
             };
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
 }

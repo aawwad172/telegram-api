@@ -14,7 +14,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         throw new NotImplementedException();
     }
 
-    public async Task<IDictionary<string, string?>> GetChatIdsAsync(IEnumerable<string> phoneNumbers, string botKey)
+    public async Task<IDictionary<string, string?>> GetChatIdsAsync(IEnumerable<string> phoneNumbers, int botId)
     {
         // Deduplicate + materialize once
         List<string> list = phoneNumbers
@@ -33,7 +33,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_GetChatIdsForPhones";
 
-        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar, 100) { Value = botKey });
+        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int) { Value = botId });
 
         SqlParameter phonesParam = new("@PhoneNumbers", SqlDbType.Structured)
         {
@@ -59,7 +59,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         return map;
     }
 
-    public async Task<User?> GetUserAsync(string phoneNumber, string botKey)
+    public async Task<User?> GetUserAsync(string phoneNumber, int botId)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -72,8 +72,8 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         { Value = phoneNumber }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
-        { Value = botKey }
+        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int)
+        { Value = botId }
         );
 
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
@@ -81,15 +81,18 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         {
             return new User
             {
+                BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
                 ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
                 PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
-                BotKey = reader.GetString(reader.GetOrdinal("BotKey")),
-                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate"))
+                CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
+                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
+                FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),
+                LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
+                LastSeenDateTime = reader.GetDateTime(reader.GetOrdinal("LastSeenDateTime")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
-        else
-        {
-            return null;
-        }
+        // Not found
+        return null;
     }
 }

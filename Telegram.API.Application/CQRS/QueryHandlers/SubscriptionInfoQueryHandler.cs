@@ -19,12 +19,17 @@ public class SubscriptionInfoQueryHandler(
         try
         {
             // Authenticate the Customer using the provided username and password
-            Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
+            Customer? customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
             if (customer is null)
                 throw new UnauthorizedException("Invalid username or password.");
 
-            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, request.BotKey) ?? throw new NotFoundException("User Not Subscribed!");
+            Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+            if (bot is null)
+                throw new UnauthorizedException("Invalid Bot Key.");
+
+
+            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
 
             SubscriptionInfoQueryResult result = user.Adapt<SubscriptionInfoQueryResult>();
 

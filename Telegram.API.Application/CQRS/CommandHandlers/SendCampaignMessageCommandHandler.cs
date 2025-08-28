@@ -24,11 +24,15 @@ public class SendCampaignMessageCommandHandler(
         if (customer is null)
             throw new UnauthenticatedException("Invalid username or password.");
 
-        TelegramMessagePackage<CampaignMessage> campaignMessage = (customer, request).Adapt<TelegramMessagePackage<CampaignMessage>>();
+        Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+        if (bot is null)
+            throw new InvalidBotKeyException($"Invalid Bot Key {request.BotKey} for customer {customer.CustomerId}");
+
+        TelegramMessagePackage<CampaignMessage> campaignMessage = ((customer, bot), request).Adapt<TelegramMessagePackage<CampaignMessage>>();
 
         IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
 
-        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, bot.BotId);
 
         // 3) Build messages without further DB calls
         List<CampaignMessage> messages = new(request.Items.Count());

@@ -27,8 +27,16 @@ public class SendMessageCommandHandler(
         {
             // Validate username, and password and return the customer ID
             Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
+
+            // Should authenticate the bot key too through the bot repository
+            Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+            if (bot is null)
+            {
+                throw new InvalidBotKeyException($"Invalid Bot Key {request.BotKey} for customer {customer.CustomerId}");
+            }
+
             // Get Chat Id depending on the phone number
-            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, request.BotKey);
+            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId);
 
             if (user is null || string.IsNullOrWhiteSpace(user.ChatId))
             {
@@ -38,7 +46,7 @@ public class SendMessageCommandHandler(
 
             // Create the TelegramMessage object and Map it
             // Adapt the tuple to TelegramMessage using Mapster
-            TelegramMessage message = ((customer, user), request).Adapt<TelegramMessage>();
+            TelegramMessage message = (((customer, user), bot), request).Adapt<TelegramMessage>();
 
             // Call the repository to send the message
             int referenceNumber = await _messageRepository.SendMessageAsync(message);
