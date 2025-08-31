@@ -25,7 +25,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         {
             Console.WriteLine($"EnvironmentVariableNotSetException {ex.Message}");
             LoggerService.Warning("EnvironmentVariableNotSetException {Message}", ex.Message);
-            await HandleExceptionAsync(context, "INTERNAL_SERVER_ERROR", ex.Message, StatusCodes.Status500InternalServerError);
+            await HandleExceptionAsync(context, "-99", "INTERNAL_SERVER_ERROR", StatusCodes.Status500InternalServerError);
         }
         catch (UnauthenticatedException ex)
         {
