@@ -24,13 +24,17 @@ public class SendBatchMessageCommandHandler(
         if (customer is null)
             throw new UnauthenticatedException("Invalid username or password.");
 
-        TelegramMessagePackage<BatchMessage> batchMessages = (customer, request).Adapt<TelegramMessagePackage<BatchMessage>>();
+        Bot bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+
+        TelegramMessagePackage<BatchMessage> batchMessages = ((customer, bot), request).Adapt<TelegramMessagePackage<BatchMessage>>();
 
         // 1) Get all phone numbers once
-        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
+        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber)
+                                                  .Where(x => !string.IsNullOrWhiteSpace(x))
+                                                  .Distinct(StringComparer.Ordinal);
 
         // 2) One DB call
-        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, bot.BotId);
 
         // 3) Build messages without further DB calls
         List<BatchMessage> messages = new(request.Items.Count());

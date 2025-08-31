@@ -6,7 +6,7 @@ namespace Telegram.API.Domain.Entities;
 public class TelegramMessagePackage<TItem> : ITelegramMessagePackage<TItem>
 {
     public int CustomerId { get; set; }
-    public required string BotKey { get; set; }
+    public required string EncryptedBotKey { get; set; }
     public string MessageText { get; set; } = string.Empty; // Optional, used for batch messages
     public required string MessageType { get; set; }
     public required string CampaignId { get; set; }

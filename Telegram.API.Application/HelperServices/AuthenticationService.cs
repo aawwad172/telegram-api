@@ -6,10 +6,12 @@ using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace Telegram.API.Application.HelperServices;
 
-public class AuthenticationService(ICustomerRepository customerRepository) : IAuthenticationService
+public class AuthenticationService(ICustomerRepository customerRepository, IBotRepository botRepository) : IAuthenticationService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
+    private readonly IBotRepository _botRepository = botRepository;
     private readonly EncryptionEngine _encryptionEngine = new();
+
     /// <summary>
     /// Checks the provided username and password against the authentication system.
     /// </summary>
@@ -37,5 +39,16 @@ public class AuthenticationService(ICustomerRepository customerRepository) : IAu
             throw new UnauthenticatedException("Customer is not subscribed in Telegram");
 
         return customer;
+    }
+
+    public async Task<Bot> ValidateBotKeyAsync(string botKey, int customerId)
+    {
+        if (string.IsNullOrWhiteSpace(botKey))
+            throw new InvalidBotKeyException($"Bot key provided for customer {customerId} is null");
+
+        string encryptedBotKey = _encryptionEngine.Encrypt(botKey);
+        Bot? bot = await _botRepository.GetBotByKeyAsync(encryptedBotKey, customerId);
+
+        return bot is { IsActive: true } ? bot : throw new BotIsNotActiveException($"Bot is not active for customer {customerId}!");
     }
 }

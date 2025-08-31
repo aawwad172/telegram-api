@@ -21,14 +21,15 @@ public class SendCampaignMessageCommandHandler(
     {
         Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
-        if (customer is null)
-            throw new UnauthenticatedException("Invalid username or password.");
+        Bot bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
 
-        TelegramMessagePackage<CampaignMessage> campaignMessage = (customer, request).Adapt<TelegramMessagePackage<CampaignMessage>>();
+        TelegramMessagePackage<CampaignMessage> campaignMessage = ((customer, bot), request).Adapt<TelegramMessagePackage<CampaignMessage>>();
 
-        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
+        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber)
+                                                  .Where(x => !string.IsNullOrWhiteSpace(x))
+                                                  .Distinct(StringComparer.Ordinal);
 
-        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, request.BotKey);
+        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, bot.BotId);
 
         // 3) Build messages without further DB calls
         List<CampaignMessage> messages = new(request.Items.Count());

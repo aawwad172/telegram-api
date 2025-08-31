@@ -8,6 +8,10 @@ public sealed record SendMessageCommand : IRequest<SendMessageCommandResult>, IA
 {
     public required string Username { get; init; }
     public required string Password { get; init; }
+    /// <summary>
+    /// Plaintext bot key provided by the client; AuthenticationService performs encryption/validation.
+    /// Never log or echo this value.
+    /// </summary>
     public required string BotKey { get; init; }
     public required string PhoneNumber { get; init; }
     public required string MessageText { get; init; }

@@ -21,8 +21,8 @@
   <ItemGroup>
     <Reference Include="A2A.Utils">
       <HintPath>..\lib\A2A.Utils.dll</HintPath>
-		<Private>True</Private>
-	</Reference>
+		  <Private>True</Private>
+	  </Reference>
   </ItemGroup>
 
 </Project>

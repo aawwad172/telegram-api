@@ -14,9 +14,11 @@ BEGIN
     i.ReceivedDateTime,
     i.ID
   FROM inserted AS i
-  LEFT JOIN dbo.RecentMessages AS rm
-    ON i.MessageHash = rm.MessageHash
-  WHERE rm.MessageHash IS NULL;     -- only those not seen before
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM dbo.RecentMessages WITH (UPDLOCK, HOLDLOCK)
+    WHERE MessageHash = i.MessageHash
+  );
 
   ----------------------------------------------------------------
   -- 2) DUPLICATE inserts: exactly those new rows whose hash
@@ -24,22 +26,22 @@ BEGIN
   ----------------------------------------------------------------
   DECLARE @Dupes TABLE
   (
-    ID                  INT,
-    CustId          INT,
-    ChatId              NVARCHAR(50),
-    BotKey              NVARCHAR(100),
-    PhoneNumber         NVARCHAR(20),
-    MessageText         NVARCHAR(MAX),
-    MsgType             NVARCHAR(10),
-    ReceivedDateTime    DATETIME,
-    ScheduledSendDateTime DATETIME,
-    MessageHash         BINARY(32),
-    Priority            SMALLINT,
-    MobileCountry      NVARCHAR(10),
-    CampaignId          NVARCHAR(50),
-    CampDescription     NVARCHAR(512),
-    IsSystemApproved    BIT,
-    Paused              BIT
+    ID                    INT,
+    CustId                INT,
+    ChatId                NVARCHAR(50),
+    EncryptedBotKey       NVARCHAR(128),
+    PhoneNumber           NVARCHAR(20),
+    MessageText           NVARCHAR(MAX),
+    MsgType               NVARCHAR(10),
+    ReceivedDateTime      DATETIME2,
+    ScheduledSendDateTime DATETIME2,
+    MessageHash           BINARY(32),
+    Priority              SMALLINT,
+    MobileCountry         NVARCHAR(10),
+    CampaignId            NVARCHAR(50),
+    CampDescription       NVARCHAR(512),
+    IsSystemApproved      BIT,
+    Paused                BIT
   );
 
   INSERT INTO @Dupes
@@ -47,7 +49,7 @@ BEGIN
     i.ID,
     i.CustId,
     i.ChatId,
-    i.BotKey,
+    i.EncryptedBotKey,
     i.PhoneNumber,
     i.MessageText,
     i.MsgType,
@@ -79,7 +81,7 @@ BEGIN
         (ID
     ,CustId
     ,ChatId
-    ,BotKey
+    ,EncryptedBotKey
     ,PhoneNumber
     ,MessageText
     ,MsgType
@@ -98,7 +100,7 @@ BEGIN
     d.ID,
     d.CustId,
     d.ChatId,
-    d.BotKey,
+    d.EncryptedBotKey,
     d.PhoneNumber,
     d.MessageText,
     d.MsgType,
