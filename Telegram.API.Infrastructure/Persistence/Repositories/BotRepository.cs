@@ -25,6 +25,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         );
 
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+        cmd.CommandTimeout = 30;
         if (!await reader.ReadAsync())
             return null; // Not Found
 
@@ -35,8 +36,8 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
             CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
-            WebhookSecret = reader.IsDBNull(reader.GetOrdinal("WebhookSecret")) ? null : reader.GetString(reader.GetOrdinal("WebhookSecret")),
-            WebhookUrl = reader.IsDBNull(reader.GetOrdinal("WebhookUrl")) ? null : reader.GetString(reader.GetOrdinal("WebhookUrl"))
+            WebhookSecret = reader.GetString(reader.GetOrdinal("WebhookSecret")),
+            WebhookUrl = reader.GetString(reader.GetOrdinal("WebhookUrl"))
         };
     }
 }

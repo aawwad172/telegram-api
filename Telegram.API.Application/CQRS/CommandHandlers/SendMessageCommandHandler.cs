@@ -49,7 +49,7 @@ public class SendMessageCommandHandler(
         catch (SqlException sqlEx)
         {
             // Translate to domain-specific exception
-            throw new DatabaseException($"DB Error: {sqlEx.Message}");
+            throw new DatabaseException("A database error occurred.", sqlEx);
         }
     }
 }

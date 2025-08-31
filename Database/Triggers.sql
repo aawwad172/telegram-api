@@ -27,7 +27,7 @@ BEGIN
     ID                  INT,
     CustId          INT,
     ChatId              NVARCHAR(50),
-    BotKey              NVARCHAR(100),
+    EncryptedBotKey              NVARCHAR(100),
     PhoneNumber         NVARCHAR(20),
     MessageText         NVARCHAR(MAX),
     MsgType             NVARCHAR(10),
@@ -47,7 +47,7 @@ BEGIN
     i.ID,
     i.CustId,
     i.ChatId,
-    i.BotKey,
+    i.EncryptedBotKey,
     i.PhoneNumber,
     i.MessageText,
     i.MsgType,
@@ -79,7 +79,7 @@ BEGIN
         (ID
     ,CustId
     ,ChatId
-    ,BotKey
+    ,EncryptedBotKey
     ,PhoneNumber
     ,MessageText
     ,MsgType
@@ -98,7 +98,7 @@ BEGIN
     d.ID,
     d.CustId,
     d.ChatId,
-    d.BotKey,
+    d.EncryptedBotKey,
     d.PhoneNumber,
     d.MessageText,
     d.MsgType,

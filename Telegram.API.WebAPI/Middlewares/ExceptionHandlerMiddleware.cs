@@ -82,6 +82,12 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             LoggerService.Warning("InvalidBotKeyException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-32", "INVALID_BOT_KEY", StatusCodes.Status400BadRequest);
         }
+        catch (BotIsNotActiveException ex)
+        {
+            Console.WriteLine($"BotIsNotActiveException {ex.Message}");
+            LoggerService.Error("BotIsNotActiveException {Message}", ex.Message);
+            await HandleExceptionAsync(context, "-33", "BOT_KEY_NOT_ACTIVE", StatusCodes.Status403Forbidden);
+        }
         catch (DatabaseException ex)
         {
             Console.WriteLine($"DatabaseException {ex.Message}");
