@@ -1,14 +1,12 @@
-using System;
-
 namespace Telegram.API.Domain.Entities;
 
-public class Bot
+public sealed class Bot
 {
-    public required int BotId { get; set; }
-    public required int CustomerId { get; set; }
-    public required string EncryptedBotKey { get; set; }
-    public string? WebhookSecret { get; set; }
-    public string? WebhookUrl { get; set; }
-    public required bool IsActive { get; set; }
-    public required DateTime CreationDateTime { get; set; }
+    public required int BotId { get; init; }
+    public required int CustomerId { get; init; }
+    public required string EncryptedBotKey { get; init; }
+    public string? WebhookSecret { get; init; }
+    public string? WebhookUrl { get; init; }
+    public required bool IsActive { get; init; }
+    public required DateTime CreationDateTime { get; init; }
 }

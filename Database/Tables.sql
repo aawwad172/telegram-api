@@ -22,26 +22,27 @@ IF OBJECT_ID('dbo.TelegramSentFiles','U') IS NOT NULL
   DROP TABLE dbo.TelegramSentFiles;
 GO
 
-IF OBJECT_ID('dbo.PhoneList','TT') IS NOT NULL
+-- Drop TVPs safely (use TYPE_ID for types)
+IF TYPE_ID(N'dbo.PhoneList') IS NOT NULL
   DROP TYPE dbo.PhoneList;
 GO
 
-IF OBJECT_ID('dbo.TelegramMessage_Tvp','TT') IS NOT NULL
+IF TYPE_ID(N'dbo.TelegramMessage_Tvp') IS NOT NULL
   DROP TYPE dbo.TelegramMessage_Tvp;
 GO
 
-
 IF OBJECT_ID('dbo.TelegramFiles','U') IS NOT NULL
   DROP TABLE dbo.TelegramFiles;
+GO
+
+IF OBJECT_ID('dbo.TelegramUserChats','U') IS NOT NULL
+  DROP TABLE dbo.TelegramUserChats;
 GO
 
 IF OBJECT_ID('dbo.Bots','U') IS NOT NULL
   DROP TABLE dbo.Bots;
 GO
 
-IF OBJECT_ID('dbo.TelegramUserChats','U') IS NOT NULL
-  DROP TABLE dbo.TelegramUserChats;
-GO
 
 
 /*******************************************
@@ -70,7 +71,7 @@ CREATE TABLE dbo.ReadyTable
   ID           			INT					            IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
   CustId			      INT				 	            NOT NULL,
   ChatId       			NVARCHAR(50)            NULL,
-  EncryptedBotKey   NVARCHAR(100)  		      NOT NULL,
+  EncryptedBotKey   NVARCHAR(128)  		      NOT NULL,
   PhoneNumber       NVARCHAR(20)            NOT NULL,
   MessageText  			NVARCHAR(MAX)  		      NOT NULL,
   MsgType				    NVARCHAR(10)		        NOT NULL,
@@ -102,7 +103,7 @@ CREATE TABLE dbo.ArchiveTable
   ID                      INT             NOT NULL,  -- surrogate PK
   CustId                  INT             NOT NULL,
   ChatId                  NVARCHAR(50)        NULL,
-  EncryptedBotKey                  NVARCHAR(100)   NOT NULL,
+  EncryptedBotKey                  NVARCHAR(128)   NOT NULL,
   PhoneNumber             NVARCHAR(20)    NOT NULL,
   MessageText             NVARCHAR(MAX)   NOT NULL,
   MsgType                 NVARCHAR(10)    NOT NULL,
@@ -161,7 +162,7 @@ CREATE TABLE dbo.TelegramSentFiles
       CONSTRAINT PK_TelegramSentFiles PRIMARY KEY,
 
   [CustID]                 INT            NOT NULL,
-  [EncryptedBotKey]                 NVARCHAR(100)  NOT NULL,   -- e.g., bot key or sender alias
+  [EncryptedBotKey]                 NVARCHAR(128)  NOT NULL,   -- e.g., bot key or sender alias
   [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
   [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
   [Priority]               SMALLINT       NOT NULL,
@@ -202,7 +203,7 @@ CREATE TYPE dbo.TelegramMessage_Tvp AS TABLE
 (
   CustomerId              INT             NOT NULL,
   ChatId                  NVARCHAR(50)    NULL,
-  EncryptedBotKey                  NVARCHAR(100)   NOT NULL,
+  EncryptedBotKey                  NVARCHAR(128)   NOT NULL,
   PhoneNumber             NVARCHAR(20)    NOT NULL,
   MessageText             NVARCHAR(MAX)   NOT NULL,  -- if your SQL version disallows MAX in TVP, use NVARCHAR(4000)
   MessageType             NVARCHAR(10)    NOT NULL,
@@ -225,7 +226,7 @@ CREATE TABLE dbo.TelegramFiles
       CONSTRAINT PK_TelegramFiles PRIMARY KEY,
 
   [CustID]                 INT            NOT NULL,
-  [EncryptedBotKey]                 NVARCHAR(100)  NOT NULL,   -- e.g., bot key or sender alias
+  [EncryptedBotKey]                 NVARCHAR(128)  NOT NULL,   -- e.g., bot key or sender alias
   [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
   [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
   [Priority]               SMALLINT       NOT NULL,
@@ -254,7 +255,7 @@ CREATE TABLE dbo.Bots
 (
   BotId           INT IDENTITY PRIMARY KEY,
   CustID          INT NOT NULL,                          -- FK to Table_UserSMSProfile.CustID
-  EncryptedBotKey          NVARCHAR(MAX) NOT NULL,                        -- encrypted token
+  EncryptedBotKey          NVARCHAR(128) NOT NULL,                        -- encrypted token
   WebhookSecret   NVARCHAR(128) NOT NULL,                -- per-bot secret_token
   WebhookUrl      NVARCHAR(512) NOT NULL,
   IsActive        BIT NOT NULL DEFAULT 1,

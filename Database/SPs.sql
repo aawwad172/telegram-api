@@ -4,7 +4,7 @@
 CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @CustId  		INT,
   @ChatId      		NVARCHAR(50),
-  @EncryptedBotKey      		NVARCHAR(100),
+  @EncryptedBotKey      		NVARCHAR(128),
   @MessageText 		NVARCHAR(MAX),
   @PhoneNumber      NVARCHAR(20),
   @MsgType     		NVARCHAR(10), 
@@ -127,7 +127,7 @@ GO
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
     @CustId               INT,
-    @BotKey               NVARCHAR(100),
+    @EncryptedBotKey               NVARCHAR(128),
     @MsgText              NVARCHAR(MAX) = NULL,
     @MsgType              NVARCHAR(10),
     @CampaignId           NVARCHAR(50),
@@ -145,10 +145,10 @@ BEGIN
 
     DECLARE @Now DATETIME2 = GETDATE();
 
-    INSERT INTO dbo.TelegramSentFiles
+    INSERT INTO dbo.TelegramFiles
     (
         CustID,
-        BotKey,
+        EncryptedBotKey,
         MsgText,
         MsgType,
         Priority,
@@ -165,7 +165,7 @@ BEGIN
     VALUES
     (
         @CustId,
-        @BotKey,
+        @EncryptedBotKey,
         @MsgText,
         @MsgType,
         @Priority,
@@ -199,7 +199,7 @@ BEGIN
   (
     CustId,
     ChatId, 
-    BotKey, 
+    EncryptedBotKey, 
     PhoneNumber, 
     MessageText, 
     MsgType,
@@ -215,7 +215,7 @@ BEGIN
   SELECT
     b.CustomerId,
     NULLIF(b.ChatId, N''),
-    b.BotKey,
+    b.EncryptedBotKey,
     b.PhoneNumber,
     b.MessageText,
     b.MessageType,
@@ -223,7 +223,7 @@ BEGIN
     ISNULL(b.ScheduledSendDateTime, @now),
     HASHBYTES(
       'SHA2_256',
-      CONCAT(ISNULL(b.ChatId, N''), N'|', b.BotKey, N'|', b.MessageText)
+      CONCAT(ISNULL(b.ChatId, N''), N'|', b.EncryptedBotKey, N'|', b.MessageText)
     ),
     b.Priority,
     NULLIF(b.CampaignId, N''),
@@ -246,7 +246,7 @@ BEGIN
 
     SELECT 
         CustID,
-        BotKey,
+        EncryptedBotKey,
         MsgText,
         MsgType,
         Priority,
@@ -259,7 +259,7 @@ BEGIN
         isSystemApproved,
         isAdminApproved,
         IsProcessed
-    FROM dbo.TelegramFiles
+    FROM dbo.TelegramSentFiles
     WHERE CampaignID = @CampaignId AND IsProcessed = 0;
 END;
 GO
@@ -279,13 +279,13 @@ BEGIN
 
         -- Insert into TelegramSentFiles the matching campaign
         INSERT INTO dbo.TelegramSentFiles (
-            CustID, BotKey, MsgText, MsgType, Priority,
+            CustID, EncryptedBotKey, MsgText, MsgType, Priority,
             FilePath, FileType, CampaignID, CampDesc,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, IsProcessed
         )
         SELECT
-            CustID, BotKey, MsgText, MsgType, Priority,
+            CustID, EncryptedBotKey, MsgText, MsgType, Priority,
             FilePath, FileType, CampaignID, CampDesc,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, 1
@@ -312,7 +312,7 @@ GO
  *******************************************/
 
 CREATE OR ALTER PROCEDURE dbo.usp_GetBotByKey
-  @EncryptedBotKey       NVARCHAR(256),
+  @EncryptedBotKey       NVARCHAR(128),
   @CustomerId			 INT
 AS
 BEGIN

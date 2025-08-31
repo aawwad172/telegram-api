@@ -41,10 +41,14 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
         return customer;
     }
 
-    public async Task<Bot?> ValidateBotKeyAsync(string botKey, int customerId)
+    public async Task<Bot> ValidateBotKeyAsync(string botKey, int customerId)
     {
-        string encryptedPassword = _encryptionEngine.Encrypt(botKey);
-        // It will return null if not found
-        return await _botRepository.GetBotByKey(encryptedPassword, customerId);
+        if (string.IsNullOrWhiteSpace(botKey))
+            throw new InvalidBotKeyException($"Bot key provided for customer {customerId} is null");
+
+        string encryptedBotKey = _encryptionEngine.Encrypt(botKey);
+        Bot? bot = await _botRepository.GetBotByKeyAsync(encryptedBotKey, customerId);
+
+        return bot is { IsActive: true } ? bot : throw new BotIsNotActiveException($"Bot is not active for customer {customerId}!");
     }
 }

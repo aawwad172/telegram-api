@@ -16,12 +16,12 @@ public class MessageRepository(
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
     private readonly IJsonFileRepository _jsonFileRepository = jsonFileRepository;
-    private readonly IOptionsMonitor<TelegramOptions> _telegramOtions = options;
+    private readonly IOptionsMonitor<TelegramOptions> _telegramOptions = options;
 
     public async Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages)
     {
         string finalName = FileNameHelper.ComposeCampaignFileName(messages.CampaignId);
-        string fullPath = Path.Combine(_telegramOtions.CurrentValue.BulkFolderPath, finalName);
+        string fullPath = Path.Combine(_telegramOptions.CurrentValue.BulkFolderPath, finalName);
 
         // 1) Save the file
         await _jsonFileRepository.SaveToFileAsync(messages.Items, fullPath);
@@ -69,7 +69,7 @@ public class MessageRepository(
         { Value = message.ChatId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar)
         { Value = message.BotKey }
         );
 
@@ -118,8 +118,8 @@ public class MessageRepository(
         { Value = messages.CustomerId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@BotKey", SqlDbType.NVarChar)
-        { Value = messages.BotKey }
+        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar)
+        { Value = messages.EncryptedBotKey }
         );
 
         cmd.Parameters.Add(new SqlParameter("@MsgText", SqlDbType.NVarChar)

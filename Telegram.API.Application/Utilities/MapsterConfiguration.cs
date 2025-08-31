@@ -1,10 +1,8 @@
 ﻿using Mapster;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Queries;
-using Telegram.API.Application.HelperServices;
 using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Enums;
-using Telegram.API.Domain.Interfaces.Domain;
 
 namespace Telegram.API.Application.Utilities;
 
@@ -40,7 +38,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendBatchMessagesCommand request), TelegramMessagePackage<BatchMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.BotKey, src => src.customerBot.bot.EncryptedBotKey)
+            .Map(dest => dest.EncryptedBotKey, src => src.customerBot.bot.EncryptedBotKey)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AF.ToString())
             .Map(dest => dest.CampaignId, src => $"{src.customerBot.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
@@ -51,7 +49,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.BotKey, src => src.customerBot.bot.EncryptedBotKey)
+            .Map(dest => dest.EncryptedBotKey, src => src.customerBot.bot.EncryptedBotKey)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AC.ToString())

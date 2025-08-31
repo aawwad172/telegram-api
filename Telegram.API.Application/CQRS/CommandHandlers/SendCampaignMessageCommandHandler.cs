@@ -21,16 +21,13 @@ public class SendCampaignMessageCommandHandler(
     {
         Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
-        if (customer is null)
-            throw new UnauthenticatedException("Invalid username or password.");
-
-        Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
-        if (bot is null)
-            throw new InvalidBotKeyException($"Invalid Bot Key {request.BotKey} for customer {customer.CustomerId}");
+        Bot bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
 
         TelegramMessagePackage<CampaignMessage> campaignMessage = ((customer, bot), request).Adapt<TelegramMessagePackage<CampaignMessage>>();
 
-        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber);
+        IEnumerable<string> phones = request.Items.Select(x => x.PhoneNumber)
+                                                  .Where(x => !string.IsNullOrWhiteSpace(x))
+                                                  .Distinct(StringComparer.Ordinal);
 
         IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, bot.BotId);
 
