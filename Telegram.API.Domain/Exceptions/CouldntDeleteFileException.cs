@@ -1,12 +1,12 @@
 ﻿namespace Telegram.API.Domain.Exceptions;
 
-public class CouldntDeleteFileException : Exception
+public class CouldNotDeleteFileException : Exception
 {
-    public CouldntDeleteFileException(string? message) : base(message)
+    public CouldNotDeleteFileException(string? message) : base(message)
     {
     }
 
-    public CouldntDeleteFileException(string? message, Exception? innerException) : base(message, innerException)
+    public CouldNotDeleteFileException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 }

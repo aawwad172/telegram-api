@@ -9,6 +9,32 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepository
 {
     private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
+
+    public Task<Bot> CreateAsync(Bot entity, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Bot?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IReadOnlyList<Bot>> ListAsync(int skip = 0, int take = 100, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> UpdateAsync(int id, Bot entity, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Bot?> GetBotByKeyAsync(string EncryptedBotKey, int customerId)
     {
         using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();

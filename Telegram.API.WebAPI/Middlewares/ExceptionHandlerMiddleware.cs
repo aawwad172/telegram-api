@@ -52,6 +52,13 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             LoggerService.Warning("CustomValidationException {Message} {Errors}", ex.Message, joined);
             await HandleExceptionAsync(context, "-1", joined, StatusCodes.Status400BadRequest);
         }
+        catch (TelegramApiException ex)
+        {
+            Console.WriteLine($"Telegram API Exception: {ex.Message}");
+            LoggerService.Error("TelegramApiException {Message}", ex.Message);
+
+            await HandleExceptionAsync(context, "-32", "TELEGRAM_EXCEPTION", StatusCodes.Status502BadGateway);
+        }
         catch (InvalidPhoneNumberException ex)
         {
             Console.WriteLine($"InvalidPhoneNumberException {ex.Message}");
@@ -60,21 +67,21 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         }
         catch (ChatIdNotFoundException ex)
         {
-            Console.WriteLine($"ChatIdNotFoundException {ex.Message}");
+            Console.WriteLine($"ChatId Not Found Exception {ex.Message}");
             LoggerService.Warning("ChatIdNotFoundException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-31", "CHAT_ID_NOT_FOUND", StatusCodes.Status404NotFound);
         }
         catch (EmptyMessagesPackageException ex)
         {
-            Console.WriteLine($"EmptyMessagesPackageException {ex.Message}");
+            Console.WriteLine($"Empty Messages Package Exception {ex.Message}");
             LoggerService.Warning("EmptyMessagesPackageException {Message}", ex.Message);
             await HandleExceptionAsync(context, "-40", "EMPTY_MESSAGES_BATCH", StatusCodes.Status400BadRequest);
         }
-        catch (CouldntDeleteFileException ex)
+        catch (CouldNotDeleteFileException ex)
         {
-            Console.WriteLine($"CouldntDeleteFileException {ex.Message}");
-            LoggerService.Error("CouldntDeleteFileException {Message}", ex.Message);
-            await HandleExceptionAsync(context, "-50", "COULDNT_DELETE_FILE", StatusCodes.Status500InternalServerError);
+            Console.WriteLine($"Couldn't Delete FileException {ex.Message}");
+            LoggerService.Error("Couldn'tDeleteFileException {Message}", ex.Message);
+            await HandleExceptionAsync(context, "-50", "COULD_NOT_DELETE_FILE", StatusCodes.Status500InternalServerError);
         }
         catch (InvalidBotKeyException ex)
         {
@@ -98,7 +105,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         {
             Console.WriteLine($"UnhandledException {ex}");
             LoggerService.Error("UnhandledException {Message}", ex.Message);
-            await HandleExceptionAsync(context, "-99", "An unexpected error occurred.", StatusCodes.Status500InternalServerError);
+            await HandleExceptionAsync(context, "-99", "UNEXPECTED_ERROR_OCCURRED", StatusCodes.Status500InternalServerError);
         }
     }
 

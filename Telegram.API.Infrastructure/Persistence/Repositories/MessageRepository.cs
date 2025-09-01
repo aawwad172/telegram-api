@@ -39,7 +39,7 @@ public class MessageRepository(
             }
             catch
             {
-                throw new CouldntDeleteFileException(
+                throw new CouldNotDeleteFileException(
                     $"Failed to delete the file {fullPath} after an error occurred while inserting into the database."
                 );
             }

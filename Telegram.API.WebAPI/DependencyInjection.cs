@@ -2,6 +2,7 @@
 using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Queries;
+using Telegram.API.Application.CQRS.Queries.Bots;
 using Telegram.API.Domain.Settings;
 using Telegram.API.Infrastructure.Persistence;
 using Telegram.API.WebAPI.Validators.Commands;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SubscriptionInfoQuery>, SubscriptionInfoQueryValidator>();
         services.AddTransient<IValidator<SendBatchMessagesCommand>, SendBatchMessagesCommandValidator>();
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
+        services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
 
         return services;
     }

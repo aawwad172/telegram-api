@@ -2,6 +2,7 @@
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Queries;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Telegram;
 using Telegram.API.Domain.Enums;
 
 namespace Telegram.API.Application.Utilities;
