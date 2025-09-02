@@ -1,13 +1,13 @@
 ﻿using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 
-namespace Telegram.API.WebAPI.Validators.Commands;
+namespace Telegram.API.WebAPI.Validators.Commands.Messages;
 
 public class SendCampaignMessageCommandValidator : AbstractValidator<SendCampaignMessageCommand>
 {
     public SendCampaignMessageCommandValidator()
     {
-        RuleFor(x => x.BotKey)
+        RuleFor(x => x.BotId)
             .NotEmpty()
             .WithMessage("BotKey is required.");
 

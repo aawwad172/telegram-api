@@ -244,21 +244,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT 
-        CustID,
-        EncryptedBotKey,
-        MsgText,
-        MsgType,
-        Priority,
-        FilePath,
-        FileType,
-        CampaignID,
-        CampDesc,
-        ScheduledSendDateTime,
-        CreationDate,
-        isSystemApproved,
-        isAdminApproved,
-        IsProcessed
+    SELECT *
     FROM dbo.TelegramSentFiles
     WHERE CampaignID = @CampaignId AND IsProcessed = 0;
 END;
@@ -308,19 +294,72 @@ END;
 GO
 
 /*******************************************
- * 2.11) usp_GetBotByKey
+ * 2.11) usp_GetBotById
  *******************************************/
 
-CREATE OR ALTER PROCEDURE dbo.usp_GetBotByKey
-  @EncryptedBotKey       NVARCHAR(128),
+CREATE OR ALTER PROCEDURE dbo.usp_GetBotById
+  @BotId           INT,
   @CustomerId			 INT
 AS
 BEGIN
   SET NOCOUNT ON;
 
   SELECT TOP 1 * FROM dbo.Bots
-  WHERE EncryptedBotKey = @EncryptedBotKey
+  WHERE BotId = @BotId
   AND CustID = @CustomerId
-  AND IsActive = 1;
 END
 GO
+
+/*******************************************
+ * 2.12) usp_Bot_UpdateActivity
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_Bot_UpdateActivity
+    @BotId    INT,
+    @IsActive BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Bots
+    SET IsActive = @IsActive
+    WHERE BotId = @BotId;
+END
+
+
+/*******************************************
+ * 2.13) usp_Bot_CreateBot
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
+    @CustomerId       INT,
+    @IsActive         BIT,
+    @PublicId         NVARCHAR(128),
+    @EncryptedBotKey  NVARCHAR(256),
+    @WebhookSecret    NVARCHAR(128),
+    @WebhookUrl       NVARCHAR(512)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Bots (
+        CustID,
+        IsActive,
+        PublicId,
+        EncryptedBotKey,
+        WebhookSecret,
+        WebhookUrl,
+        CreationDateTime
+    )
+    VALUES (
+        @CustomerId,
+        @IsActive,
+        @PublicId,
+        @EncryptedBotKey,
+        @WebhookSecret,
+        @WebhookUrl,
+        GETDATE()
+    );
+
+    SELECT *
+    FROM dbo.Bots
+    WHERE BotId = SCOPE_IDENTITY();
+END

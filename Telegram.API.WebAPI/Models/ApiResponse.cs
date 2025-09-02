@@ -1,4 +1,5 @@
-﻿namespace Telegram.API.WebAPI.Models;
+﻿
+namespace Telegram.API.WebAPI.Models;
 
 public class ApiResponse<T>
 {
@@ -25,4 +26,8 @@ public class ApiResponse<T>
 
     public static ApiResponse<T> ErrorResponse(string errorMessage, string errorCode)
         => new(success: false, data: default!, errorMessage: errorMessage, errorCode: errorCode);
+
+    public static ApiResponse<T> CreatedResponse(T response)
+        => new(success: true, data: response, errorMessage: "Created", errorCode: "0");
+
 }

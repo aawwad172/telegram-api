@@ -4,6 +4,7 @@ using Telegram.API.Domain;
 using Telegram.API.Infrastructure;
 using Telegram.API.WebAPI;
 using Telegram.API.WebAPI.Middlewares;
+using Telegram.API.WebAPI.Routes.Bot;
 using Telegram.API.WebAPI.Routes.HealthCheck;
 using Telegram.API.WebAPI.Routes.Messages;
 using Telegram.API.WebAPI.Routes.User;
@@ -17,6 +18,13 @@ builder.Services.AddDomainServices()
                 .AddApplicationServices()
                 .AddInfrastructureServices(builder.Configuration)
                 .AddWebAPIServices(builder.Configuration);
+
+
+// builder.WebHost.ConfigureKestrel(k =>
+// {
+//     // e.g., 2 GB
+//     k.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
+// });
 
 WebApplication app = builder.Build();
 
@@ -47,7 +55,7 @@ app.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
     .WithOpenApi();
 #endregion
 
-# region Messages
+#region Messages
 app.MapPost("/message/send", SendMessage.RegisterRoute)
     .WithName("Send Message")
     .WithTags("messages")
@@ -61,6 +69,18 @@ app.MapPost("/message/send/batch", SendBatchMessages.RegisterRoute)
 app.MapPost("/message/send/campaign", SendCampaignMessage.RegisterRoute)
     .WithName("Send Campaign Message")
     .WithTags("messages")
+    .WithOpenApi();
+#endregion
+
+#region Bots
+app.MapPost("/bots/register", RegisterBot.RegisterRoute)
+    .WithName("Register Bot")
+    .WithTags("bots")
+    .WithOpenApi();
+
+app.MapGet("/bots/webhookInfo", GetWebhookInfo.RegisterRoute)
+    .WithName("Webhook Info")
+    .WithTags("bots")
     .WithOpenApi();
 #endregion
 

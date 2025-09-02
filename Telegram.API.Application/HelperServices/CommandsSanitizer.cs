@@ -11,7 +11,6 @@ public class CommandsSanitizer
         {
             Username = command.Username?.Trim() ?? string.Empty,
             Password = command.Password?.Trim() ?? string.Empty,
-            BotKey = command.BotKey?.Trim() ?? string.Empty,
             Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
@@ -26,7 +25,6 @@ public class CommandsSanitizer
         {
             Username = command.Username?.Trim() ?? string.Empty,
             Password = command.Password?.Trim() ?? string.Empty,
-            BotKey = command.BotKey?.Trim() ?? string.Empty,
             PhoneNumber = NormalizeOrThrow(command.PhoneNumber),
             MessageText = command.MessageText?.Trim() ?? string.Empty
         };
@@ -38,7 +36,6 @@ public class CommandsSanitizer
         {
             Username = command.Username?.Trim() ?? string.Empty,
             Password = command.Password?.Trim() ?? string.Empty,
-            BotKey = command.BotKey?.Trim() ?? string.Empty,
             MessageText = command.MessageText.Trim() ?? string.Empty,
             Items = command.Items?.Select(i => i with
             {

@@ -29,7 +29,7 @@ public class SendMessageCommandHandler(
             Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
             // Should authenticate the bot key too through the bot repository
-            Bot bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+            Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
 
             // Get Chat Id depending on the phone number
             User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId);

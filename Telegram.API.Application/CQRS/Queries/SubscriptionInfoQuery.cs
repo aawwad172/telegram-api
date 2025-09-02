@@ -8,8 +8,9 @@ public sealed record SubscriptionInfoQuery : IRequest<SubscriptionInfoQueryResul
 {
     public required string Username { get; init; }
     public required string Password { get; init; }
-    public required string BotKey { get; init; }
+
     public required string PhoneNumber { get; init; }
+    public int BotId { get; init; }
 }
 
 public sealed record SubscriptionInfoQueryResult(bool Subscribed, string? ChatId, DateTime? CreationDate);
