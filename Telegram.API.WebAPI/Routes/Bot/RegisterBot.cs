@@ -25,7 +25,7 @@ public class RegisterBot : ICommandRoute<RegisterBotCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
-        var result = await mediator.Send(request);
+        RegisterBotCommandResult result = await mediator.Send(request);
 
         return Results.Ok(ApiResponse<RegisterBotCommandResult>.CreatedResponse(result));
     }

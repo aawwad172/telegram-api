@@ -3,7 +3,7 @@ namespace Telegram.API.Domain.Interfaces.Infrastructure;
 public interface ICreate<TEntity>
 {
     /// <summary>Create one entity and return the created instance (with keys populated).</summary>
-    Task<TEntity> CreateAsync(TEntity entity, CancellationToken ct = default);
+    Task<TEntity?> CreateAsync(TEntity entity, CancellationToken ct = default);
 }
 
 public interface IRead<TEntity, in TKey>

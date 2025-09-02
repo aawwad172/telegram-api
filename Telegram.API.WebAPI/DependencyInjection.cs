@@ -1,11 +1,13 @@
 ﻿using A2ASerilog;
 using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Bots;
 using Telegram.API.Application.CQRS.Queries;
 using Telegram.API.Application.CQRS.Queries.Bots;
 using Telegram.API.Domain.Settings;
 using Telegram.API.Infrastructure.Persistence;
-using Telegram.API.WebAPI.Validators.Commands;
+using Telegram.API.WebAPI.Validators.Commands.Bot;
+using Telegram.API.WebAPI.Validators.Commands.Messages;
 using Telegram.API.WebAPI.Validators.Queries;
 
 namespace Telegram.API.WebAPI;
@@ -35,6 +37,7 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendBatchMessagesCommand>, SendBatchMessagesCommandValidator>();
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
         services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
+        services.AddTransient<IValidator<RegisterBotCommand>, RegisterBotCommandValidator>();
 
         return services;
     }

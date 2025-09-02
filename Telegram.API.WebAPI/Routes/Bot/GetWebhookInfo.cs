@@ -15,7 +15,7 @@ public class GetWebhookInfo : IParameterizedQueryRoute<GetWebhookInfoQuery>
         [FromServices] IMediator mediator,
         [FromServices] FluentValidation.IValidator<GetWebhookInfoQuery> validator)
     {
-        var validationResult = await validator.ValidateAsync(query);
+        FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(query);
 
         if (!validationResult.IsValid)
         {

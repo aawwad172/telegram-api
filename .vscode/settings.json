@@ -1,3 +1,6 @@
 {
-    "github-enterprise.uri": "https://ssh.dev.azure.com"
+    "github-enterprise.uri": "https://ssh.dev.azure.com",
+    "cSpell.words": [
+        "ICRUD"
+    ]
 }

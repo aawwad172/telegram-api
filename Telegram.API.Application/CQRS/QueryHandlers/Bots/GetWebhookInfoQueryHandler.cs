@@ -1,4 +1,3 @@
-using Mapster;
 using MediatR;
 using Telegram.API.Application.CQRS.Queries.Bots;
 using Telegram.API.Domain.Entities;
@@ -21,21 +20,21 @@ public class GetWebhookInfoQueryHandler(
         try
         {
             // Authenticate the Customer using the provided username and password
-            Customer? customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
+            Customer? customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password, cancellationToken);
 
             if (customer is null)
                 throw new UnauthorizedException("Invalid username or password.");
 
-            Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+            Bot? bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId, cancellationToken);
             if (bot is null)
                 throw new UnauthorizedException("Invalid Bot Key.");
 
-            TelegramResponse<WebhookInfo?> response = await _telegramClient.GetWebhookInfoAsync(request.BotKey);
+            string decryptedBotToken = _authenticationService.Decrypt(bot.EncryptedBotKey);
+
+            TelegramResponse<WebhookInfo?> response = await _telegramClient.GetWebhookInfoAsync(decryptedBotToken, cancellationToken);
 
             if (!response.Ok || response.Result is null)
-            {
                 throw new TelegramApiException($"Telegram API Error: {response.ErrorCode}, {response.Description}");
-            }
 
             return new GetWebhookInfoQueryResult(response);
         }

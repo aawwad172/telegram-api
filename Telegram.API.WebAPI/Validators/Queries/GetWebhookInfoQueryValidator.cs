@@ -15,10 +15,8 @@ public class GetWebhookInfoQueryValidator : AbstractValidator<GetWebhookInfoQuer
             .NotEmpty()
             .WithMessage("Password is required.");
 
-        RuleFor(x => x.BotKey)
+        RuleFor(x => x.BotId)
             .NotEmpty()
-            .MaximumLength(50)
-            .MinimumLength(43)
             .WithMessage("Bot key must be between 43 and 50 characters long.");
     }
 }

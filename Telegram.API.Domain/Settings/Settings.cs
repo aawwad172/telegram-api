@@ -10,6 +10,7 @@ public class AppSettings
 {
     public string LogPath { get; set; } = string.Empty;
     public int LogFlushInterval { get; set; } = 0;
+    public string DomainName { get; set; } = string.Empty;
 }
 
 public class TelegramOptions

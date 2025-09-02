@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 
-namespace Telegram.API.WebAPI.Validators.Commands;
+namespace Telegram.API.WebAPI.Validators.Commands.Messages;
 
 public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
 {
@@ -28,10 +28,8 @@ public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
             .MaximumLength(4096)
             .WithMessage("Message text cannot exceed 4096 characters.");
 
-        RuleFor(x => x.BotKey)
+        RuleFor(x => x.BotId)
             .NotEmpty()
-            .MaximumLength(50)
-            .MinimumLength(43)
             .WithMessage("Bot key must be between 43 and 50 characters long.");
     }
 }

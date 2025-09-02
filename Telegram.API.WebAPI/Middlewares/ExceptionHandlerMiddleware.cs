@@ -47,7 +47,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         }
         catch (CustomValidationException ex)
         {
-            var joined = JoinErrors(ex.Errors);
+            string joined = JoinErrors(ex.Errors);
             Console.WriteLine($"CustomValidationException {ex.Message} {joined}");
             LoggerService.Warning("CustomValidationException {Message} {Errors}", ex.Message, joined);
             await HandleExceptionAsync(context, "-1", joined, StatusCodes.Status400BadRequest);
