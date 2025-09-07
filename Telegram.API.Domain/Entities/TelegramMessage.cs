@@ -20,9 +20,9 @@ public class TelegramMessage : ITelegramMessage
     public string ChatId { get; set; } = null!;
 
     /// <summary>
-    /// Telegram bot API key (provided by the user).
+    /// Telegram bot id (provided by the user).
     /// </summary>
-    public required string BotKey { get; set; }
+    public required int BotId { get; set; }
 
     /// <summary>
     /// Content of the Telegram message (provided by the user).

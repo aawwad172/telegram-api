@@ -61,7 +61,7 @@ public class MessageRepository(
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_EnqueueOrArchiveIfDuplicate";
 
-        cmd.Parameters.Add(new SqlParameter("@CustId", SqlDbType.Int)
+        cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int)
         { Value = message.CustomerId }
         );
 
@@ -69,8 +69,8 @@ public class MessageRepository(
         { Value = message.ChatId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar)
-        { Value = message.BotKey }
+        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int)
+        { Value = message.BotId }
         );
 
         cmd.Parameters.Add(new SqlParameter("@MessageText", SqlDbType.NVarChar)
@@ -114,12 +114,12 @@ public class MessageRepository(
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_AddBatchFile";
 
-        cmd.Parameters.Add(new SqlParameter("@CustId", SqlDbType.Int)
+        cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int)
         { Value = messages.CustomerId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar)
-        { Value = messages.EncryptedBotKey }
+        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int)
+        { Value = messages.BotId }
         );
 
         cmd.Parameters.Add(new SqlParameter("@MsgText", SqlDbType.NVarChar)
@@ -154,7 +154,7 @@ public class MessageRepository(
         { Value = (object)messages.ScheduledSendDateTime! ?? DBNull.Value }
         );
         cmd.Parameters.Add(new SqlParameter("@FilePath", SqlDbType.NVarChar)
-        { Value = $"{fullPath}{messages.CampaignId}.json" }
+        { Value = fullPath }
         );
 
         cmd.Parameters.Add(new SqlParameter("@FileType", SqlDbType.NVarChar)

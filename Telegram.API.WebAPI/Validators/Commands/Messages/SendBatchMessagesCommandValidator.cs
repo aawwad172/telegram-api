@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 
 namespace Telegram.API.WebAPI.Validators.Commands.Messages;
@@ -9,7 +9,9 @@ public class SendBatchMessagesCommandValidator : AbstractValidator<SendBatchMess
     {
         RuleFor(x => x.BotId)
             .NotEmpty()
-            .WithMessage("BotKey is required.");
+            .WithMessage("BotId is required.")
+            .GreaterThan(0)
+            .WithMessage("BotId should be greater than 0");
 
         RuleFor(x => x.Username)
             .NotEmpty()

@@ -9,6 +9,27 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepository
 {
     private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
+
+    public Task<Bot?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        throw new NotSupportedException();
+    }
+
+    public Task<IReadOnlyList<Bot>> ListAsync(int skip = 0, int take = 100, CancellationToken ct = default)
+    {
+        throw new NotSupportedException();
+    }
+
+    public Task<bool> UpdateAsync(int id, Bot entity, CancellationToken ct = default)
+    {
+        throw new NotSupportedException();
+    }
+
+    public Task<bool> DeleteAsync(int id, CancellationToken ct = default)
+    {
+        throw new NotSupportedException();
+    }
+
     public async Task<Bot?> GetByIdAsync(int botId, int customerId, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();
@@ -32,7 +53,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         return new Bot
         {
             BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
-            CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
+            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
             CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
@@ -40,21 +61,6 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
             WebhookUrl = reader.GetString(reader.GetOrdinal("WebhookUrl")),
             PublicId = reader.GetString(reader.GetOrdinal("PublicId"))
         };
-    }
-
-    public Task<Bot?> GetByIdAsync(int id, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IReadOnlyList<Bot>> ListAsync(int skip = 0, int take = 100, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> UpdateAsync(int id, Bot entity, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<Bot?> CreateAsync(Bot entity, CancellationToken ct = default)
@@ -84,7 +90,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
             return new Bot
             {
                 BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
-                CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 PublicId = reader.GetString(reader.GetOrdinal("PublicId")),
                 EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
@@ -95,11 +101,6 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         }
 
         return null;
-    }
-
-    public Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<bool> UpdateBotActivityAsync(int botId, bool isActive, CancellationToken cancellationToken = default)

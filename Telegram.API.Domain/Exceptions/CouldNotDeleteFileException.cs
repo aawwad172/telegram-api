@@ -1,4 +1,4 @@
-﻿namespace Telegram.API.Domain.Exceptions;
+namespace Telegram.API.Domain.Exceptions;
 
 public class CouldNotDeleteFileException : Exception
 {

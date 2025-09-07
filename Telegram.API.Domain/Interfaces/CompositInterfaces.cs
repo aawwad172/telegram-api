@@ -9,7 +9,7 @@ public interface IPhoneMessageData :
 
 // Message data addressed by chat id
 public interface IChatMessageData :
-    IHasMessageText, IHasBotKey, IHasChatId
+    IHasMessageText, IHasEncryptedBotKey, IHasChatId
 { }
 
 // Operational knobs for dispatching

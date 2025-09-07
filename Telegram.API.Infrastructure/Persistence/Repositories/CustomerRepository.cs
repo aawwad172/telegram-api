@@ -15,7 +15,7 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
         throw new NotImplementedException();
     }
 
-    public async Task<Customer?> GetCustomerByUsernameAsync(string username)
+    public async Task<Customer?> GetCustomerByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -31,6 +31,7 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
         {
             return new Customer
             {
+                // This is the only column that is named CustId since it is linked to an old table and we can't change it's name :)
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustId")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("Password")),

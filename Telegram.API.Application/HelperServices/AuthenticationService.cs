@@ -21,7 +21,7 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
     /// <exception cref="NotImplementedException"></exception>
     public async Task<Customer> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
     {
-        Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username) ?? throw new NotFoundException("User not found");
+        Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username, cancellationToken) ?? throw new NotFoundException("User not found");
 
         // Hash the password and return the CustomerId if the password matches
         string encryptedPassword = _encryptionEngine.Encrypt(password);
@@ -36,7 +36,7 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
             throw new UnauthenticatedException("Customer is blocked");
 
         if (!customer.IsTelegramActive)
-            throw new UnauthenticatedException("Customer is not subscribed in Telegram");
+            throw new UnauthenticatedException("Customer is not subscribed to Telegram feature");
 
         return customer;
     }
@@ -49,7 +49,7 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
 
     public async Task<Bot> ValidateBotIdAsync(int botId, int customerId, CancellationToken cancellationToken = default)
     {
-        Bot? bot = await _botRepository.GetByIdAsync(botId, customerId);
+        Bot? bot = await _botRepository.GetByIdAsync(botId, customerId, cancellationToken);
         if (bot is null)
             throw new NotFoundException($"There is no bot related with id: {botId} / Bot is not linked with Customer: {customerId}");
 

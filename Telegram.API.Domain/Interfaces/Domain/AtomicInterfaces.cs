@@ -22,6 +22,11 @@ public interface IHasBotKey
 {
     string BotKey { get; }
 }
+
+public interface IHasEncryptedBotKey
+{
+    string EncryptedBotKey { get; }
+}
 public interface IHasCustomerId
 {
     int CustomerId { get; }

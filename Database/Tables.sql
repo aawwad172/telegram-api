@@ -44,7 +44,6 @@ IF OBJECT_ID('dbo.Bots','U') IS NOT NULL
 GO
 
 
-
 /*******************************************
  * 1.1) MessageStatus: Enum for message status
  *******************************************/
@@ -68,22 +67,22 @@ VALUES
  *******************************************/
 CREATE TABLE dbo.ReadyTable
 (
-  [ID]           			INT					            IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
-  [CustId]			      INT				 	            NOT NULL,
-  [ChatId]       			NVARCHAR(50)            NULL,
-  [EncryptedBotKey]   NVARCHAR(128)  		      NOT NULL,
-  [PhoneNumber]       NVARCHAR(20)            NOT NULL,
-  [MessageText]  			NVARCHAR(MAX)  		      NOT NULL,
-  [MsgType]				    NVARCHAR(10)		        NOT NULL,
-  [ReceivedDateTime]		  DATETIME2           NOT NULL, -- Auto Generated using GETDATE() in the SP.
-  [ScheduledSendDateTime] DATETIME2           NOT NULL, -- Auto Generated using GETDATE() in the SP.
-  [MessageHash]  			  BINARY(32)            NOT NULL, -- Auto Generated from the SP.
-  [Priority]     			  SMALLINT       	      NOT NULL,
-  [CampaignId]			    NVARCHAR(50)	        NULL,
-  [CampDescription]		  NVARCHAR(512)		      NULL,
-  [IsSystemApproved]		BIT					          NOT NULL,
-  [Paused]				      BIT					          NOT NULL,
-);
+  [ID]           			    INT					          IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
+  [CustomerId]			      INT				 	          NOT NULL,
+  [ChatId]       			    NVARCHAR(50)          NULL,
+  [BotId]                 INT  		              NOT NULL,
+  [PhoneNumber]           NVARCHAR(20)          NOT NULL,
+  [MessageText]  			    NVARCHAR(MAX)  		    NOT NULL,
+  [MsgType]				        NVARCHAR(10)		      NOT NULL,
+  [ReceivedDateTime]		  DATETIME2             NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  [ScheduledSendDateTime] DATETIME2             NOT NULL, -- Auto Generated using GETDATE() in the SP.
+  [MessageHash]  			    BINARY(32)            NOT NULL, -- Auto Generated from the SP.
+  [Priority]     			    SMALLINT       	      NOT NULL,
+  [CampaignId]			      NVARCHAR(50)	        NULL,
+  [CampDescription]		    NVARCHAR(512)		      NULL,
+  [IsSystemApproved]		  BIT					          NOT NULL,
+  [Paused]				        BIT					          NOT NULL,
+  );
 GO
 
 CREATE NONCLUSTERED INDEX IX_ReadyTable_MessageHash_ReadyDate
@@ -101,15 +100,15 @@ GO
 CREATE TABLE dbo.ArchiveTable
 (
   [ID]                      INT             NOT NULL,  -- surrogate PK
-  [CustId]                  INT             NOT NULL,
-  [ChatId]                  NVARCHAR(50)        NULL,
-  [EncryptedBotKey]                  NVARCHAR(128)   NOT NULL,
+  [CustomerId]              INT             NOT NULL,
+  [ChatId]                  NVARCHAR(50)    NULL,
+  [BotId]                   INT             NOT NULL,
   [PhoneNumber]             NVARCHAR(20)    NOT NULL,
   [MessageText]             NVARCHAR(MAX)   NOT NULL,
   [MsgType]                 NVARCHAR(10)    NOT NULL,
-  [ReceivedDateTime]        DATETIME2        NOT NULL,
-  [ScheduledSendDateTime]   DATETIME2        NOT NULL, -- set by SP
-  [GatewayDateTime]         DATETIME2        NOT NULL,
+  [ReceivedDateTime]        DATETIME2       NOT NULL,
+  [ScheduledSendDateTime]   DATETIME2       NOT NULL, -- set by SP
+  [GatewayDateTime]         DATETIME2       NOT NULL,
   [MessageHash]             BINARY(32)      NOT NULL,
   [Priority]                SMALLINT        NOT NULL,
   -- Enum + denormalized text
@@ -117,8 +116,8 @@ CREATE TABLE dbo.ArchiveTable
   [StatusDescription]       NVARCHAR(512)   NULL,  -- No default, will be NULL until set
 
   [MobileCountry]           NVARCHAR(10)    NOT NULL,
-  [CampaignId]              NVARCHAR(50)        NULL,
-  [CampDescription]         NVARCHAR(512)       NULL,
+  [CampaignId]              NVARCHAR(50)    NULL,
+  [CampDescription]         NVARCHAR(512)   NULL,
   [IsSystemApproved]        BIT             NOT NULL,
   [Paused]                  BIT             NOT NULL,
 
@@ -137,9 +136,9 @@ GO
  *******************************************/
 CREATE TABLE dbo.RecentMessages
 (
-  MessageHash  		BINARY(32)     NOT NULL,
-  ReceivedDateTime  DATETIME2       NOT NULL,
-  ReadyId      		INT            NOT NULL,
+  MessageHash  		  BINARY(32)     NOT NULL,
+  ReceivedDateTime  DATETIME2      NOT NULL,
+  ReadyId      		  INT            NOT NULL,
   CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReadyId)
 );
 GO
@@ -160,8 +159,8 @@ CREATE TABLE dbo.TelegramSentFiles
   [ID]                     BIGINT IDENTITY(1,1) NOT NULL
       CONSTRAINT PK_TelegramSentFiles PRIMARY KEY,
 
-  [CustID]                 INT            NOT NULL,
-  [EncryptedBotKey]                 NVARCHAR(128)  NOT NULL,   -- e.g., bot key or sender alias
+  [CustomerId]             INT            NOT NULL,
+  [BotId]                  INT            NOT NULL,   -- e.g., BotId or sender alias
   [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
   [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
   [Priority]               SMALLINT       NOT NULL,
@@ -202,11 +201,11 @@ CREATE TYPE dbo.TelegramMessage_Tvp AS TABLE
 (
   [CustomerId]              INT             NOT NULL,
   [ChatId]                  NVARCHAR(50)    NULL,
-  [EncryptedBotKey]                  NVARCHAR(128)   NOT NULL,
+  [BotId]                   INT             NOT NULL,
   [PhoneNumber]             NVARCHAR(20)    NOT NULL,
   [MessageText]             NVARCHAR(MAX)   NOT NULL,  -- if your SQL version disallows MAX in TVP, use NVARCHAR(4000)
   [MessageType]             NVARCHAR(10)    NOT NULL,
-  [ScheduledSendDateTime]   DATETIME2        NULL,      -- optional; defaulted in proc when NULL
+  [ScheduledSendDateTime]   DATETIME2       NULL,      -- optional; defaulted in proc when NULL
   [Priority]                SMALLINT        NOT NULL,
   [CampaignId]              NVARCHAR(50)    NULL,
   [CampDescription]         NVARCHAR(512)   NULL,
@@ -224,8 +223,8 @@ CREATE TABLE dbo.TelegramFiles
   [ID]                     BIGINT IDENTITY(1,1) NOT NULL
       CONSTRAINT PK_TelegramFiles PRIMARY KEY,
 
-  [CustID]                 INT            NOT NULL,
-  [EncryptedBotKey]                 NVARCHAR(128)  NOT NULL,   -- e.g., bot key or sender alias
+  [CustomerId]             INT            NOT NULL,
+  [BotId]                  INT            NOT NULL,   -- e.g., bot key or sender alias
   [MsgText]                NVARCHAR(MAX)  NULL,       -- NULL WHEN BATCH
   [MsgType]                NVARCHAR(10)   NOT NULL,   -- e.g., 'AF'
   [Priority]               SMALLINT       NOT NULL,
@@ -252,36 +251,35 @@ GO
 
 CREATE TABLE dbo.Bots
 (
-  [BotId]           INT IDENTITY PRIMARY KEY,
-  [CustID]          INT NOT NULL,                          -- FK to Table_UserSMSProfile.CustID
-  [EncryptedBotKey]          NVARCHAR(128)  NOT NULL UNIQUE,                        -- encrypted token
-  [PublicId]        NVARCHAR(128) NOT NULL  UNIQUE,
-  [WebhookSecret]   NVARCHAR(128) NOT NULL  UNIQUE,                -- per-bot secret_token
-  [WebhookUrl]      NVARCHAR(512) NOT NULL  UNIQUE,
-  [IsActive]        BIT NOT NULL DEFAULT 1,
-  [CreationDateTime]    DATETIME2 NOT NULL DEFAULT GETDATE()
+  [BotId]                     INT           IDENTITY PRIMARY KEY,
+  [CustomerId]                INT           NOT NULL,                          -- FK to Table_UserSMSProfile.CustomerId
+  [EncryptedBotKey]           NVARCHAR(128) NOT NULL UNIQUE,                        -- encrypted token
+  [PublicId]                  NVARCHAR(128) NOT NULL  UNIQUE,
+  [WebhookSecret]             NVARCHAR(128) NOT NULL  UNIQUE,                -- per-bot secret_token
+  [WebhookUrl]                NVARCHAR(512) NOT NULL  UNIQUE,
+  [IsActive]                  BIT           NOT NULL DEFAULT 1,
+  [CreationDateTime]          DATETIME2     NOT NULL DEFAULT GETDATE()
 );
 
 CREATE UNIQUE INDEX UX_Bots_WebhookSecret ON dbo.Bots(WebhookSecret);
-CREATE INDEX IX_Bots_CustID ON dbo.Bots(CustID);
+CREATE INDEX IX_Bots_CustomerId ON dbo.Bots(CustomerId);
 
 /*******************************************
  * 1.11) TelegramUserChats: Table for storing bot Chats
  *******************************************/
-
 CREATE TABLE dbo.TelegramUserChats
 (
   [BotId]                 INT NOT NULL 
     CONSTRAINT FK_TelegramUserChats_Bots REFERENCES dbo.Bots(BotId),
 
-  [ChatId]                NVARCHAR(50) NOT NULL,            -- private chat id (DM). For Telegram, this equals the user id in DMs
-  [PhoneNumber]           NVARCHAR(32) NOT NULL,      -- +9627...
-  [LastName]              NVARCHAR(255) NULL,
+  [ChatId]                NVARCHAR(50)  NOT NULL,            -- private chat id (DM). For Telegram, this equals the user id in DMs
+  [PhoneNumber]           NVARCHAR(32)  NOT NULL,      -- +9627...
   [FirstName]             NVARCHAR(255) NULL,
+  [LastName]              NVARCHAR(255) NULL,
   [Username]              NVARCHAR(255) NULL,
-  [CreationDateTime]      DATETIME2 NOT NULL DEFAULT GETDATE(),
-  [LastSeenDateTime]      DATETIME2(3) NOT NULL DEFAULT GETDATE(),
-  [IsActive]              BIT NOT NULL DEFAULT 1,
+  [CreationDateTime]      DATETIME2     NOT NULL DEFAULT GETDATE(),
+  [LastSeenDateTime]      DATETIME2(3)  NOT NULL DEFAULT GETDATE(),
+  [IsActive]              BIT           NOT NULL DEFAULT 1,
 
   CONSTRAINT PK_TelegramUserChats PRIMARY KEY (BotId, ChatId)
 );

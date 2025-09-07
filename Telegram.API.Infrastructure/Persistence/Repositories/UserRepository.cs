@@ -9,9 +9,41 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-    public Task<User> GetById(int id)
+    public async Task<User?> GetUserAsync(string phoneNumber, int botId)
     {
-        throw new NotImplementedException();
+        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
+
+        using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
+
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "usp_GetTelegramUser";
+
+        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
+        { Value = phoneNumber }
+        );
+
+        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int)
+        { Value = botId }
+        );
+
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            return new User
+            {
+                BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
+                ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
+                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
+                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
+                FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),
+                LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
+                LastSeenDateTime = reader.GetDateTime(reader.GetOrdinal("LastSeenDateTime")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+            };
+        }
+        // Not found
+        return null;
     }
 
     public async Task<IDictionary<string, string?>> GetChatIdsAsync(IEnumerable<string> phoneNumbers, int botId)
@@ -57,42 +89,5 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
             map.TryAdd(p, null);
 
         return map;
-    }
-
-    public async Task<User?> GetUserAsync(string phoneNumber, int botId)
-    {
-        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
-
-        using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
-
-        cmd.CommandType = CommandType.StoredProcedure;
-        cmd.CommandText = "usp_GetTelegramUser";
-
-        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
-        { Value = phoneNumber }
-        );
-
-        cmd.Parameters.Add(new SqlParameter("@BotId", SqlDbType.Int)
-        { Value = botId }
-        );
-
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-        {
-            return new User
-            {
-                BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
-                ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
-                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
-                CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
-                Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
-                FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),
-                LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
-                LastSeenDateTime = reader.GetDateTime(reader.GetOrdinal("LastSeenDateTime")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
-            };
-        }
-        // Not found
-        return null;
     }
 }

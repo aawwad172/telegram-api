@@ -77,7 +77,7 @@ public class TelegramClient(
         if (string.IsNullOrWhiteSpace(secretToken) || !SecretAllowed.IsMatch(secretToken))
             throw new ArgumentException("secretToken must match [A-Za-z0-9_-] and be 1..256 chars.", nameof(secretToken));
 
-        string api = $"{_options.CurrentValue.TelegramApiBaseUrl}/bot{botToken}/setWebhook";
+        string path = $"/bot{botToken}/setWebhook";
 
         // Telegram expects:
         // - url (string)
@@ -97,7 +97,7 @@ public class TelegramClient(
             form.Add(new("allowed_updates", JsonSerializer.Serialize(allowedUpdates)));
         }
 
-        using HttpRequestMessage request = new(HttpMethod.Post, api)
+        using HttpRequestMessage request = new(HttpMethod.Post, path)
         {
             Content = new FormUrlEncodedContent(form)
         };

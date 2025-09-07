@@ -31,7 +31,7 @@ public class RegisterBotCommandHandler(
 
         string baseUrl = _options.CurrentValue.DomainName.TrimEnd('/'); // e.g. https://.../telegram
         if (string.IsNullOrWhiteSpace(baseUrl) || !baseUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            throw new ConfigurationErrorsException("Webhook base DomainName must be an HTTPS URL.");
+            throw new InvalidConfigurationException("Webhook base DomainName must be an HTTPS URL.");
 
         Uri url = new($"{baseUrl}/webhook/{publicId}");
 
@@ -47,9 +47,14 @@ public class RegisterBotCommandHandler(
             PublicId = publicId
         };
 
+        int botId = 0;
         try
         {
             bot = await _botRepository.CreateAsync(bot, cancellationToken);
+            if (bot is null)
+                throw new ConflictException("Failed to persist bot.");
+
+            botId = bot.BotId; // Extract the ID only after confirming bot is not null
 
             // Add webhook to bot through api
             bool success = await _telegramClient.SetWebhookAsync(
@@ -63,7 +68,7 @@ public class RegisterBotCommandHandler(
             if (!success)
                 throw new TelegramApiException("Telegram setWebhook returned ok=false");
 
-            await _botRepository.UpdateBotActivityAsync(bot!.BotId, true, cancellationToken);
+            await _botRepository.UpdateBotActivityAsync(botId, true, cancellationToken);
 
             return new RegisterBotCommandResult(BotId: bot.BotId);
         }
@@ -78,7 +83,8 @@ public class RegisterBotCommandHandler(
         }
         catch (TelegramApiException)
         {
-            await _botRepository.UpdateBotActivityAsync(bot!.BotId, false, cancellationToken);
+            if (botId != 0) // Only try to update if we actually have a valid bot ID
+                await _botRepository.UpdateBotActivityAsync(botId, false, cancellationToken);
             throw;
         }
     }

@@ -33,12 +33,12 @@ public static class DependencyInjection
                 .Validate(o => !string.IsNullOrWhiteSpace(o.BulkFolderPath), "BulkFolderPath is required.")
                 .ValidateOnStart();
 
-        services.AddHttpClient<ITelegramClient, TelegramClient>((sp, c) =>
+        services.AddHttpClient<ITelegramClient, TelegramClient>((serviceProvider, client) =>
         {
-            var opts = sp.GetRequiredService<IOptionsMonitor<TelegramOptions>>().CurrentValue;
+            TelegramOptions opts = serviceProvider.GetRequiredService<IOptionsMonitor<TelegramOptions>>().CurrentValue;
 
-            c.BaseAddress = new Uri(opts!.TelegramApiBaseUrl);
-            c.Timeout = TimeSpan.FromSeconds(30);
+            client.BaseAddress = new Uri(opts!.TelegramApiBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
         });
 
         return services;

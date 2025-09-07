@@ -53,7 +53,7 @@ public class SendBatchMessageCommandHandler(
         // assign to your container
         batchMessages.Items = messages;
 
-        if (batchMessages.Items is null || !batchMessages.Items.Any())
+        if (!(batchMessages.Items?.Any() ?? false))
         {
             throw new EmptyMessagesPackageException($"{nameof(batchMessages.Items)} The messages collection cannot be null or empty.");
         }

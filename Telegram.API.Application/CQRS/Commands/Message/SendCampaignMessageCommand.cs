@@ -12,7 +12,7 @@ public sealed record SendCampaignMessageCommand
 {
     public required string Username { get; init; }
     public required string Password { get; init; }
-    public int BotId { get; init; }
+    public required int BotId { get; init; }
     public string? CampDescription { get; init; } = null;
     public DateTime? ScheduledDatetime { get; init; } = null;
     public required string MessageText { get; init; }
