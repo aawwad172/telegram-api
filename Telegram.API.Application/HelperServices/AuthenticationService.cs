@@ -19,9 +19,9 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
     /// <param name="password"></param>
     /// <returns>Returns the CustomerId</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<Customer> AuthenticateAsync(string username, string password)
+    public async Task<Customer> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
     {
-        Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username) ?? throw new NotFoundException("User not found");
+        Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username, cancellationToken) ?? throw new NotFoundException("User not found");
 
         // Hash the password and return the CustomerId if the password matches
         string encryptedPassword = _encryptionEngine.Encrypt(password);
@@ -36,18 +36,22 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
             throw new UnauthenticatedException("Customer is blocked");
 
         if (!customer.IsTelegramActive)
-            throw new UnauthenticatedException("Customer is not subscribed in Telegram");
+            throw new UnauthenticatedException("Customer is not subscribed to Telegram feature");
 
         return customer;
     }
 
-    public async Task<Bot> ValidateBotKeyAsync(string botKey, int customerId)
-    {
-        if (string.IsNullOrWhiteSpace(botKey))
-            throw new InvalidBotKeyException($"Bot key provided for customer {customerId} is null");
+    public string Decrypt(string encryptedBotKey, CancellationToken cancellationToken = default)
+        => _encryptionEngine.Decrypt(encryptedBotKey);
 
-        string encryptedBotKey = _encryptionEngine.Encrypt(botKey);
-        Bot? bot = await _botRepository.GetBotByKeyAsync(encryptedBotKey, customerId);
+    public string Encrypt(string botKey, CancellationToken cancellationToken = default)
+        => _encryptionEngine.Encrypt(botKey);
+
+    public async Task<Bot> ValidateBotIdAsync(int botId, int customerId, CancellationToken cancellationToken = default)
+    {
+        Bot? bot = await _botRepository.GetByIdAsync(botId, customerId, cancellationToken);
+        if (bot is null)
+            throw new NotFoundException($"There is no bot related with id: {botId} / Bot is not linked with Customer: {customerId}");
 
         return bot is { IsActive: true } ? bot : throw new BotIsNotActiveException($"Bot is not active for customer {customerId}!");
     }

@@ -2,7 +2,7 @@
 
 public interface ITelegramMessage :
     IHasMessageText,
-    IHasBotKey,
+    IHasBotId,
     IHasPhoneNumber,
     IHasChatId,
     IHasCustomerId,

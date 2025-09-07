@@ -24,7 +24,7 @@ public class SendBatchMessageCommandHandler(
         if (customer is null)
             throw new UnauthenticatedException("Invalid username or password.");
 
-        Bot bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+        Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
 
         TelegramMessagePackage<BatchMessage> batchMessages = ((customer, bot), request).Adapt<TelegramMessagePackage<BatchMessage>>();
 
@@ -53,7 +53,7 @@ public class SendBatchMessageCommandHandler(
         // assign to your container
         batchMessages.Items = messages;
 
-        if (batchMessages.Items is null || !batchMessages.Items.Any())
+        if (!(batchMessages.Items?.Any() ?? false))
         {
             throw new EmptyMessagesPackageException($"{nameof(batchMessages.Items)} The messages collection cannot be null or empty.");
         }

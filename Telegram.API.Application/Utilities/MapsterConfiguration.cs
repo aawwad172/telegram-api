@@ -28,7 +28,7 @@ public static class MapsterConfiguration
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.data.customerUser.customer.CustomerId)
             .Map(dest => dest.ChatId, src => src.data.customerUser.user.ChatId!)
-            .Map(dest => dest.BotKey, src => src.data.bot.EncryptedBotKey)
+            .Map(dest => dest.BotId, src => src.data.bot.BotId)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.PhoneNumber, src => src.request.PhoneNumber)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.A.ToString())
@@ -38,7 +38,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendBatchMessagesCommand request), TelegramMessagePackage<BatchMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.EncryptedBotKey, src => src.customerBot.bot.EncryptedBotKey)
+            .Map(dest => dest.BotId, src => src.customerBot.bot.BotId)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AF.ToString())
             .Map(dest => dest.CampaignId, src => $"{src.customerBot.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
@@ -49,7 +49,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.EncryptedBotKey, src => src.customerBot.bot.EncryptedBotKey)
+            .Map(dest => dest.BotId, src => src.customerBot.bot.BotId)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AC.ToString())

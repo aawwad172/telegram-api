@@ -1,15 +1,17 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 
-namespace Telegram.API.WebAPI.Validators.Commands;
+namespace Telegram.API.WebAPI.Validators.Commands.Messages;
 
-public class SendBatchMessagesCommandValidator : AbstractValidator<SendBatchMessagesCommand>
+public class SendCampaignMessageCommandValidator : AbstractValidator<SendCampaignMessageCommand>
 {
-    public SendBatchMessagesCommandValidator()
+    public SendCampaignMessageCommandValidator()
     {
-        RuleFor(x => x.BotKey)
+        RuleFor(x => x.BotId)
             .NotEmpty()
-            .WithMessage("BotKey is required.");
+            .WithMessage("BotId is required.")
+            .GreaterThan(0)
+            .WithMessage("BotId should be greater than 0");
 
         RuleFor(x => x.Username)
             .NotEmpty()
@@ -24,13 +26,13 @@ public class SendBatchMessagesCommandValidator : AbstractValidator<SendBatchMess
             .WithMessage("Items cannot be empty.");
 
         RuleForEach(x => x.Items)
-            .SetValidator(new BatchMessageItemValidator());
+            .SetValidator(new CampaignMessageItemValidator());
     }
 }
 
-public class BatchMessageItemValidator : AbstractValidator<BatchMessageItem>
+public class CampaignMessageItemValidator : AbstractValidator<CampaignMessageItem>
 {
-    public BatchMessageItemValidator()
+    public CampaignMessageItemValidator()
     {
         RuleFor(x => x.PhoneNumber)
             .NotEmpty()
@@ -39,11 +41,5 @@ public class BatchMessageItemValidator : AbstractValidator<BatchMessageItem>
             .WithMessage("Phone number must start with '+' optionally and contain digits only.")
             .MaximumLength(20)
             .WithMessage("Phone number cannot exceed 20 digits.");
-
-        RuleFor(x => x.MessageText)
-            .NotEmpty()
-            .WithMessage("Message text is required.")
-            .MaximumLength(4096)
-            .WithMessage("Message text cannot exceed 4096 characters.");
     }
 }

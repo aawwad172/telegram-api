@@ -27,12 +27,19 @@ public class JsonFileRepository : IJsonFileRepository
         string? folder = Path.GetDirectoryName(fullPath);
         if (string.IsNullOrWhiteSpace(folder))
             throw new ArgumentException("Full path must include a directory.", nameof(fullPath));
-
         Directory.CreateDirectory(folder); // idempotent
 
-        // Use CreateNew to avoid accidental overwrite; switch to Create to overwrite.
-        await using FileStream fs = new(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        await JsonSerializer.SerializeAsync(fs, items, _jsonOptions, ct);
-        await fs.FlushAsync(ct);
+        await _gate.WaitAsync(ct);
+        try
+        {
+            // Use CreateNew to avoid accidental overwrite; switch to Create to overwrite.
+            await using FileStream fs = new(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await JsonSerializer.SerializeAsync(fs, items, _jsonOptions, ct);
+            await fs.FlushAsync(ct);
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 }

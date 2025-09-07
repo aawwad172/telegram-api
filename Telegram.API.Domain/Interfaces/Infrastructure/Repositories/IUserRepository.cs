@@ -2,7 +2,7 @@
 
 namespace Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
-public interface IUserRepository : IRepository<User>
+public interface IUserRepository
 {
     /// <summary>
     /// Gets the user information from the phone number and the bot id.

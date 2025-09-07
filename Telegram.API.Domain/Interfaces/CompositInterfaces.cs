@@ -4,12 +4,12 @@ namespace Telegram.API.Domain.Interfaces;
 
 // Message data addressed by phone
 public interface IPhoneMessageData :
-    IHasMessageText, IHasBotKey, IHasPhoneNumber
+    IHasMessageText, IHasPhoneNumber
 { }
 
 // Message data addressed by chat id
 public interface IChatMessageData :
-    IHasMessageText, IHasBotKey, IHasChatId
+    IHasMessageText, IHasEncryptedBotKey, IHasChatId
 { }
 
 // Operational knobs for dispatching

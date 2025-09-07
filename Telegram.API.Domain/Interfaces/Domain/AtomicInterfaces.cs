@@ -9,6 +9,11 @@ public interface IHasPhoneNumber
     string PhoneNumber { get; }
 }
 
+public interface IHasBotId
+{
+    int BotId { get; }
+}
+
 public interface IHasChatId
 {
     string ChatId { get; }
@@ -16,6 +21,11 @@ public interface IHasChatId
 public interface IHasBotKey
 {
     string BotKey { get; }
+}
+
+public interface IHasEncryptedBotKey
+{
+    string EncryptedBotKey { get; }
 }
 public interface IHasCustomerId
 {

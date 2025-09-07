@@ -10,7 +10,8 @@ namespace Telegram.API.Application.CQRS.QueryHandlers;
 
 public class SubscriptionInfoQueryHandler(
     IAuthenticationService authenticationService,
-    IUserRepository userRepository) : IRequestHandler<SubscriptionInfoQuery, SubscriptionInfoQueryResult>
+    IUserRepository userRepository)
+    : IRequestHandler<SubscriptionInfoQuery, SubscriptionInfoQueryResult>
 {
     private readonly IAuthenticationService _authenticationService = authenticationService;
     private readonly IUserRepository _userRepository = userRepository;
@@ -24,7 +25,7 @@ public class SubscriptionInfoQueryHandler(
             if (customer is null)
                 throw new UnauthorizedException("Invalid username or password.");
 
-            Bot? bot = await _authenticationService.ValidateBotKeyAsync(request.BotKey, customer.CustomerId);
+            Bot? bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
             if (bot is null)
                 throw new UnauthorizedException("Invalid Bot Key.");
 

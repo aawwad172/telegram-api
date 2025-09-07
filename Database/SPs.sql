@@ -1,14 +1,14 @@
-﻿/*******************************************
+/*******************************************
  * 2.1) usp_EnqueueOrArchiveIfDuplicate
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
-  @CustId  		INT,
+  @CustomerId  		INT,
   @ChatId      		NVARCHAR(50),
-  @EncryptedBotKey      		NVARCHAR(128),
+  @BotId      		INT,
   @MessageText 		NVARCHAR(MAX),
-  @PhoneNumber      NVARCHAR(20),
+  @PhoneNumber      NVARCHAR(32),
   @MsgType     		NVARCHAR(10), 
-  @CampaignId  		NVARCHAR(50), -- Empty String if not required
+  @CampaignId  		NVARCHAR(128), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required
   @Priority    		SMALLINT,
   @ScheduledSendDateTime DATETIME2 = NULL,  -- Auto inserted in case of one message
@@ -22,15 +22,15 @@ BEGIN
   DECLARE 
     @hashedMsg   BINARY(32) = HASHBYTES(
              'SHA2_256',
-              CONCAT(ISNULL(@ChatId, N''), N'|', @EncryptedBotKey, N'|', ISNULL(@MessageText, N'')) 
+              CONCAT(ISNULL(@ChatId, N''), N'|', @BotId, N'|', ISNULL(@MessageText, N'')) 
           );
     -- If caller omitted it, fill it with GETDATE()
 
   -- always enqueue; trigger will handle RecentMessages & archiving
  INSERT INTO dbo.ReadyTable
     (ChatId
-    ,CustId
-    ,EncryptedBotKey
+    ,CustomerId
+    ,BotId
     ,PhoneNumber
     ,MessageText
     ,MsgType
@@ -44,8 +44,8 @@ BEGIN
     ,Paused)
   VALUES
     (@ChatId
-    ,@CustId
-    ,@EncryptedBotKey
+    ,@CustomerId
+    ,@BotId
     ,@PhoneNumber
     ,@MessageText
     ,@MsgType
@@ -72,10 +72,16 @@ CREATE OR ALTER PROCEDURE [dbo].[usp_GetCustomerByUsername]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT CustId, UserName, Password, RequireSystemApprove,
-                     RequireAdminApprove, IsActive, IsBlocked, IsTelegramActive
-                     FROM A2A_iMessaging.dbo.Table_UserSMSProfile
-                     WHERE UserName = @Username
+    SELECT CustId as CustomerId, 
+            UserName, 
+            Password, 
+            RequireSystemApprove,
+            RequireAdminApprove, 
+            IsActive, 
+            IsBlocked, 
+            IsTelegramActive
+    FROM A2A_iMessaging.dbo.Table_UserSMSProfile
+    WHERE UserName = @Username
 END;
 GO
 
@@ -85,7 +91,7 @@ GO
  * Returns the TelegramUserChats row for a given BotId
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
-  @BotId       INT,
+  @BotId                 INT,
   @PhoneNumber           NVARCHAR(32)
 AS
 BEGIN
@@ -126,19 +132,19 @@ GO
  * 2.7) usp_AddBatchFile to add the batch data into DB
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
-    @CustId               INT,
-    @EncryptedBotKey               NVARCHAR(128),
-    @MsgText              NVARCHAR(MAX) = NULL,
-    @MsgType              NVARCHAR(10),
-    @CampaignId           NVARCHAR(50),
-    @CampDesc             NVARCHAR(256) = NULL,
-    @Priority             SMALLINT,           -- table uses SMALLINT
-    @IsSystemApproved     BIT,
-    @IsAdminApproved      BIT,
-    @ScheduledSendDateTime DATETIME2 = NULL,  -- if NULL => GETDATE()
-    @FilePath             NVARCHAR(260),
-    @FileType             NVARCHAR(16),
-    @IsProcessed          BIT = 0
+    @CustomerId                 INT,
+    @BotId                      INT,
+    @MsgText                    NVARCHAR(MAX) = NULL,
+    @MsgType                    NVARCHAR(10),
+    @CampaignId                 NVARCHAR(128),
+    @CampDescription            NVARCHAR(512) = NULL,
+    @Priority                   SMALLINT,           -- table uses SMALLINT
+    @IsSystemApproved           BIT,
+    @IsAdminApproved            BIT,
+    @ScheduledSendDateTime      DATETIME2 = NULL,  -- if NULL => GETDATE()
+    @FilePath                   NVARCHAR(260),
+    @FileType                   NVARCHAR(16),
+    @IsProcessed                BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -147,15 +153,15 @@ BEGIN
 
     INSERT INTO dbo.TelegramFiles
     (
-        CustID,
-        EncryptedBotKey,
+        CustomerId,
+        BotId,
         MsgText,
         MsgType,
         Priority,
         FilePath,
         FileType,
         CampaignID,
-        CampDesc,
+        CampDescription,
         ScheduledSendDateTime,
         CreationDate,
         IsSystemApproved,
@@ -164,15 +170,15 @@ BEGIN
     )
     VALUES
     (
-        @CustId,
-        @EncryptedBotKey,
+        @CustomerId,
+        @BotId,
         @MsgText,
         @MsgType,
         @Priority,
         @FilePath,
         @FileType,
         @CampaignId,
-        @CampDesc,
+        @CampDescription,
         ISNULL(@ScheduledSendDateTime, @Now),
         @Now,
         @IsSystemApproved,
@@ -197,9 +203,9 @@ BEGIN
 
   INSERT INTO dbo.ReadyTable
   (
-    CustId,
+    CustomerId,
     ChatId, 
-    EncryptedBotKey, 
+    BotId, 
     PhoneNumber, 
     MessageText, 
     MsgType,
@@ -215,7 +221,7 @@ BEGIN
   SELECT
     b.CustomerId,
     NULLIF(b.ChatId, N''),
-    b.EncryptedBotKey,
+    b.BotId,
     b.PhoneNumber,
     b.MessageText,
     b.MessageType,
@@ -223,7 +229,7 @@ BEGIN
     ISNULL(b.ScheduledSendDateTime, @now),
     HASHBYTES(
       'SHA2_256',
-      CONCAT(ISNULL(b.ChatId, N''), N'|', b.EncryptedBotKey, N'|', b.MessageText)
+      CONCAT(ISNULL(b.ChatId, N''), N'|', b.BotId, N'|', b.MessageText)
     ),
     b.Priority,
     NULLIF(b.CampaignId, N''),
@@ -239,27 +245,13 @@ GO
  *******************************************/
 
 CREATE OR ALTER PROCEDURE dbo.usp_GetBulkMessageByCampaignId
-    @CampaignId NVARCHAR(50)
+    @CampaignId NVARCHAR(128)
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT 
-        CustID,
-        EncryptedBotKey,
-        MsgText,
-        MsgType,
-        Priority,
-        FilePath,
-        FileType,
-        CampaignID,
-        CampDesc,
-        ScheduledSendDateTime,
-        CreationDate,
-        isSystemApproved,
-        isAdminApproved,
-        IsProcessed
-    FROM dbo.TelegramSentFiles
+    SELECT *
+    FROM dbo.TelegramFiles
     WHERE CampaignID = @CampaignId AND IsProcessed = 0;
 END;
 GO
@@ -269,7 +261,7 @@ GO
  *******************************************/
 
 CREATE OR ALTER PROCEDURE dbo.usp_ArchiveTelegramFileByCampaignId
-    @CampaignID NVARCHAR(50)
+    @CampaignID NVARCHAR(128)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -279,14 +271,14 @@ BEGIN
 
         -- Insert into TelegramSentFiles the matching campaign
         INSERT INTO dbo.TelegramSentFiles (
-            CustID, EncryptedBotKey, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDesc,
+            CustomerId, BotId, MsgText, MsgType, Priority,
+            FilePath, FileType, CampaignID, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, IsProcessed
         )
         SELECT
-            CustID, EncryptedBotKey, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDesc,
+            CustomerId, BotId, MsgText, MsgType, Priority,
+            FilePath, FileType, CampaignID, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, 1
         FROM dbo.TelegramFiles
@@ -308,19 +300,72 @@ END;
 GO
 
 /*******************************************
- * 2.11) usp_GetBotByKey
+ * 2.11) usp_GetBotById
  *******************************************/
 
-CREATE OR ALTER PROCEDURE dbo.usp_GetBotByKey
-  @EncryptedBotKey       NVARCHAR(128),
+CREATE OR ALTER PROCEDURE dbo.usp_GetBotById
+  @BotId           INT,
   @CustomerId			 INT
 AS
 BEGIN
   SET NOCOUNT ON;
 
   SELECT TOP 1 * FROM dbo.Bots
-  WHERE EncryptedBotKey = @EncryptedBotKey
-  AND CustID = @CustomerId
-  AND IsActive = 1;
+  WHERE BotId = @BotId
+  AND CustomerId = @CustomerId
 END
 GO
+
+/*******************************************
+ * 2.12) usp_Bot_UpdateActivity
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_Bot_UpdateActivity
+    @BotId    INT,
+    @IsActive BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Bots
+    SET IsActive = @IsActive
+    WHERE BotId = @BotId;
+END
+GO
+
+/*******************************************
+ * 2.13) usp_Bot_CreateBot
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
+    @CustomerId       INT,
+    @IsActive         BIT,
+    @PublicId         NVARCHAR(128),
+    @EncryptedBotKey  NVARCHAR(128),
+    @WebhookSecret    NVARCHAR(128),
+    @WebhookUrl       NVARCHAR(512)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Bots (
+        CustomerId,
+        IsActive,
+        PublicId,
+        EncryptedBotKey,
+        WebhookSecret,
+        WebhookUrl,
+        CreationDateTime
+    )
+    VALUES (
+        @CustomerId,
+        @IsActive,
+        @PublicId,
+        @EncryptedBotKey,
+        @WebhookSecret,
+        @WebhookUrl,
+        GETDATE()
+    );
+
+    SELECT *
+    FROM dbo.Bots
+    WHERE BotId = SCOPE_IDENTITY();
+END
