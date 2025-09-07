@@ -72,7 +72,7 @@ CREATE OR ALTER PROCEDURE [dbo].[usp_GetCustomerByUsername]
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT CustId, 
+    SELECT CustId as CustomerId, 
             UserName, 
             Password, 
             RequireSystemApprove,
