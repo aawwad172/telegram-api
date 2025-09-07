@@ -134,7 +134,7 @@ public class MessageRepository(
         { Value = messages.CampaignId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@CampDesc", SqlDbType.NVarChar, 512)
+        cmd.Parameters.Add(new SqlParameter("@CampDescription", SqlDbType.NVarChar, 512)
         { Value = messages.CampDescription }
         );
 
