@@ -29,9 +29,9 @@ public class TelegramClient(
 
         try
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync(url, ct);
 
-            string jsonResponse = await response.Content.ReadAsStringAsync();
+            string jsonResponse = await response.Content.ReadAsStringAsync(ct);
 
             // 2) Deserialize with System.Text.Json
             JsonSerializerOptions options = new()

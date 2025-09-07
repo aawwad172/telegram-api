@@ -6,7 +6,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @ChatId      		NVARCHAR(50),
   @BotId      		INT,
   @MessageText 		NVARCHAR(MAX),
-  @PhoneNumber      NVARCHAR(20),
+  @PhoneNumber      NVARCHAR(32),
   @MsgType     		NVARCHAR(10), 
   @CampaignId  		NVARCHAR(50), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required
@@ -137,7 +137,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
     @MsgText              NVARCHAR(MAX) = NULL,
     @MsgType              NVARCHAR(10),
     @CampaignId           NVARCHAR(50),
-    @CampDesc             NVARCHAR(256) = NULL,
+    @CampDescription             NVARCHAR(256) = NULL,
     @Priority             SMALLINT,           -- table uses SMALLINT
     @IsSystemApproved     BIT,
     @IsAdminApproved      BIT,
@@ -161,7 +161,7 @@ BEGIN
         FilePath,
         FileType,
         CampaignID,
-        CampDesc,
+        CampDescription,
         ScheduledSendDateTime,
         CreationDate,
         IsSystemApproved,
@@ -178,7 +178,7 @@ BEGIN
         @FilePath,
         @FileType,
         @CampaignId,
-        @CampDesc,
+        @CampDescription,
         ISNULL(@ScheduledSendDateTime, @Now),
         @Now,
         @IsSystemApproved,
@@ -272,13 +272,13 @@ BEGIN
         -- Insert into TelegramSentFiles the matching campaign
         INSERT INTO dbo.TelegramSentFiles (
             CustomerId, BotId, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDesc,
+            FilePath, FileType, CampaignID, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, IsProcessed
         )
         SELECT
             CustomerId, BotId, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDesc,
+            FilePath, FileType, CampaignID, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, 1
         FROM dbo.TelegramFiles

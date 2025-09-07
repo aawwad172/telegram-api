@@ -42,4 +42,4 @@ public class JsonFileRepository : IJsonFileRepository
             _gate.Release();
         }
     }
-};
+}

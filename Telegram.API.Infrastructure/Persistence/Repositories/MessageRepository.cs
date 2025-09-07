@@ -65,7 +65,7 @@ public class MessageRepository(
         { Value = message.CustomerId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@ChatId", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@ChatId", SqlDbType.NVarChar, 50)
         { Value = message.ChatId }
         );
 
@@ -73,11 +73,11 @@ public class MessageRepository(
         { Value = message.BotId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@MessageText", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@MessageText", SqlDbType.NVarChar, -1)
         { Value = message.MessageText }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar, 32)
         { Value = message.PhoneNumber }
         );
 
@@ -85,15 +85,15 @@ public class MessageRepository(
         { Value = message.MessageType }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@CampaignId", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@CampaignId", SqlDbType.NVarChar, 128)
         { Value = message.CampaignId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@CampDescription", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@CampDescription", SqlDbType.NVarChar, 512)
         { Value = message.CampDescription }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@Priority", SqlDbType.Int)
+        cmd.Parameters.Add(new SqlParameter("@Priority", SqlDbType.SmallInt)
         { Value = message.Priority }
         );
 
@@ -108,7 +108,7 @@ public class MessageRepository(
 
     private async Task AddBatchFileAsync<T>(TelegramMessagePackage<T> messages, string fullPath)
     {
-        IDbConnection conn = await _connectionFactory.CreateOpenConnection();
+        using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
 
         cmd.CommandType = CommandType.StoredProcedure;
@@ -122,19 +122,19 @@ public class MessageRepository(
         { Value = messages.BotId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@MsgText", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@MsgText", SqlDbType.NVarChar, -1)
         { Value = messages.MessageText }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@MsgType", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@MsgType", SqlDbType.NVarChar, 10)
         { Value = messages.MessageType }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@CampaignId", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@CampaignId", SqlDbType.NVarChar, 128)
         { Value = messages.CampaignId }
         );
 
-        cmd.Parameters.Add(new SqlParameter("@CampDesc", SqlDbType.NVarChar)
+        cmd.Parameters.Add(new SqlParameter("@CampDesc", SqlDbType.NVarChar, 512)
         { Value = messages.CampDescription }
         );
 

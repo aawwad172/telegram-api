@@ -26,7 +26,7 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
         { Value = username }
         );
 
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken);
         if (await reader.ReadAsync())
         {
             return new Customer

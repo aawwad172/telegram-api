@@ -29,14 +29,19 @@ public class RegisterBotCommandHandler(
         string secrete = Guid.NewGuid().ToString("N");
         string publicId = Guid.NewGuid().ToString("N");
 
-        string baseUrl = _options.CurrentValue.DomainName.TrimEnd('/'); // e.g. https://.../telegram
-        if (string.IsNullOrWhiteSpace(baseUrl) || !baseUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidConfigurationException("Webhook base DomainName must be an HTTPS URL.");
+        string? domain = _options.CurrentValue.DomainName;
+        if (string.IsNullOrEmpty(domain))
+            throw new InvalidConfigurationException("Webhook base DomainName is missing.");
 
-        Uri url = new($"{baseUrl}/webhook/{publicId}");
+        string baseUrl = domain.TrimEnd('/'); // e.g. https://.../telegram
+
+        if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri? baseUri) || !baseUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidConfigurationException("Webhook base DomainName must be an absolute HTTPS URL.");
+
+        Uri url = new(baseUri, $"webhook/{publicId}");
 
         // Encrypt BotKey
-        string encryptedBotKey = _authenticationService.Encrypt(request.BotKey);
+        string encryptedBotKey = _authenticationService.Encrypt(request.BotKey, cancellationToken);
         Bot? bot = new()
         {
             CustomerId = customer.CustomerId,
