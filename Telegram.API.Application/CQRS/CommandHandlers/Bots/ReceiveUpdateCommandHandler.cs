@@ -1,4 +1,3 @@
-using System.Xml.XPath;
 using MediatR;
 using Telegram.API.Application.CQRS.Commands.Bots;
 using Telegram.API.Application.HelperServices;

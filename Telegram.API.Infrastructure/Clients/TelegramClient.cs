@@ -1,247 +1,164 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Options;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure.Clients;
-using Telegram.API.Domain.Settings;
 
 namespace Telegram.API.Infrastructure.Clients;
 
-public class TelegramClient(
-    HttpClient httpClient,
-    IOptionsMonitor<TelegramOptions> options)
-    : ITelegramClient
+public class TelegramClient : ITelegramClient
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly HttpClient _http;
     private static readonly Regex SecretAllowed = new("^[A-Za-z0-9_-]{1,256}$", RegexOptions.Compiled);
-    private readonly IOptionsMonitor<TelegramOptions> _options = options;
+    private readonly JsonSerializerOptions _json; // snake_case in/out
 
-    public Task<bool> DeleteWebhookAsync(string botToken, bool dropPendingUpdates, CancellationToken ct = default)
+    public TelegramClient(HttpClient httpClient)
     {
-        throw new NotImplementedException();
+        _http = httpClient;
+        _json = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            PropertyNameCaseInsensitive = true
+        };
     }
 
     public async Task<TelegramResponse<WebhookInfo?>> GetWebhookInfoAsync(string botToken, CancellationToken ct = default)
-    {
-        string url = $"/bot{botToken}/getWebhookInfo";
-
-        try
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync(url, ct);
-
-            string jsonResponse = await response.Content.ReadAsStringAsync(ct);
-
-            // 2) Deserialize with System.Text.Json
-            JsonSerializerOptions options = new()
-            {
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-            };
-
-            TelegramResponse<WebhookInfo?> telegramResponse = JsonSerializer
-                .Deserialize<TelegramResponse<WebhookInfo?>>(jsonResponse, options)
-                ?? throw new InvalidOperationException("Empty response when getting webhook information");
-
-            return telegramResponse!;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TelegramApiException($"HTTP Request Error while Sending Message to Telegram: {ex.Message}");
-        }
-        catch (JsonException ex)
-        {
-            throw new TelegramApiException($"JSON Parsing Error while parsing Message: {ex.Message}");
-        }
-        catch (InvalidOperationException ex)
-        {
-            throw new TelegramApiException($"Invalid Operation Error: {ex.Message}");
-        }
-    }
+           => await GetAsync<WebhookInfo?>($"/bot{botToken}/getWebhookInfo", ct);
 
     public async Task<bool> SetWebhookAsync(
-        string botToken,
-        Uri url,
-        string secretToken,
-        IReadOnlyCollection<string> allowedUpdates,
-        bool dropPendingUpdates,
-        CancellationToken cancellationToken = default)
+           string botToken,
+           Uri url,
+           string secretToken,
+           IReadOnlyCollection<string> allowedUpdates,
+           bool dropPendingUpdates,
+           CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(botToken))
-            throw new ArgumentException("botToken is required.", nameof(botToken));
-
+        if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
         if (url is null || !url.IsAbsoluteUri || !url.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("url must be an absolute HTTPS URI.", nameof(url));
-
+            throw new ArgumentException("Must be absolute HTTPS URI.", nameof(url));
         if (string.IsNullOrWhiteSpace(secretToken) || !SecretAllowed.IsMatch(secretToken))
-            throw new ArgumentException("secretToken must match [A-Za-z0-9_-] and be 1..256 chars.", nameof(secretToken));
+            throw new ArgumentException("Secret token invalid format.", nameof(secretToken));
 
-        string path = $"/bot{botToken}/setWebhook";
-
-        // Telegram expects:
-        // - url (string)
-        // - secret_token (string)           // echoed back in X-Telegram-Bot-Api-Secret-Token
-        // - allowed_updates (JSON array)    // optional
-        // - drop_pending_updates ("true"/"false") // optional
-        List<KeyValuePair<string, string>> form = new()
+        // Telegram accepts JSON too; keep url-encoded if you like. Here: JSON for clarity.
+        var payload = new
         {
-            new("url", url.ToString()),
-            new("secret_token", secretToken),
-            new("drop_pending_updates", dropPendingUpdates ? "true" : "false"),
+            url = url.ToString(),
+            secret_token = secretToken,
+            allowed_updates = allowedUpdates?.Count > 0 ? allowedUpdates : null,
+            drop_pending_updates = dropPendingUpdates
         };
 
-        if (allowedUpdates is not null && allowedUpdates.Count > 0)
-        {
-            // must be a JSON array of strings
-            form.Add(new("allowed_updates", JsonSerializer.Serialize(allowedUpdates)));
-        }
-
-        using HttpRequestMessage request = new(HttpMethod.Post, path)
-        {
-            Content = new FormUrlEncodedContent(form)
-        };
-
-        using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
-        string body = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        // Telegram returns 200 even on logical errors; check { ok, description }
-        try
-        {
-            using JsonDocument doc = JsonDocument.Parse(body);
-            JsonElement root = doc.RootElement;
-
-            bool ok = root.TryGetProperty("ok", out JsonElement okEl) && okEl.GetBoolean();
-            if (ok) return true;
-
-            // optional: surface description via logs if you have them
-            string? desc = root.TryGetProperty("description", out JsonElement d) ? d.GetString() : "Unknown Telegram error";
-            // e.g., LoggerService.Warning("setWebhook failed: {Desc}", desc);
-            return false;
-        }
-        catch (JsonException)
-        {
-            // Unexpected response shape; treat non-success HTTP as failure
-            if (!response.IsSuccessStatusCode) return false;
-
-            // If HTTP 200 but not JSON, also treat as failure
-            return false;
-        }
+        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/setWebhook", payload, ct);
+        return resp.Ok;
     }
 
-    public Task<bool> UpdateWebhookAsync(
-        string botToken,
-        Uri url,
-        string newSecretToken,
-        IReadOnlyCollection<string> allowedUpdates,
-        bool dropPendingUpdates,
-        CancellationToken ct = default)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<bool> UpdateWebhookAsync(
+            string botToken,
+            Uri url,
+            string newSecretToken,
+            IReadOnlyCollection<string> allowedUpdates,
+            bool dropPendingUpdates,
+            CancellationToken ct = default)
+            => await SetWebhookAsync(botToken, url, newSecretToken, allowedUpdates, dropPendingUpdates, ct);
 
     public async Task<bool> SendTextWithContactButtonAsync(
-        string botToken,
-        string chatId,
-        string text,
-        string buttonText,
-        CancellationToken ct = default)
+            string botToken,
+            string chatId,
+            string text,
+            string buttonText,
+            CancellationToken ct = default)
     {
-        string path = $"/bot{botToken}/sendMessage";
+        if (string.IsNullOrWhiteSpace(botToken))
+            throw new ArgumentException("Required.", nameof(botToken));
 
-        using HttpRequestMessage req = new(HttpMethod.Post, path)
+        if (string.IsNullOrWhiteSpace(chatId))
+            throw new ArgumentException("Required.", nameof(chatId));
+
+        var payload = new
         {
-            Content = new StringContent(
-            JsonSerializer.Serialize(new
+            chat_id = chatId,
+            text,
+            reply_markup = new
             {
-                chat_id = chatId,
-                text,
-                reply_markup = new
+                keyboard = new[]
                 {
-                    keyboard = new[]
-                {
-                    new[]
-                    {
-                        new { text = buttonText, request_contact = true }
-                    }
+                    new[] { new { text = buttonText, request_contact = true } }
                 },
-                    resize_keyboard = true,
-                    one_time_keyboard = true
-                }
-            }),
-            Encoding.UTF8,
-            "application/json")
+                resize_keyboard = true,
+                one_time_keyboard = true
+            }
         };
 
-        HttpResponseMessage response = await _httpClient.SendAsync(req, ct);
-
-        string jsonResponse = await response.Content.ReadAsStringAsync();
-
-        // 2) Deserialize with System.Text.Json
-        JsonSerializerOptions options = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        TelegramResponse<JsonElement> telegramResponse = JsonSerializer.Deserialize<
-            TelegramResponse<JsonElement>
-        >(jsonResponse, options) ?? throw new InvalidOperationException($"Empty response when sending Message {text} for {chatId}");
-
-
-        return telegramResponse.Ok;
+        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
+        return resp.Ok;
     }
 
-    public async Task<bool> SendTextAsync(string botToken, string chatId, string text, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteWebhookAsync(string botToken, bool dropPendingUpdates, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(text))
-            throw new ArgumentNullException("Text is null or empty.");
+        if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
+        var payload = new { drop_pending_updates = dropPendingUpdates };
+        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/deleteWebhook", payload, ct);
+        return resp.Ok;
+    }
 
-        string url = $"/bot{botToken}/sendMessage";
+    public async Task<bool> SendTextAsync(
+           string botToken,
+           string chatId,
+           string text,
+           CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
+        if (string.IsNullOrWhiteSpace(chatId)) throw new ArgumentException("Required.", nameof(chatId));
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Required.", nameof(text));
 
-        TelegramMessageRequest request = new()
-        {
-            ChatId = chatId,
-            Text = text
-        };
+        var payload = new { chat_id = chatId, text };
+        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
+        return resp.Ok;
+    }
 
-        string jsonRequest = JsonSerializer.Serialize(request);
-        StringContent content = new(jsonRequest, Encoding.UTF8, "application/json");
+    private async Task<TelegramResponse<T>> GetAsync<T>(string path, CancellationToken ct)
+    {
+        using HttpResponseMessage res = await _http.GetAsync(path, ct);
+        string body = await res.Content.ReadAsStringAsync(ct);
 
+        TelegramResponse<T>? parsed;
         try
         {
-            using HttpResponseMessage response = await _httpClient.PostAsync(url, content, cancellationToken);
-
-            string jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            // 2) Deserialize with System.Text.Json
-            JsonSerializerOptions options = new()
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            TelegramResponse<JsonElement> telegramResponse = JsonSerializer.Deserialize<
-                TelegramResponse<JsonElement>
-            >(jsonResponse, options)
-            ?? throw new InvalidOperationException($"Empty response when sending Message {text} for {chatId}");
-
-
-            if (!telegramResponse.Ok)
-                throw new TelegramApiException(telegramResponse.ErrorCode, telegramResponse.Description ?? "Telegram API returned ok=false.");
-
-            return true;
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TelegramApiException($"HTTP Request Error while Sending Message to Telegram: {ex.Message}");
+            parsed = JsonSerializer.Deserialize<TelegramResponse<T>>(body, _json);
         }
         catch (JsonException ex)
         {
-            throw new TelegramApiException($"JSON Parsing Error while parsing Message: {ex.Message}");
+            throw new JsonSerializationException($"Telegram JSON parse error: {ex.Message}");
         }
-        catch (InvalidOperationException ex)
+
+        if (parsed is null)
+            throw new TelegramApiException("Empty response from Telegram.");
+
+        // return parsed even on ok:false; caller decides (we standardized to return false)
+        return parsed;
+    }
+
+    private async Task<TelegramResponse<T>> PostJsonAsync<T>(string path, object payload, CancellationToken ct)
+    {
+        using StringContent content = new StringContent(JsonSerializer.Serialize(payload, _json), Encoding.UTF8, "application/json");
+        using HttpResponseMessage res = await _http.PostAsync(path, content, ct);
+        string body = await res.Content.ReadAsStringAsync(ct);
+
+        TelegramResponse<T>? parsed;
+        try
         {
-            throw new TelegramApiException($"Invalid Operation Error: {ex.Message}");
+            parsed = JsonSerializer.Deserialize<TelegramResponse<T>>(body, _json);
         }
+        catch (JsonException ex)
+        {
+            throw new TelegramApiException($"Telegram JSON parse error: {ex.Message}");
+        }
+
+        if (parsed is null)
+            throw new TelegramApiException("Empty response from Telegram.");
+
+        return parsed;
     }
 }
