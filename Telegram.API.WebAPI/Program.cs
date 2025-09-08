@@ -89,7 +89,6 @@ telegramApp.MapPost("/bot/webhook/{PublicId}", ReceiveUpdate.RegisterRoute)
     .WithName("Telegram Updates Webhook")
     .WithTags("updates")
     .WithOpenApi();
-
 #endregion
 
 app.Run();

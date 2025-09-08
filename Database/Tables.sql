@@ -240,7 +240,7 @@ CREATE TABLE dbo.TelegramFiles
 );
 GO
 
--- Index for quick lookup by CampaignID
+-- Index for quick lookup by CampaignId
 CREATE INDEX IX_TelegramFiles_Campaign
   ON dbo.TelegramFiles (CampaignId);
 GO

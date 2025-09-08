@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
@@ -20,7 +21,8 @@ public class TelegramClient : ITelegramClient
         _json = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
     }
 
@@ -136,7 +138,9 @@ public class TelegramClient : ITelegramClient
         if (parsed is null)
             throw new TelegramApiException("Empty response from Telegram.");
 
-        // return parsed even on ok:false; caller decides (we standardized to return false)
+        if (!parsed.Ok)
+            throw new TelegramApiException($"Telegram Error request: {parsed.ErrorCode} {parsed.Description}");
+
         return parsed;
     }
 
@@ -158,6 +162,9 @@ public class TelegramClient : ITelegramClient
 
         if (parsed is null)
             throw new TelegramApiException("Empty response from Telegram.");
+
+        if (!parsed.Ok)
+            throw new TelegramApiException($"Telegram Error request: {parsed.ErrorCode} {parsed.Description}");
 
         return parsed;
     }
