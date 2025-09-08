@@ -2,6 +2,8 @@
 using MediatR;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
+using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Data;
 using Telegram.API.Application.HelperServices;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;

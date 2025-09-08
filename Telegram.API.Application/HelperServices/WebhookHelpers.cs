@@ -1,5 +1,5 @@
 using Telegram.API.Application.CQRS.Commands.Bots;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 
 namespace Telegram.API.Application.HelperServices;
 

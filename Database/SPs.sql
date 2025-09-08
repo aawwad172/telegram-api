@@ -399,7 +399,7 @@ GO
 CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
     @BotId          INT,
     @ChatId         NVARCHAR(50),
-    @PhoneNumber    NVARCHAR(30) = NULL,
+    @PhoneNumber    NVARCHAR(32) = NULL,
     @TelegramUserId BIGINT,
     @Username       NVARCHAR(64) = NULL,
     @FirstName      NVARCHAR(64) = NULL,
@@ -422,7 +422,7 @@ BEGIN
     IF @@ROWCOUNT = 0
     BEGIN
         INSERT INTO dbo.TelegramUserChats
-            (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName,IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
+            (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName, IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
         VALUES
             (@BotId, @ChatId, @TelegramUserId, @PhoneNumber, @Username, @FirstName, @IsActive, GETDATE(), GETDATE(), GETDATE());
     END

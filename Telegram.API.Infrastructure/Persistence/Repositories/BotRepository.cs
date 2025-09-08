@@ -1,6 +1,6 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 

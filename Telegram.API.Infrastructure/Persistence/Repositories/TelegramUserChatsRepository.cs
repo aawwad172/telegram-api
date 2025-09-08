@@ -30,24 +30,23 @@ public class TelegramUserChatsRepository(IDbConnectionFactory dbFactory) : ITele
         cmd.Parameters.Add(new SqlParameter("@ChatId", SqlDbType.NVarChar, 50) { Value = chatId });
 
         cmd.Parameters.Add(new SqlParameter("@PhoneNumber", SqlDbType.NVarChar, 32)
-        { Value = (object?)phoneNumber ?? DBNull.Value });
+        { Value = phoneNumber is not null ? phoneNumber : DBNull.Value });
 
         cmd.Parameters.Add(new SqlParameter("@TelegramUserId", SqlDbType.BigInt)
         { Value = telegramUserId });
 
         cmd.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar, 64)
-        { Value = (object?)username ?? DBNull.Value });
+        { Value = username is not null ? username : DBNull.Value });
 
         cmd.Parameters.Add(new SqlParameter("@FirstName", SqlDbType.NVarChar, 64)
-        { Value = (object?)firstName ?? DBNull.Value });
+        { Value = firstName is not null ? firstName : DBNull.Value });
 
         cmd.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = isActive });
 
         _ = await cmd.ExecuteNonQueryAsync(ct);
     }
 
-
-    public Task DeactivateAsync(int botId, long chatId, CancellationToken ct)
+    public Task DeactivateAsync(int botId, string chatId, CancellationToken ct)
     {
         throw new NotImplementedException();
     }
@@ -57,7 +56,7 @@ public class TelegramUserChatsRepository(IDbConnectionFactory dbFactory) : ITele
         throw new NotImplementedException();
     }
 
-    public Task<TelegramUserChat?> GetAsync(int botId, long chatId, CancellationToken ct)
+    public Task<TelegramUserChat?> GetAsync(int botId, string chatId, CancellationToken ct)
     {
         throw new NotImplementedException();
     }

@@ -2,8 +2,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
-using Telegram.API.Domain.Entities;
-using Telegram.API.Domain.Entities.Telegram;
+using Telegram.API.Domain.Entities.Bot;
+using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure.Clients;
 using Telegram.API.Domain.Settings;
@@ -67,7 +67,7 @@ public class TelegramClient(
         string secretToken,
         IReadOnlyCollection<string> allowedUpdates,
         bool dropPendingUpdates,
-        CancellationToken ct = default)
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(botToken))
             throw new ArgumentException("botToken is required.", nameof(botToken));
@@ -103,8 +103,8 @@ public class TelegramClient(
             Content = new FormUrlEncodedContent(form)
         };
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(request, ct);
-        string body = await response.Content.ReadAsStringAsync(ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+        string body = await response.Content.ReadAsStringAsync(cancellationToken);
 
         // Telegram returns 200 even on logical errors; check { ok, description }
         try
@@ -174,11 +174,25 @@ public class TelegramClient(
             "application/json")
         };
 
-        HttpResponseMessage resp = await _httpClient.SendAsync(req, ct);
-        return resp.IsSuccessStatusCode;
+        HttpResponseMessage response = await _httpClient.SendAsync(req, ct);
+
+        string jsonResponse = await response.Content.ReadAsStringAsync();
+
+        // 2) Deserialize with System.Text.Json
+        JsonSerializerOptions options = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        TelegramResponse<JsonElement> telegramResponse = JsonSerializer.Deserialize<
+            TelegramResponse<JsonElement>
+        >(jsonResponse, options) ?? throw new InvalidOperationException($"Empty response when sending Message {text} for {chatId}");
+
+
+        return telegramResponse.Ok;
     }
 
-    public async Task<bool> SendTextAsync(string botToken, string chatId, string text, CancellationToken ct = default)
+    public async Task<bool> SendTextAsync(string botToken, string chatId, string text, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException("Text is null or empty.");
@@ -196,9 +210,9 @@ public class TelegramClient(
 
         try
         {
-            HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+            using HttpResponseMessage response = await _httpClient.PostAsync(url, content, cancellationToken);
 
-            string jsonResponse = await response.Content.ReadAsStringAsync();
+            string jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken);
 
             // 2) Deserialize with System.Text.Json
             JsonSerializerOptions options = new()
@@ -210,6 +224,10 @@ public class TelegramClient(
                 TelegramResponse<JsonElement>
             >(jsonResponse, options)
             ?? throw new InvalidOperationException($"Empty response when sending Message {text} for {chatId}");
+
+
+            if (!telegramResponse.Ok)
+                throw new TelegramApiException(telegramResponse.ErrorCode, telegramResponse.Description ?? "Telegram API returned ok=false.");
 
             return true;
         }

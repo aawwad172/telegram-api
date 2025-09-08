@@ -2,8 +2,7 @@ using System.Xml.XPath;
 using MediatR;
 using Telegram.API.Application.CQRS.Commands.Bots;
 using Telegram.API.Application.HelperServices;
-using Telegram.API.Domain.Entities;
-using Telegram.API.Domain.Entities.Telegram;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Clients;
@@ -32,6 +31,9 @@ public class ReceiveUpdateCommandHandler(
         if (!WebhookHelpers.IsAuthorized(request, bot))
             throw new UnauthorizedException("Invalid Telegram webhook secret.");
 
+        if (request.Update is null)
+            return new();
+
         // 3) We only care about private /start messages
         TelegramUpdateMessage? msg = request.Update.Message;
         if (msg is null || msg.Chat is null)
@@ -55,7 +57,7 @@ public class ReceiveUpdateCommandHandler(
                 return new(); // ignore contacts of other users
 
             string? phone = msg.Contact.PhoneNumber?.Trim();
-            if (CommandSanitizerHelpers.TryNormalizePhoneNumber(phone!, out string? normalized))
+            if (!string.IsNullOrWhiteSpace(phone) && CommandSanitizerHelpers.TryNormalizePhoneNumber(phone!, out string? normalized))
                 phone = normalized;
 
             await _chatsRepository.AddAsync(

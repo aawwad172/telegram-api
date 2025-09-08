@@ -7,7 +7,7 @@ public interface ITelegramUserChatsRepository
     /// <summary>
     /// Insert a new chat or update it if it already exists.
     /// </summary>
-    public Task AddAsync(
+    Task AddAsync(
         int botId,
         string chatId,
         string? phoneNumber,
@@ -22,7 +22,7 @@ public interface ITelegramUserChatsRepository
     /// </summary>
     Task DeactivateAsync(
         int botId,
-        long chatId,
+        string chatId,
         CancellationToken ct);
 
     /// <summary>
@@ -30,7 +30,7 @@ public interface ITelegramUserChatsRepository
     /// </summary>
     Task<TelegramUserChat?> GetAsync(
         int botId,
-        long chatId,
+        string chatId,
         CancellationToken ct);
 
     /// <summary>

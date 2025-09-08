@@ -1,5 +1,5 @@
 using MediatR;
-using Telegram.API.Domain.Entities.Telegram;
+using Telegram.API.Domain.Entities.Bot;
 
 namespace Telegram.API.Application.CQRS.Commands.Bots;
 

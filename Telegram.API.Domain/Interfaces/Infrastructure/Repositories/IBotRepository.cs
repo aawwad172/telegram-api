@@ -1,4 +1,4 @@
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 
 namespace Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 

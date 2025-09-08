@@ -1,4 +1,4 @@
-namespace Telegram.API.Domain.Entities.Telegram;
+namespace Telegram.API.Domain.Entities.Message;
 
 public class TelegramResponse<T>
 {
