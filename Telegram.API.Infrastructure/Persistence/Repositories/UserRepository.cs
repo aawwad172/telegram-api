@@ -9,7 +9,7 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-    public async Task<User?> GetUserAsync(string phoneNumber, int botId)
+    public async Task<TelegramUserChat?> GetUserAsync(string phoneNumber, int botId)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -29,7 +29,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new User
+            return new TelegramUserChat
             {
                 BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
                 ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
@@ -37,7 +37,6 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
                 CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
                 Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
                 FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),
-                LastName = reader.IsDBNull(reader.GetOrdinal("LastName")) ? null : reader.GetString(reader.GetOrdinal("LastName")),
                 LastSeenDateTime = reader.GetDateTime(reader.GetOrdinal("LastSeenDateTime")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };

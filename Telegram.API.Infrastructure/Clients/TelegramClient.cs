@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
@@ -138,5 +139,91 @@ public class TelegramClient(
         CancellationToken ct = default)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<bool> SendTextWithContactButtonAsync(
+        string botToken,
+        string chatId,
+        string text,
+        string buttonText,
+        CancellationToken ct = default)
+    {
+        string path = $"/bot{botToken}/sendMessage";
+
+        using HttpRequestMessage req = new(HttpMethod.Post, path)
+        {
+            Content = new StringContent(
+            JsonSerializer.Serialize(new
+            {
+                chat_id = chatId,
+                text,
+                reply_markup = new
+                {
+                    keyboard = new[]
+                {
+                    new[]
+                    {
+                        new { text = buttonText, request_contact = true }
+                    }
+                },
+                    resize_keyboard = true,
+                    one_time_keyboard = true
+                }
+            }),
+            Encoding.UTF8,
+            "application/json")
+        };
+
+        HttpResponseMessage resp = await _httpClient.SendAsync(req, ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> SendTextAsync(string botToken, string chatId, string text, CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(text))
+            throw new ArgumentNullException("Text is null or empty.");
+
+        string url = $"/bot{botToken}/sendMessage";
+
+        TelegramMessageRequest request = new()
+        {
+            ChatId = chatId,
+            Text = text
+        };
+
+        string jsonRequest = JsonSerializer.Serialize(request);
+        StringContent content = new(jsonRequest, Encoding.UTF8, "application/json");
+
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+
+            // 2) Deserialize with System.Text.Json
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            TelegramResponse<JsonElement> telegramResponse = JsonSerializer.Deserialize<
+                TelegramResponse<JsonElement>
+            >(jsonResponse, options)
+            ?? throw new InvalidOperationException($"Empty response when sending Message {text} for {chatId}");
+
+            return true;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TelegramApiException($"HTTP Request Error while Sending Message to Telegram: {ex.Message}");
+        }
+        catch (JsonException ex)
+        {
+            throw new TelegramApiException($"JSON Parsing Error while parsing Message: {ex.Message}");
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new TelegramApiException($"Invalid Operation Error: {ex.Message}");
+        }
     }
 }

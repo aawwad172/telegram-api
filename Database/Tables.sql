@@ -166,7 +166,7 @@ CREATE TABLE dbo.TelegramSentFiles
   [Priority]                      SMALLINT       NOT NULL,
   [FilePath]                      NVARCHAR(260)  NOT NULL,       -- Windows path max
   [FileType]                      NVARCHAR(16)   NOT NULL,       -- Batch or Campaign.
-  [CampaignID]                    NVARCHAR(128)   NOT NULL UNIQUE,
+  [CampaignId]                    NVARCHAR(128)   NOT NULL UNIQUE,
   [CampDescription]               NVARCHAR(256)  NULL,
   [ScheduledSendDateTime]         DATETIME2      NOT NULL,       -- NULL = send ASAP
   [CreationDate]                  DATETIME2      NOT NULL,
@@ -179,7 +179,7 @@ GO
 
 -- Helpful indexes
 CREATE INDEX IX_TelegramSentFiles_Campaign
-  ON dbo.TelegramSentFiles (CampaignID);
+  ON dbo.TelegramSentFiles (CampaignId);
 
 
  /*******************************************
@@ -242,7 +242,7 @@ GO
 
 -- Index for quick lookup by CampaignID
 CREATE INDEX IX_TelegramFiles_Campaign
-  ON dbo.TelegramFiles (CampaignID);
+  ON dbo.TelegramFiles (CampaignId);
 GO
 
 /*******************************************
@@ -264,24 +264,35 @@ CREATE TABLE dbo.Bots
 CREATE INDEX IX_Bots_CustomerId ON dbo.Bots(CustomerId);
 
 /*******************************************
- * 1.11) TelegramUserChats: Table for storing bot Chats
+ * 1.11) TelegramUserChats (Final schema)
  *******************************************/
 CREATE TABLE dbo.TelegramUserChats
 (
-  [BotId]                 INT NOT NULL 
+  [BotId]                 INT          NOT NULL 
     CONSTRAINT FK_TelegramUserChats_Bots REFERENCES dbo.Bots(BotId),
 
-  [ChatId]                NVARCHAR(50)  NOT NULL,            -- private chat id (DM). For Telegram, this equals the user id in DMs
-  [PhoneNumber]           NVARCHAR(32)  NOT NULL,      -- +9627...
-  [FirstName]             NVARCHAR(255) NULL,
-  [LastName]              NVARCHAR(255) NULL,
-  [Username]              NVARCHAR(255) NULL,
-  [CreationDateTime]      DATETIME2     NOT NULL DEFAULT GETDATE(),
-  [LastSeenDateTime]      DATETIME2(3)  NOT NULL DEFAULT GETDATE(),
-  [IsActive]              BIT           NOT NULL DEFAULT 1,
+  [ChatId]                NVARCHAR(50) NOT NULL,         -- Telegram DM chat id (user id in DMs, may be negative for groups if reused)
+  [TelegramUserId]        BIGINT       NOT NULL,         -- Stable Telegram user id
+
+  [PhoneNumber]           NVARCHAR(32) NULL,             -- e.g., +9627... (nullable to match SP)
+  [FirstName]             NVARCHAR(64) NULL,
+  [Username]              NVARCHAR(64) NULL,             -- Telegram username limit is 32, keeping 64 for buffer
+
+  [CreationDateTime]      DATETIME2(3) NOT NULL DEFAULT GETDATE(),
+  [LastSeenDateTime]      DATETIME2(3) NOT NULL DEFAULT GETDATE(),
+  [LastUpdatedDateTime]         DATETIME2(3) NOT NULL DEFAULT GETDATE(),
+  [IsActive]              BIT          NOT NULL DEFAULT 1,
 
   CONSTRAINT PK_TelegramUserChats PRIMARY KEY (BotId, ChatId)
 );
 
--- Fast fetching of recent/active recipients when sending
-CREATE INDEX IX_TelegramUserChats_Bot_LastSeen ON dbo.TelegramUserChats(BotId, LastSeenDateTime DESC);
+-- Recent/active fetch
+CREATE INDEX IX_TelegramUserChats_Bot_LastSeen
+  ON dbo.TelegramUserChats (BotId, LastSeenDateTime DESC);
+
+-- Helpful lookups
+CREATE INDEX IX_TelegramUserChats_Bot_TelegramUserId
+  ON dbo.TelegramUserChats (BotId, TelegramUserId);
+
+CREATE INDEX IX_TelegramUserChats_Bot_Username
+  ON dbo.TelegramUserChats (BotId, Username);

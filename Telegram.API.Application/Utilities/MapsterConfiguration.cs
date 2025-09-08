@@ -18,13 +18,13 @@ public static class MapsterConfiguration
 
         //  Add additional mappings as needed
 
-        TypeAdapterConfig<User, SubscriptionInfoQueryResult>
+        TypeAdapterConfig<TelegramUserChat, SubscriptionInfoQueryResult>
             .NewConfig()
             .Map(dest => dest.ChatId, src => src.ChatId)
             .Map(dest => dest.CreationDate, src => src.CreationDateTime)
             .Map(dest => dest.Subscribed, _ => true);
 
-        TypeAdapterConfig<(((Customer customer, User user) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
+        TypeAdapterConfig<(((Customer customer, TelegramUserChat user) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.data.customerUser.customer.CustomerId)
             .Map(dest => dest.ChatId, src => src.data.customerUser.user.ChatId!)

@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
         services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
         services.AddTransient<IValidator<RegisterBotCommand>, RegisterBotCommandValidator>();
+        services.AddTransient<IValidator<ReceiveUpdateCommand>, ReceiveUpdateCommandValidator>();
 
         return services;
     }

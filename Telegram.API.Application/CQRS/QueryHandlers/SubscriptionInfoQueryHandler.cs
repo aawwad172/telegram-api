@@ -30,7 +30,7 @@ public class SubscriptionInfoQueryHandler(
                 throw new UnauthorizedException("Invalid Bot Key.");
 
 
-            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
+            TelegramUserChat? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
 
             SubscriptionInfoQueryResult result = user.Adapt<SubscriptionInfoQueryResult>();
 

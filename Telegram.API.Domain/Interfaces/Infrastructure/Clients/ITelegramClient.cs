@@ -42,4 +42,17 @@ public interface ITelegramClient
     Task<TelegramResponse<WebhookInfo?>> GetWebhookInfoAsync(
         string botToken,
         CancellationToken ct = default);
+
+    public Task<bool> SendTextWithContactButtonAsync(
+        string botToken,
+        string chatId,
+        string text,
+        string buttonText,
+        CancellationToken ct = default);
+
+    public Task<bool> SendTextAsync(
+        string botToken,
+        string chatId,
+        string text,
+        CancellationToken ct = default);
 }

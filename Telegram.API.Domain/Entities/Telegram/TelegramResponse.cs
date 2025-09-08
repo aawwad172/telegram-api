@@ -4,7 +4,7 @@ public class TelegramResponse<T>
 {
     public bool Ok { get; set; }
 
-    public required T? Result { get; set; }
+    public T? Result { get; set; }
 
     public int? ErrorCode { get; set; }
 

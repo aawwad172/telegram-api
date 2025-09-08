@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Telegram.API.Application.CQRS.CommandHandlers;
+using Telegram.API.Application.CQRS.CommandHandlers.Bots;
 using Telegram.API.Application.CQRS.QueryHandlers;
 using Telegram.API.Application.CQRS.QueryHandlers.Bots;
 using Telegram.API.Application.HelperServices;
@@ -24,6 +25,8 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(typeof(SendBatchMessageCommandHandler).Assembly);
             cfg.RegisterServicesFromAssembly(typeof(SendCampaignMessageCommandHandler).Assembly);
             cfg.RegisterServicesFromAssembly(typeof(GetWebhookInfoQueryHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(RegisterBotCommandHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(ReceiveUpdateCommandHandler).Assembly);
         });
 
         MapsterConfiguration.RegisterMappings();
