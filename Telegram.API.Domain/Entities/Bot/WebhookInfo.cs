@@ -1,4 +1,4 @@
-namespace Telegram.API.Domain.Entities;
+namespace Telegram.API.Domain.Entities.Bot;
 
 /// <summary>
 /// Shape of Telegram's getWebhookInfo "result".

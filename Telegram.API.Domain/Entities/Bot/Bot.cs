@@ -1,4 +1,4 @@
-namespace Telegram.API.Domain.Entities;
+namespace Telegram.API.Domain.Entities.Bot;
 
 public sealed class Bot
 {

@@ -1,6 +1,6 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
@@ -9,26 +9,6 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepository
 {
     private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
-
-    public Task<Bot?> GetByIdAsync(int id, CancellationToken ct = default)
-    {
-        throw new NotSupportedException();
-    }
-
-    public Task<IReadOnlyList<Bot>> ListAsync(int skip = 0, int take = 100, CancellationToken ct = default)
-    {
-        throw new NotSupportedException();
-    }
-
-    public Task<bool> UpdateAsync(int id, Bot entity, CancellationToken ct = default)
-    {
-        throw new NotSupportedException();
-    }
-
-    public Task<bool> DeleteAsync(int id, CancellationToken ct = default)
-    {
-        throw new NotSupportedException();
-    }
 
     public async Task<Bot?> GetByIdAsync(int botId, int customerId, CancellationToken cancellationToken = default)
     {
@@ -63,7 +43,37 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         };
     }
 
-    public async Task<Bot?> CreateAsync(Bot entity, CancellationToken ct = default)
+    public async Task<Bot?> GetByPublicIdAsync(string publicId, CancellationToken cancellationToken = default)
+    {
+        using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();
+        using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
+
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = "usp_GetBotByPublicId";
+        cmd.CommandTimeout = 30;
+
+        // NVARCHAR(128) per schema
+        cmd.Parameters.Add(new SqlParameter("@PublicId", SqlDbType.NVarChar, 128) { Value = publicId });
+
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+            return null;
+
+        // map
+        return new Bot
+        {
+            BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
+            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+            EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
+            PublicId = reader.GetString(reader.GetOrdinal("PublicId")),
+            WebhookSecret = reader.GetString(reader.GetOrdinal("WebhookSecret")),
+            WebhookUrl = reader.GetString(reader.GetOrdinal("WebhookUrl")),
+            IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+            CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime"))
+        };
+    }
+
+    public async Task<Bot?> CreateAsync(Bot entity, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -83,9 +93,9 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
 
         cmd.Parameters.Add(new SqlParameter("@WebhookUrl", SqlDbType.NVarChar, 512) { Value = entity.WebhookUrl });
 
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync(ct);
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-        if (await reader.ReadAsync(ct))
+        if (await reader.ReadAsync(cancellationToken))
         {
             return new Bot
             {

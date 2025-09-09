@@ -39,48 +39,55 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
+// Create a route group with prefix "/telegram"
+RouteGroupBuilder telegramApp = app.MapGroup("/telegram/api");
 
 #region Health Check
 // Add health check endpoint
 app.MapGet("/health", HealthCheck.RegisterRoute)
-    .WithName("HealthCheck")
+    .WithName("Health Check")
     .WithTags("healthcheck")
     .WithOpenApi();
 #endregion
 
 #region User
-app.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
+telegramApp.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
     .WithTags("user")
     .WithOpenApi();
 #endregion
 
-#region Messages
-app.MapPost("/message/send", SendMessage.RegisterRoute)
+#region Message
+telegramApp.MapPost("/message/send", SendMessage.RegisterRoute)
     .WithName("Send Message")
     .WithTags("messages")
     .WithOpenApi();
 
-app.MapPost("/message/send/batch", SendBatchMessages.RegisterRoute)
+telegramApp.MapPost("/message/send/batch", SendBatchMessages.RegisterRoute)
     .WithName("Send Batch Message")
     .WithTags("messages")
     .WithOpenApi();
 
-app.MapPost("/message/send/campaign", SendCampaignMessage.RegisterRoute)
+telegramApp.MapPost("/message/send/campaign", SendCampaignMessage.RegisterRoute)
     .WithName("Send Campaign Message")
     .WithTags("messages")
     .WithOpenApi();
 #endregion
 
-#region Bots
-app.MapPost("/bots/register", RegisterBot.RegisterRoute)
+#region Bot
+telegramApp.MapPost("/bot/register", RegisterBot.RegisterRoute)
     .WithName("Register Bot")
     .WithTags("bots")
     .WithOpenApi();
 
-app.MapGet("/bots/webhookInfo", GetWebhookInfo.RegisterRoute)
+telegramApp.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithName("Webhook Info")
     .WithTags("bots")
+    .WithOpenApi();
+
+telegramApp.MapPost("/bot/webhook/{PublicId}", ReceiveUpdate.RegisterRoute)
+    .WithName("Telegram Updates Webhook")
+    .WithTags("updates")
     .WithOpenApi();
 #endregion
 

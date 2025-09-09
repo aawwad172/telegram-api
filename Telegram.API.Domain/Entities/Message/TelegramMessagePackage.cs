@@ -1,7 +1,7 @@
 ﻿using Telegram.API.Domain.Enums;
 using Telegram.API.Domain.Interfaces.Domain;
 
-namespace Telegram.API.Domain.Entities;
+namespace Telegram.API.Domain.Entities.Message;
 
 public class TelegramMessagePackage<TItem> : ITelegramMessagePackage<TItem>
 {

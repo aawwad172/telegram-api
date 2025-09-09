@@ -2,6 +2,7 @@
 using MediatR;
 using Telegram.API.Application.CQRS.Queries;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
@@ -30,7 +31,7 @@ public class SubscriptionInfoQueryHandler(
                 throw new UnauthorizedException("Invalid Bot Key.");
 
 
-            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
+            TelegramUserChat? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
 
             SubscriptionInfoQueryResult result = user.Adapt<SubscriptionInfoQueryResult>();
 

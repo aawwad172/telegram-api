@@ -1,6 +1,6 @@
 ﻿using Telegram.API.Domain.Interfaces.Domain;
 
-namespace Telegram.API.Domain.Entities;
+namespace Telegram.API.Domain.Entities.Message;
 
 public class BatchMessage : IHasMessageText, IHasChatId, IHasPhoneNumber
 {

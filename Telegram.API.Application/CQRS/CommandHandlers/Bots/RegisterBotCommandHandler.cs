@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Telegram.API.Application.CQRS.Commands.Bots;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Clients;
@@ -38,7 +39,11 @@ public class RegisterBotCommandHandler(
         if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri? baseUri) || !baseUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
             throw new InvalidConfigurationException("Webhook base DomainName must be an absolute HTTPS URL.");
 
-        Uri url = new(baseUri, $"webhook/{publicId}");
+        // Ensure trailing slash on base URL
+        baseUri = new Uri(baseUrl + "/");
+
+        // Use relative path without leading slash
+        Uri url = new(baseUri, $"bot/webhook/{publicId}");
 
         // Encrypt BotKey
         string encryptedBotKey = _authenticationService.Encrypt(request.BotKey, cancellationToken);
@@ -66,7 +71,7 @@ public class RegisterBotCommandHandler(
                 botToken: request.BotKey,
                 url: url,
                 secretToken: secrete,
-                allowedUpdates: ["message", "callback_query"],
+                allowedUpdates: ["message"],
                 dropPendingUpdates: true,
                 cancellationToken);
 

@@ -1,5 +1,6 @@
 ﻿using A2A.Utils.CryptorRelease2;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;

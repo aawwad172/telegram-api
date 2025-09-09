@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.API.Application.CQRS.Queries.Bots;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Interfaces;
 using Telegram.API.WebAPI.Models;

@@ -1,6 +1,6 @@
 ﻿using Telegram.API.Domain.Interfaces.Domain;
 
-namespace Telegram.API.Domain.Entities;
+namespace Telegram.API.Domain.Entities.Message;
 
 /// <summary>
 /// Represents a Telegram message stored in the database.

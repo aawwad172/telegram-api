@@ -1,5 +1,5 @@
-using Telegram.API.Domain.Entities;
-using Telegram.API.Domain.Entities.Telegram;
+using Telegram.API.Domain.Entities.Bot;
+using Telegram.API.Domain.Entities.Message;
 
 namespace Telegram.API.Domain.Interfaces.Infrastructure.Clients;
 
@@ -41,5 +41,18 @@ public interface ITelegramClient
     /// </summary>
     Task<TelegramResponse<WebhookInfo?>> GetWebhookInfoAsync(
         string botToken,
+        CancellationToken ct = default);
+
+    Task<bool> SendTextWithContactButtonAsync(
+        string botToken,
+        string chatId,
+        string text,
+        string buttonText,
+        CancellationToken ct = default);
+
+    Task<bool> SendTextAsync(
+        string botToken,
+        string chatId,
+        string text,
         CancellationToken ct = default);
 }

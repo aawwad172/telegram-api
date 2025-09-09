@@ -160,7 +160,7 @@ BEGIN
         Priority,
         FilePath,
         FileType,
-        CampaignID,
+        CampaignId,
         CampDescription,
         ScheduledSendDateTime,
         CreationDate,
@@ -252,7 +252,7 @@ BEGIN
 
     SELECT *
     FROM dbo.TelegramFiles
-    WHERE CampaignID = @CampaignId AND IsProcessed = 0;
+    WHERE CampaignId = @CampaignId AND IsProcessed = 0;
 END;
 GO
 
@@ -261,7 +261,7 @@ GO
  *******************************************/
 
 CREATE OR ALTER PROCEDURE dbo.usp_ArchiveTelegramFileByCampaignId
-    @CampaignID NVARCHAR(128)
+    @CampaignId NVARCHAR(128)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -272,21 +272,21 @@ BEGIN
         -- Insert into TelegramSentFiles the matching campaign
         INSERT INTO dbo.TelegramSentFiles (
             CustomerId, BotId, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDescription,
+            FilePath, FileType, CampaignId, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, IsProcessed
         )
         SELECT
             CustomerId, BotId, MsgText, MsgType, Priority,
-            FilePath, FileType, CampaignID, CampDescription,
+            FilePath, FileType, CampaignId, CampDescription,
             ScheduledSendDateTime, CreationDate,
             isSystemApproved, isAdminApproved, 1
         FROM dbo.TelegramFiles
-        WHERE CampaignID = @CampaignID;
+        WHERE CampaignId = @CampaignId;
 
         -- Delete from TelegramFiles after successful insert
         DELETE FROM dbo.TelegramFiles
-        WHERE CampaignID = @CampaignID;
+        WHERE CampaignId = @CampaignId;
 
         COMMIT TRANSACTION;
     END TRY
@@ -369,3 +369,62 @@ BEGIN
     FROM dbo.Bots
     WHERE BotId = SCOPE_IDENTITY();
 END
+
+/*******************************************
+ * 2.14) usp_GetBotByPublicId
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_GetBotByPublicId
+    @PublicId NVARCHAR(128)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        BotId,
+        CustomerId,
+        EncryptedBotKey,
+        PublicId,
+        WebhookSecret,
+        WebhookUrl,
+        IsActive,
+        CreationDateTime
+    FROM dbo.Bots
+    WHERE PublicId = @PublicId;
+END
+GO
+
+/*******************************************
+ * 2.15) usp_TelegramUserChats_Upsert
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
+    @BotId          INT,
+    @ChatId         NVARCHAR(50),
+    @PhoneNumber    NVARCHAR(32) = NULL,
+    @TelegramUserId BIGINT,
+    @Username       NVARCHAR(64) = NULL,
+    @FirstName      NVARCHAR(64) = NULL,
+    @IsActive       BIT          = 1
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.TelegramUserChats
+    SET TelegramUserId          = @TelegramUserId,
+        PhoneNumber             = COALESCE(@PhoneNumber, PhoneNumber),
+        Username                = COALESCE(@Username, Username),
+        FirstName               = COALESCE(@FirstName, FirstName),
+        IsActive                = @IsActive,
+        LastUpdatedDateTime     = GETDATE(),
+        LastSeenDateTime        = GETDATE()
+    WHERE BotId = @BotId
+    AND ChatId = @ChatId;
+
+    IF @@ROWCOUNT = 0
+    BEGIN
+        INSERT INTO dbo.TelegramUserChats
+            (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName, IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
+        VALUES
+            (@BotId, @ChatId, @TelegramUserId, @PhoneNumber, @Username, @FirstName, @IsActive, GETDATE(), GETDATE(), GETDATE());
+    END
+END
+GO

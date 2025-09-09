@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddTransient<IUserRepository, UserRepository>();
         services.AddTransient<IJsonFileRepository, JsonFileRepository>();
         services.AddTransient<IBotRepository, BotRepository>();
+        services.AddTransient<ITelegramUserChatsRepository, TelegramUserChatsRepository>();
 
         services.AddOptions<TelegramOptions>()
                 .Bind(configuration.GetRequiredSection(nameof(TelegramOptions)))

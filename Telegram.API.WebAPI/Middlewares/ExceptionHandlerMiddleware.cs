@@ -59,6 +59,13 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
 
             await HandleExceptionAsync(context, "-32", "TELEGRAM_EXCEPTION", StatusCodes.Status502BadGateway);
         }
+        catch (BadRequestException ex)
+        {
+            System.Console.WriteLine($"BadRequestException {ex.Message}");
+            LoggerService.Error("BadRequestException {Message}", ex.Message);
+
+            await HandleExceptionAsync(context, "-33", "BAD_REQUEST", StatusCodes.Status400BadRequest);
+        }
         catch (InvalidPhoneNumberException ex)
         {
             Console.WriteLine($"InvalidPhoneNumberException {ex.Message}");

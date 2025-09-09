@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.Data.SqlClient;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Domain.Entities;
+using Telegram.API.Domain.Entities.Bot;
+using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
@@ -32,7 +34,7 @@ public class SendMessageCommandHandler(
             Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
 
             // Get Chat Id depending on the phone number
-            User? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId);
+            TelegramUserChat? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId);
             if (user is null || string.IsNullOrWhiteSpace(user.ChatId))
                 // If chatId is null or empty, throw an exception or the BotKey is wrong
                 throw new ChatIdNotFoundException($"Chat ID not found for phone number {request.PhoneNumber}.");
