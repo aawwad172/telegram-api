@@ -111,7 +111,7 @@ CREATE TABLE dbo.ArchiveTable
   [GatewayDateTime]         DATETIME2       NOT NULL,
   [MessageHash]             BINARY(32)      NOT NULL,
   [Priority]                SMALLINT        NOT NULL,
-  -- Enum + denormalized text
+  -- Enum  denormalized text
   [StatusId]                SMALLINT        NOT NULL,
   [StatusDescription]       NVARCHAR(512)   NULL,  -- No default, will be NULL until set
 
@@ -240,11 +240,6 @@ CREATE TABLE dbo.TelegramFiles
 );
 GO
 
--- Index for quick lookup by CampaignId
-CREATE INDEX IX_TelegramFiles_Campaign
-  ON dbo.TelegramFiles (CampaignId);
-GO
-
 /*******************************************
  * 1.10) Bots: Table for storing bot information
  *******************************************/
@@ -274,7 +269,7 @@ CREATE TABLE dbo.TelegramUserChats
   [ChatId]                NVARCHAR(50) NOT NULL,         -- Telegram DM chat id (user id in DMs, may be negative for groups if reused)
   [TelegramUserId]        BIGINT       NOT NULL,         -- Id of the user in Telegram application.
 
-  [PhoneNumber]           NVARCHAR(32) NULL,             -- e.g., +9627... (nullable to match SP)
+  [PhoneNumber]           NVARCHAR(32) NULL,             -- e.g., 9627... (nullable to match SP)
   [FirstName]             NVARCHAR(64) NULL,
   [Username]              NVARCHAR(64) NULL,             -- Telegram username limit is 32, keeping 64 for buffer
 
