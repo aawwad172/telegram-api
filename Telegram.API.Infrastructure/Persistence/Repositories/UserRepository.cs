@@ -33,7 +33,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
             {
                 BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
                 ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
-                PhoneNumber = reader.GetString(reader.GetOrdinal("PhoneNumber")),
+                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("PhoneNumber")) ? null : reader.GetString(reader.GetOrdinal("PhoneNumber")),
                 CreationDateTime = reader.GetDateTime(reader.GetOrdinal("CreationDateTime")),
                 Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString(reader.GetOrdinal("Username")),
                 FirstName = reader.IsDBNull(reader.GetOrdinal("FirstName")) ? null : reader.GetString(reader.GetOrdinal("FirstName")),

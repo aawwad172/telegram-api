@@ -73,7 +73,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         };
     }
 
-    public async Task<Bot?> CreateAsync(Bot entity, CancellationToken ct = default)
+    public async Task<Bot?> CreateAsync(Bot entity, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -93,9 +93,9 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
 
         cmd.Parameters.Add(new SqlParameter("@WebhookUrl", SqlDbType.NVarChar, 512) { Value = entity.WebhookUrl });
 
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync(ct);
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-        if (await reader.ReadAsync(ct))
+        if (await reader.ReadAsync(cancellationToken))
         {
             return new Bot
             {

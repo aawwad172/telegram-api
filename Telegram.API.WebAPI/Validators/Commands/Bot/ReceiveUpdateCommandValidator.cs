@@ -20,6 +20,11 @@ public class ReceiveUpdateCommandValidator : AbstractValidator<ReceiveUpdateComm
         // Optional: require minimum message structure for your flow
         When(x => x.Update is not null, () =>
         {
+            RuleFor(x => x.Update)
+                .NotNull().WithMessage("Update is required.")
+                .Must(u => u.Message != null || u.CallbackQuery != null)
+                .WithMessage("Either Message or CallbackQuery is required.");
+
             RuleFor(x => x.Update!.Message)
                 .NotNull().WithMessage("Update.message is required.");
 

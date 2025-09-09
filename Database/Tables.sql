@@ -272,7 +272,7 @@ CREATE TABLE dbo.TelegramUserChats
     CONSTRAINT FK_TelegramUserChats_Bots REFERENCES dbo.Bots(BotId),
 
   [ChatId]                NVARCHAR(50) NOT NULL,         -- Telegram DM chat id (user id in DMs, may be negative for groups if reused)
-  [TelegramUserId]        BIGINT       NOT NULL,         -- Stable Telegram user id
+  [TelegramUserId]        BIGINT       NOT NULL,         -- Id of the user in Telegram application.
 
   [PhoneNumber]           NVARCHAR(32) NULL,             -- e.g., +9627... (nullable to match SP)
   [FirstName]             NVARCHAR(64) NULL,
@@ -291,7 +291,7 @@ CREATE INDEX IX_TelegramUserChats_Bot_LastSeen
   ON dbo.TelegramUserChats (BotId, LastSeenDateTime DESC);
 
 -- Helpful lookups
-CREATE INDEX IX_TelegramUserChats_Bot_TelegramUserId
+CREATE UNIQUE INDEX IX_TelegramUserChats_Bot_TelegramUserId
   ON dbo.TelegramUserChats (BotId, TelegramUserId);
 
 CREATE INDEX IX_TelegramUserChats_Bot_Username
