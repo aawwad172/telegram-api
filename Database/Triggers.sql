@@ -27,9 +27,9 @@ BEGIN
   DECLARE @Dupes TABLE
   (
     ID                    INT,
-    CustId                INT,
+    CustomerId            INT,
     ChatId                NVARCHAR(50),
-    EncryptedBotKey       NVARCHAR(128),
+    BotId                 INT,
     PhoneNumber           NVARCHAR(20),
     MessageText           NVARCHAR(MAX),
     MsgType               NVARCHAR(10),
@@ -47,9 +47,9 @@ BEGIN
   INSERT INTO @Dupes
   SELECT
     i.ID,
-    i.CustId,
+    i.CustomerId,
     i.ChatId,
-    i.EncryptedBotKey,
+    i.BotId,
     i.PhoneNumber,
     i.MessageText,
     i.MsgType,
@@ -71,7 +71,7 @@ BEGIN
     SELECT 1
       FROM dbo.RecentMessages AS old
      WHERE old.MessageHash = i.MessageHash
-       AND old.ReceivedDateTime   < i.ReceivedDateTime
+       AND old.ReceivedDateTime < i.ReceivedDateTime
   );
 
   ----------------------------------------------------------------
@@ -79,9 +79,9 @@ BEGIN
   ----------------------------------------------------------------
   INSERT INTO dbo.ArchiveTable
         (ID
-    ,CustId
+    ,CustomerId
     ,ChatId
-    ,EncryptedBotKey
+    ,BotId
     ,PhoneNumber
     ,MessageText
     ,MsgType
@@ -98,9 +98,9 @@ BEGIN
     ,Paused)  
    SELECT
     d.ID,
-    d.CustId,
+    d.CustomerId,
     d.ChatId,
-    d.EncryptedBotKey,
+    d.BotId,
     d.PhoneNumber,
     d.MessageText,
     d.MsgType,

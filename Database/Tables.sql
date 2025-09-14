@@ -61,7 +61,6 @@ VALUES
     (-2, 'NotSubscribed'),
     (-3, 'Duplicate');
 
-
 /*******************************************
  * 1.2) ReadyTable: pending messages queue
  *******************************************/
@@ -91,6 +90,11 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_ReadyTable_ID_Priority
   ON dbo.ReadyTable (ID, Priority);
+GO
+
+CREATE NONCLUSTERED INDEX IX_ReadyTable_ChatId_Null
+    ON dbo.ReadyTable (ID)
+    WHERE ChatId IS NULL;
 GO
 
 
