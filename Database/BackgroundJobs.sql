@@ -73,7 +73,7 @@ EXEC msdb.dbo.sp_add_job
   @enabled = 1,
   @description = N'Moves all ReadyTable rows with NULL/empty ChatId to ArchiveTable in one atomic operation.',
   @start_step_id = 1,
-  @owner_login_name = N'sa',
+  @owner_login_name = N'SUSER_SNAME()',
   @job_id = @job_id OUTPUT;
 
 EXEC msdb.dbo.sp_add_jobstep
@@ -91,7 +91,7 @@ EXEC msdb.dbo.sp_add_jobstep
     END TRY
     BEGIN CATCH
       DECLARE @m NVARCHAR(4000) = ERROR_MESSAGE();
-      RAISERROR(@m, 16, 1);
+      THROW;
     END CATCH
   ',
   @retry_attempts = 3,

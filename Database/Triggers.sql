@@ -30,7 +30,7 @@ BEGIN
     CustomerId            INT,
     ChatId                NVARCHAR(50),
     BotId                 INT,
-    PhoneNumber           NVARCHAR(20),
+    PhoneNumber           NVARCHAR(32),
     MessageText           NVARCHAR(MAX),
     MsgType               NVARCHAR(10),
     ReceivedDateTime      DATETIME2,
@@ -38,7 +38,7 @@ BEGIN
     MessageHash           BINARY(32),
     Priority              SMALLINT,
     MobileCountry         NVARCHAR(10),
-    CampaignId            NVARCHAR(50),
+    CampaignId            NVARCHAR(128),
     CampDescription       NVARCHAR(512),
     IsSystemApproved      BIT,
     Paused                BIT
