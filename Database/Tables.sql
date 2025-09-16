@@ -55,10 +55,12 @@ CREATE TABLE dbo.MessageStatus (
 -- Insert your enum values
 INSERT INTO dbo.MessageStatus (StatusID, StatusDescription)
 VALUES 
+    (3, 'Failed'),
     (1, 'Sent'),
     (2, 'Read'),
+    (0, 'Pending'),
     (-1, 'Blocked'),
-    (-2, 'NotSubscribed'),
+    (-2, 'Not Subscribed'),
     (-3, 'Duplicate');
 
 /*******************************************
@@ -77,10 +79,14 @@ CREATE TABLE dbo.ReadyTable
   [ScheduledSendDateTime] DATETIME2             NOT NULL, -- Auto Generated using GETDATE() in the SP.
   [MessageHash]  			    BINARY(32)            NOT NULL, -- Auto Generated from the SP.
   [Priority]     			    SMALLINT       	      NOT NULL,
+  [StatusId]              SMALLINT              NOT NULL,
   [CampaignId]			      NVARCHAR(128)	        NULL,
   [CampDescription]		    NVARCHAR(512)		      NULL,
   [IsSystemApproved]		  BIT					          NOT NULL,
   [Paused]				        BIT					          NOT NULL,
+
+  CONSTRAINT FK_ReadyTable_Status FOREIGN KEY (StatusId) 
+      REFERENCES dbo.MessageStatus(StatusID)
   );
 GO
 
@@ -95,6 +101,11 @@ GO
 CREATE NONCLUSTERED INDEX IX_ReadyTable_ChatId_Null
     ON dbo.ReadyTable (ID)
     WHERE ChatId IS NULL;
+GO
+
+CREATE NONCLUSTERED INDEX IX_Ready_Pending_ID 
+    ON dbo.ReadyTable(ID) 
+  WHERE StatusId = 0;
 GO
 
 
@@ -142,7 +153,7 @@ CREATE TABLE dbo.RecentMessages
 (
   MessageHash  		  BINARY(32)     NOT NULL,
   ReceivedDateTime  DATETIME2      NOT NULL,
-  ReadyId      		  INT            NOT NULL,
+  ReadyId      		  INT            NULL,
   CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReadyId)
 );
 GO
@@ -153,6 +164,10 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_RecentMessages_ReadyId
   ON dbo.RecentMessages (ReadyId);
+GO
+
+CREATE UNIQUE INDEX UX_RecentMessages_MessageHash 
+  ON dbo.RecentMessages(MessageHash) WITH (IGNORE_DUP_KEY = ON);
 GO
 
 /*******************************************
@@ -207,7 +222,7 @@ CREATE TYPE dbo.TelegramMessage_Tvp AS TABLE
   [ChatId]                  NVARCHAR(50)    NULL,
   [BotId]                   INT             NOT NULL,
   [PhoneNumber]             NVARCHAR(32)    NOT NULL,
-  [MessageText]             NVARCHAR(MAX)   NOT NULL,  -- if your SQL version disallows MAX in TVP, use NVARCHAR(4000)
+  [MessageText]             NVARCHAR(4000)   NOT NULL,
   [MessageType]             NVARCHAR(10)    NOT NULL,
   [ScheduledSendDateTime]   DATETIME2       NULL,      -- optional; defaulted in proc when NULL
   [Priority]                SMALLINT        NOT NULL,

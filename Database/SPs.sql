@@ -1,7 +1,10 @@
 /*******************************************
  * 2.1) usp_EnqueueOrArchiveIfDuplicate
  *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
+/*******************************************
+ * 2.1) usp_EnqueueOrArchiveIfDuplicate
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
   @CustomerId  		INT,
   @ChatId      		NVARCHAR(50),
   @BotId      		INT,
@@ -11,24 +14,28 @@ CREATE OR ALTER PROCEDURE dbo.usp_EnqueueOrArchiveIfDuplicate
   @CampaignId  		NVARCHAR(128), -- Empty String if not required
   @CampDescription 	NVARCHAR(512), -- Empty String if not required
   @Priority    		SMALLINT,
-  @ScheduledSendDateTime DATETIME2 = NULL,  -- Auto inserted in case of one message
+  @ScheduledSendDateTime DATETIME = NULL,  -- Auto inserted in case of one message
   @IsSystemApproved BIT
+--@Paused = 0 always zero and it will change when the portal change them
 AS
 BEGIN
-  SET NOCOUNT ON;
+  SET NOCOUNT ON; 
+  SET XACT_ABORT ON;
 
-  -- Normalize times once
-  DECLARE @now DATETIME2(3) = SYSDATETIME();
-  SET @ScheduledSendDateTime = ISNULL(@ScheduledSendDateTime, @now);
+  DECLARE @now DATETIME = GETDATE();
+  DECLARE @hash BINARY(32) = HASHBYTES('SHA2_256', CONCAT(ISNULL(@ChatId,N''),N'|',@BotId,N'|',ISNULL(@MessageText,N'')));
+  DECLARE @Pending SMALLINT = 0;
+  DECLARE @Duplicate SMALLINT = -3
 
-  DECLARE 
-    @hashedMsg   BINARY(32) = HASHBYTES(
-             'SHA2_256',
-              CONCAT(ISNULL(@ChatId, N''), N'|', @BotId, N'|', ISNULL(@MessageText, N'')) 
-          );
-    -- If caller omitted it, fill it with GETDATE()
+   SET @ScheduledSendDateTime = ISNULL(@ScheduledSendDateTime, GETDATE());
 
-  -- always enqueue; trigger will handle RecentMessages & archiving
+
+   BEGIN TRAN;
+    DECLARE @isNew BIT=0;
+    INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
+    SELECT @hash, NULL, @now;
+    IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
+
  INSERT INTO dbo.ReadyTable
     (ChatId
     ,CustomerId
@@ -39,6 +46,7 @@ BEGIN
     ,ReceivedDateTime
     ,ScheduledSendDateTime     -- ← add this
     ,MessageHash
+    ,StatusId
     ,Priority
     ,CampaignId
     ,CampDescription
@@ -53,14 +61,19 @@ BEGIN
     ,@MsgType
     ,GETDATE()
     ,@ScheduledSendDateTime   -- ← use your variable here
-    ,@hashedMsg
+    ,@hash
+    ,CASE WHEN @isNew = 1 THEN @Pending ELSE @Duplicate END
     ,@Priority
     ,@CampaignId
     ,@CampDescription
     ,@IsSystemApproved
     ,0);
 
-  SELECT SCOPE_IDENTITY() AS NewId;
+    DECLARE @id INT = SCOPE_IDENTITY();
+    IF @isNew=1 UPDATE dbo.RecentMessages SET ReadyId=@id, ReceivedDateTime=@now WHERE MessageHash=@hash;
+
+  COMMIT;
+  SELECT @id AS NewId;
 END;
 GO
 
@@ -133,6 +146,7 @@ GO
 /*******************************************
  * 2.7) usp_AddBatchFile to add the batch data into DB
  *******************************************/
+
 CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
     @CustomerId                 INT,
     @BotId                      INT,
@@ -151,7 +165,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @Now DATETIME2 = GETDATE();
+    DECLARE @Now DATETIME = GETDATE();
 
     INSERT INTO dbo.TelegramFiles
     (
@@ -199,46 +213,142 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
 AS
 BEGIN
   SET NOCOUNT ON;
+  SET XACT_ABORT ON;
 
-  DECLARE @now DATETIME2 = GETDATE();
+  DECLARE @now DATETIME = GETDATE();
 
+  -- Resolve status ids (Pending / Duplicate)
+  DECLARE @PendingId SMALLINT = 0;
 
-  INSERT INTO dbo.ReadyTable
+  DECLARE @DuplicateId SMALLINT = -3
+
+  DECLARE @NotSubId SMALLINT = -2;
+
+-------------------------------------------------------------
+  -- 1) Stage input (NO PK that would block dup rows in batch)
+  -------------------------------------------------------------
+  DECLARE @t TABLE
   (
-    CustomerId,
-    ChatId, 
-    BotId, 
-    PhoneNumber, 
-    MessageText, 
-    MsgType,
-    ReceivedDateTime, 
-    ScheduledSendDateTime, 
-    MessageHash,
-    Priority, 
-    CampaignId, 
-    CampDescription, 
-    IsSystemApproved, 
-    Paused
-  )
+    RowId INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerId INT,
+    ChatId NVARCHAR(50) NULL,
+    BotId INT,
+    PhoneNumber NVARCHAR(32),
+    MessageText NVARCHAR(MAX),
+    MessageType NVARCHAR(10),
+    ScheduledSendDateTime DATETIME2,
+    Priority SMALLINT,
+    CampaignId NVARCHAR(128) NULL,
+    CampDescription NVARCHAR(512) NULL,
+    IsSystemApproved BIT,
+    IsMissingChat BIT,
+    MessageHash BINARY(32)
+  );
+
+  INSERT @t
   SELECT
     b.CustomerId,
-    NULLIF(b.ChatId, N''),
+    b.ChatId,
     b.BotId,
     b.PhoneNumber,
     b.MessageText,
     b.MessageType,
-    @now,
     ISNULL(b.ScheduledSendDateTime, @now),
-    HASHBYTES(
-      'SHA2_256',
-      CONCAT(ISNULL(b.ChatId, N''), N'|', b.BotId, N'|', b.MessageText)
-    ),
-    b.Priority,
-    NULLIF(b.CampaignId, N''),
-    NULLIF(b.CampDescription, N''),
+    CAST(b.Priority AS SMALLINT),
+    NULLIF(LTRIM(RTRIM(b.CampaignId)), N''),
+    NULLIF(LTRIM(RTRIM(b.CampDescription)), N''),
     b.IsSystemApproved,
-    0
+    CASE
+      WHEN b.ChatId IS NULL
+        OR LEN(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(b.ChatId)), NCHAR(9), N''), NCHAR(10), N''), NCHAR(13), N'')) = 0
+      THEN 1 ELSE 0 END,
+    HASHBYTES('SHA2_256', CONCAT(ISNULL(b.ChatId,N''), N'|', b.BotId, N'|', ISNULL(b.MessageText,N'')))
   FROM @Batch AS b;
+
+  BEGIN TRAN;
+
+  -------------------------------------------------------------
+  -- 2) NotSubscribed (skip RecentMessages)
+  -------------------------------------------------------------
+  INSERT dbo.ReadyTable
+    (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
+     ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
+     CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
+  SELECT
+    t.ChatId, t.CustomerId, t.BotId, t.PhoneNumber, t.MessageText, t.MessageType,
+    @now, t.ScheduledSendDateTime, t.MessageHash, t.Priority,
+    t.CampaignId, t.CampDescription, t.IsSystemApproved, 0, @NotSubId
+  FROM @t AS t
+  WHERE t.IsMissingChat = 1;
+
+  -------------------------------------------------------------
+  -- 3) Register hashes for rows with ChatId present (1st-writer wins)
+  -------------------------------------------------------------
+  DECLARE @newHashes TABLE (MessageHash BINARY(32) PRIMARY KEY);
+  INSERT dbo.RecentMessages (MessageHash, ReadyId, ReceivedDateTime)
+  OUTPUT inserted.MessageHash INTO @newHashes(MessageHash)
+  SELECT t.MessageHash, NULL, @now
+  FROM @t AS t
+  WHERE t.IsMissingChat = 0;
+
+  -------------------------------------------------------------
+  -- 4) Pick exactly ONE “winner” row per *new* hash (materialize)
+  -------------------------------------------------------------
+  DECLARE @winners TABLE (RowId INT PRIMARY KEY);
+
+  INSERT @winners (RowId)
+  SELECT RowId
+  FROM (
+      SELECT
+        t.RowId,
+        t.MessageHash,
+        ROW_NUMBER() OVER (PARTITION BY t.MessageHash ORDER BY t.RowId) AS rn
+      FROM @t AS t
+      JOIN @newHashes nh ON nh.MessageHash = t.MessageHash   -- only NEW hashes
+      WHERE t.IsMissingChat = 0
+  ) x
+  WHERE x.rn = 1;
+
+  -------------------------------------------------------------
+  -- 5) Winners -> Ready (Pending), capture IDs to backfill RecentMessages
+  -------------------------------------------------------------
+  DECLARE @insNew TABLE (MessageHash BINARY(32), ReadyId INT, ReceivedDateTime DATETIME2);
+
+  INSERT dbo.ReadyTable
+    (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
+     ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
+     CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
+  OUTPUT inserted.MessageHash, inserted.ID, inserted.ReceivedDateTime
+    INTO @insNew (MessageHash, ReadyId, ReceivedDateTime)
+  SELECT
+    t.ChatId, t.CustomerId, t.BotId, t.PhoneNumber, t.MessageText, t.MessageType,
+    @now, t.ScheduledSendDateTime, t.MessageHash, t.Priority,
+    t.CampaignId, t.CampDescription, t.IsSystemApproved, 0, @PendingId
+  FROM @t t
+  JOIN @winners w ON w.RowId = t.RowId;
+
+  UPDATE rm
+     SET rm.ReadyId = i.ReadyId,
+         rm.ReceivedDateTime = i.ReceivedDateTime
+  FROM dbo.RecentMessages rm
+  JOIN @insNew i ON i.MessageHash = rm.MessageHash;
+
+  -------------------------------------------------------------
+  -- 6) All other Chat-present rows -> Ready (Duplicate)
+  -------------------------------------------------------------
+  INSERT dbo.ReadyTable
+    (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
+     ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
+     CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
+  SELECT
+    t.ChatId, t.CustomerId, t.BotId, t.PhoneNumber, t.MessageText, t.MessageType,
+    @now, t.ScheduledSendDateTime, t.MessageHash, t.Priority,
+    t.CampaignId, t.CampDescription, t.IsSystemApproved, 0, @DuplicateId
+  FROM @t t
+  WHERE t.IsMissingChat = 0
+    AND NOT EXISTS (SELECT 1 FROM @winners w WHERE w.RowId = t.RowId);
+
+  COMMIT;
 END
 GO
 
@@ -341,7 +451,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
     @CustomerId       INT,
     @IsActive         BIT,
     @PublicId         NVARCHAR(128),
-    @EncryptedBotKey  NVARCHAR(128),
+    @EncryptedBotKey  NVARCHAR(256),
     @WebhookSecret    NVARCHAR(128),
     @WebhookUrl       NVARCHAR(512)
 AS
@@ -537,6 +647,191 @@ BEGIN
   END CATCH
 
   EXEC sp_releaseapplock @Resource='ArchiveAllReadyWithNullChatId', @LockOwner='Session';
+END
+GO
+
+
+
+/*******************************************
+ * 3) Gateway SPs
+ *******************************************/
+/*******************************************
+ * 3.1) usp_GetPendingReadyMessages
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  ;WITH ranked AS
+  (
+      SELECT
+          r.ID,
+          r.MessageText,
+          r.ChatId,
+          r.BotId,
+          r.Priority,
+          r.ReceivedDateTime,
+          ROW_NUMBER() OVER
+          (
+              PARTITION BY r.ChatId                           -- one per chat
+              ORDER BY r.Priority DESC, r.ReceivedDateTime ASC
+          ) AS rn
+      FROM dbo.ReadyTable AS r WITH (READPAST, UPDLOCK, ROWLOCK)
+      WHERE r.ScheduledSendDateTime <= GETDATE()
+        AND StatusId = 0  
+        -- AND r.Status = 'Ready'   -- uncomment if you track status
+  )
+  SELECT TOP (30)
+      r.ID,
+      r.MessageText,
+      r.ChatId,
+      b.EncryptedBotKey
+  FROM ranked AS r
+  INNER JOIN dbo.Bots AS b
+      ON b.BotId = r.BotId
+  WHERE r.rn = 1
+  ORDER BY
+      r.Priority DESC,
+      r.ReceivedDateTime ASC;
+END
+GO
+
+
+/*******************************************
+ * 3.2) usp_ArchiveAndDeleteQueuedMessage
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
+  @Id INT  -- this is the ReadyTable.ID
+AS
+BEGIN
+  SET NOCOUNT ON;
+  SET XACT_ABORT ON;  -- auto‐rollback on error
+
+  BEGIN TRAN;
+  BEGIN TRY
+
+  INSERT INTO dbo.ArchiveTable
+    (ID, 
+     CustomerId,
+     ChatId,
+     BotId,
+     PhoneNumber,
+     MessageText,
+     MsgType,
+     ReceivedDateTime,
+     ScheduledSendDateTime,
+     GatewayDateTime,
+     MessageHash,
+     Priority,
+     MobileCountry,
+     CampaignId,
+     CampDescription,
+     IsSystemApproved,
+     Paused,
+     StatusId)
+  SELECT
+    ID,       
+    CustomerId,
+    ChatId,
+    BotId,
+    PhoneNumber,
+    MessageText,
+    MsgType,
+    ReceivedDateTime,
+    ScheduledSendDateTime,
+    GETDATE()     AS GatewayDateTime,
+    MessageHash,
+    Priority,
+    A2A_iMessaging.dbo.GetCountryCode(PhoneNumber),
+    CampaignId,
+    CampDescription,
+    IsSystemApproved,
+    Paused,
+    1 
+  FROM dbo.ReadyTable
+  WHERE ID = @Id;
+
+  DELETE FROM dbo.ReadyTable
+  WHERE ID = @Id;
+ COMMIT TRAN;
+  END TRY
+  BEGIN CATCH
+    IF XACT_STATE() <> 0
+      ROLLBACK TRAN;
+    THROW;  -- re‐raise the error
+  END CATCH
+END;
+
+
+/*******************************************
+ * 3.3) usp_ArchiveAndPurgeReadyDuplicates
+ *******************************************/
+CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndPurgeReadyDuplicates
+  @RetentionMinutes INT = 10,
+  @BatchSize        INT = 50000
+AS
+BEGIN
+  SET NOCOUNT ON; SET XACT_ABORT ON;
+
+  DECLARE @DuplicateId SMALLINT = -3;
+
+  WHILE 1=1
+  BEGIN
+    DECLARE @now DATETIME = GETDATE();
+
+    ;WITH pick AS (
+      SELECT TOP (@BatchSize) * FROM dbo.ReadyTable WITH (READPAST, ROWLOCK)
+      WHERE StatusId = @DuplicateId
+        AND ReceivedDateTime <= DATEADD(MINUTE, -@RetentionMinutes, @now)
+      ORDER BY ID
+    )
+
+    INSERT dbo.ArchiveTable
+        (ID, 
+         CustomerId, 
+         ChatId, 
+         BotId, 
+         PhoneNumber, 
+         MessageText, 
+         MsgType,
+         ReceivedDateTime, 
+         ScheduledSendDateTime, 
+         GatewayDateTime,
+         MessageHash, 
+         Priority, 
+         StatusId, 
+         MobileCountry,
+         CampaignId, 
+         CampDescription, 
+         IsSystemApproved, 
+         Paused)
+    SELECT
+      NEXT VALUE FOR dbo.ArchiveIdSeq,
+      p.CustomerId, 
+      p.ChatId, 
+      p.BotId, 
+      p.PhoneNumber, 
+      p.MessageText, 
+      p.MsgType,
+      p.ReceivedDateTime, 
+      p.ScheduledSendDateTime, 
+      @now,
+      p.MessageHash, 
+      p.Priority, 
+      @DuplicateId,
+      [A2A_iMessaging].[dbo].[GetCountryCode](p.PhoneNumber),
+      p.CampaignId, 
+      p.CampDescription, 
+      p.IsSystemApproved, 
+      p.Paused
+    FROM pick p;
+
+    DELETE r FROM dbo.ReadyTable r
+    JOIN pick p ON p.ID = r.ID;
+
+    IF @@ROWCOUNT < @BatchSize BREAK;
+  END
 END
 GO
 

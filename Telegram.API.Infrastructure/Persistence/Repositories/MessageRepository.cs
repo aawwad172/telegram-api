@@ -59,7 +59,7 @@ public class MessageRepository(
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
 
         cmd.CommandType = CommandType.StoredProcedure;
-        cmd.CommandText = "usp_EnqueueOrArchiveIfDuplicate";
+        cmd.CommandText = "usp_Enqueue";
 
         cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int)
         { Value = message.CustomerId }
