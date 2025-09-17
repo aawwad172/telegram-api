@@ -662,41 +662,41 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
 AS
 BEGIN
   SET NOCOUNT ON;
+  SET XACT_ABORT ON;
 
   ;WITH ranked AS
   (
-      SELECT
-          r.ID,
-          r.MessageText,
-          r.ChatId,
-          r.BotId,
-          r.Priority,
-          r.ReceivedDateTime,
-          ROW_NUMBER() OVER
-          (
-              PARTITION BY r.ChatId                           -- one per chat
-              ORDER BY r.Priority DESC, r.ReceivedDateTime ASC
-          ) AS rn
-      FROM dbo.ReadyTable AS r WITH (READPAST, UPDLOCK, ROWLOCK)
-      WHERE r.ScheduledSendDateTime <= GETDATE()
-        AND StatusId = 0  
-        -- AND r.Status = 'Ready'   -- uncomment if you track status
+    SELECT
+      r.ID, r.BotId, r.ChatId, r.MessageText,
+      r.Priority, r.ReceivedDateTime,
+      ROW_NUMBER() OVER
+      (
+        PARTITION BY r.ChatId
+        ORDER BY r.Priority DESC, r.ReceivedDateTime ASC
+      ) AS rn
+    FROM dbo.ReadyTable AS r WITH (READPAST, ROWLOCK)
+    WHERE r.ScheduledSendDateTime <= GETDATE()
+      AND r.StatusId = 0            -- Ready
+  ),
+  picks AS
+  (
+    SELECT TOP (30) ID
+    FROM ranked
+    WHERE rn = 1
+    ORDER BY Priority DESC, ReceivedDateTime ASC
   )
-  SELECT TOP (30)
-      r.ID,
-      r.MessageText,
-      r.ChatId,
-      b.EncryptedBotKey
-  FROM ranked AS r
-  INNER JOIN dbo.Bots AS b
-      ON b.BotId = r.BotId
-  WHERE r.rn = 1
-  ORDER BY
-      r.Priority DESC,
-      r.ReceivedDateTime ASC;
+  UPDATE r
+    SET r.StatusId = 4               -- InFlight (or your value)
+  OUTPUT inserted.ID,
+         inserted.MessageText,
+         inserted.ChatId,
+         b.EncryptedBotKey
+  FROM dbo.ReadyTable AS r WITH (ROWLOCK, READPAST)
+  JOIN picks       AS p ON p.ID = r.ID
+  JOIN dbo.Bots    AS b ON b.BotId = r.BotId
+  WHERE r.StatusId = 0;              -- ensures we don’t output rows already claimed
 END
 GO
-
 
 /*******************************************
  * 3.2) usp_ArchiveAndDeleteQueuedMessage

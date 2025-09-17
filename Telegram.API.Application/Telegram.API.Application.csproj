@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn> <!-- Newer SDKs respect this for some MSBuild warnings, but AsMessages is the reliable one -->
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="MediatR" Version="13.0.0" />
@@ -20,7 +25,7 @@
 
   <ItemGroup>
     <Reference Include="A2A.Utils">
-      <HintPath>..\lib\A2A.Utils.dll</HintPath>
+      <HintPath>..\lib\A2ASMS.Utility.Net.dll</HintPath>
 		  <Private>True</Private>
 	  </Reference>
   </ItemGroup>

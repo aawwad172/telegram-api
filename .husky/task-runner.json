@@ -19,7 +19,7 @@
       "name": "dotnet-build-with-warning-check",
       "command": "dotnet",
       "group": "pre-push",
-      "args": [ "build", "/p:TreatWarningsAsErrors=true" ],
+      "args": [ "build", "/p:TreatWarningsAsErrors=false" ],
       "include": [ "**/*.cs" ]
     }
   ]

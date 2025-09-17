@@ -1,9 +1,9 @@
-﻿using A2A.Utils.CryptorRelease2;
-using Telegram.API.Domain.Entities;
+﻿using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
+using A2ASMS.Utility.Data;
 
 namespace Telegram.API.Application.HelperServices;
 
@@ -11,7 +11,6 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
     private readonly IBotRepository _botRepository = botRepository;
-    private readonly EncryptionEngine _encryptionEngine = new();
 
     /// <summary>
     /// Checks the provided username and password against the authentication system.
@@ -25,7 +24,7 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
         Customer? customer = await _customerRepository.GetCustomerByUsernameAsync(username, cancellationToken) ?? throw new NotFoundException("User not found");
 
         // Hash the password and return the CustomerId if the password matches
-        string encryptedPassword = _encryptionEngine.Encrypt(password);
+        string encryptedPassword = EncrLib.Encrypt(password);
 
         if (encryptedPassword != customer.PasswordHash)
             throw new UnauthenticatedException("Invalid username or password");
@@ -43,10 +42,10 @@ public class AuthenticationService(ICustomerRepository customerRepository, IBotR
     }
 
     public string Decrypt(string encryptedBotKey, CancellationToken cancellationToken = default)
-        => _encryptionEngine.Decrypt(encryptedBotKey);
+        => EncrLib.Decrypt(encryptedBotKey);
 
     public string Encrypt(string botKey, CancellationToken cancellationToken = default)
-        => _encryptionEngine.Encrypt(botKey);
+        => EncrLib.Encrypt(botKey);
 
     public async Task<Bot> ValidateBotIdAsync(int botId, int customerId, CancellationToken cancellationToken = default)
     {

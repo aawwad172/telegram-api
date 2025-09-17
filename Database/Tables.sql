@@ -55,9 +55,10 @@ CREATE TABLE dbo.MessageStatus (
 -- Insert your enum values
 INSERT INTO dbo.MessageStatus (StatusID, StatusDescription)
 VALUES 
+    (4, 'In Flight'),
     (3, 'Failed'),
     (1, 'Sent'),
-    (2, 'Read'),
+    (2, 'Ready'),
     (0, 'Pending'),
     (-1, 'Blocked'),
     (-2, 'Not Subscribed'),
@@ -151,10 +152,9 @@ GO
  *******************************************/
 CREATE TABLE dbo.RecentMessages
 (
-  MessageHash  		  BINARY(32)     NOT NULL,
-  ReceivedDateTime  DATETIME2      NOT NULL,
-  ReadyId      		  INT            NULL,
-  CONSTRAINT PK_RecentMessages PRIMARY KEY CLUSTERED (MessageHash, ReadyId)
+  MessageHash  		    BINARY(32)     NOT NULL,
+  ReceivedDateTime      DATETIME      NOT NULL,
+  ReadyId      		    INT            NULL,
 );
 GO
 
