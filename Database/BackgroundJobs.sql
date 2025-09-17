@@ -53,62 +53,79 @@ EXEC dbo.sp_add_jobserver
   @server_name = N'(LOCAL)';
 GO
 
-
-
+/******************************************************/
+-- Create the archiving stored procedure if not exists
+/******************************************************/
 -- Create a daily SQL Agent job to archive ReadyTable rows with missing ChatId
 USE msdb;
-GO
-
-DECLARE @job_name NVARCHAR(200) = N'Archive Ready (No ChatId) - Daily';
+-- Drop old job if exists
+DECLARE @job_name       sysname = N'Archive Ready (Statuses -1,-2,-3) - Daily';
+DECLARE @schedule_name  sysname = @job_name + N' Schedule';
 IF EXISTS (SELECT 1 FROM msdb.dbo.sysjobs WHERE name = @job_name)
 BEGIN
   EXEC msdb.dbo.sp_delete_job @job_name = @job_name;
 END
-GO
+
+-- Pick a valid owner: current login if it's a SQL login; else fall back to 'sa'
+DECLARE @owner sysname = SUSER_SNAME();
+IF NOT EXISTS (
+    SELECT 1
+    FROM master.sys.syslogins
+    WHERE name = @owner AND isntgroup = 0  -- 0 = not a Windows group
+)
+    SET @owner = N'sa';
 
 DECLARE @job_id UNIQUEIDENTIFIER;
 
+-- Create job
 EXEC msdb.dbo.sp_add_job
-  @job_name = N'Archive Ready (No ChatId) - Daily',
-  @enabled = 1,
-  @description = N'Moves all ReadyTable rows with NULL/empty ChatId to ArchiveTable in one atomic operation.',
-  @start_step_id = 1,
-  @owner_login_name = N'SUSER_SNAME()',
-  @job_id = @job_id OUTPUT;
+  @job_name          = @job_name,
+  @enabled           = 1,
+  @description       = N'Moves ReadyTable rows with StatusId in (-1,-2,-3) to ArchiveTable.',
+  @owner_login_name  = @owner,
+  @job_id            = @job_id OUTPUT;
 
+-- Add the step
 EXEC msdb.dbo.sp_add_jobstep
-  @job_id = @job_id,
-  @step_id = 1,
-  @step_name = N'Archive entire set',
-  @subsystem = N'TSQL',
-  @database_name = N'TelegramTestDB',              -- << your DB
-  @command = N'
+  @job_id          = @job_id,
+  @step_id         = 1,
+  @step_name       = N'Archive negative statuses',
+  @subsystem       = N'TSQL',
+  @database_name   = N'TelegramTestDB',      -- << your DB name
+  @command         = N'
     BEGIN TRY
-      EXEC dbo.usp_ArchiveAllReadyWithNullChatId
-           @StatusId = NULL,                       -- auto-resolve
-           @StatusDescription = N''NotSubscribed'',
-           @TreatEmptyAsNull = 1;
+      EXEC dbo.usp_ArchiveReady_NegativeStatuses_Daily -- or 0 for single-shot
     END TRY
     BEGIN CATCH
-      DECLARE @m NVARCHAR(4000) = ERROR_MESSAGE();
       THROW;
     END CATCH
   ',
-  @retry_attempts = 3,
-  @retry_interval = 2,      -- minutes between retries
-  @on_fail_action = 2;      -- Quit with failure
+  @retry_attempts  = 3,
+  @retry_interval  = 2,     -- minutes
+  @on_fail_action  = 2;     -- Quit with failure
+
+-- Create a dedicated schedule (unique name so we don’t collide)
+IF EXISTS (SELECT 1 FROM msdb.dbo.sysschedules WHERE name = @schedule_name)
+BEGIN
+  -- detach any jobs then drop the schedule to recreate cleanly
+  DECLARE @sid INT;
+  SELECT @sid = schedule_id FROM msdb.dbo.sysschedules WHERE name = @schedule_name;
+  EXEC msdb.dbo.sp_detach_schedule @schedule_id = @sid;
+  EXEC msdb.dbo.sp_delete_schedule @schedule_id = @sid;
+END
 
 EXEC msdb.dbo.sp_add_schedule
-  @schedule_name = N'Daily 02:00',
-  @freq_type = 4,              -- daily
-  @freq_interval = 1,
-  @active_start_time = 020000; -- HHMMSS (server local time)
+  @schedule_name     = @schedule_name,
+  @freq_type         = 4,          -- daily
+  @freq_interval     = 1,
+  @active_start_time = 020000;     -- 02:00:00
 
 EXEC msdb.dbo.sp_attach_schedule
-  @job_id = @job_id,
-  @schedule_name = N'Daily 02:00';
+  @job_id        = @job_id,
+  @schedule_name = @schedule_name;
 
+-- Target server (use the actual server name/instance)
 EXEC msdb.dbo.sp_add_jobserver
-  @job_id = @job_id,
-  @server_name = N'(LOCAL)';   -- change if needed
-GO
+  @job_id      = @job_id,
+  @server_name = @@SERVERNAME;     -- avoids (LOCAL) mismatch on named instances
+

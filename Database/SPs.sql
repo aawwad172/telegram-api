@@ -8,8 +8,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
   @MessageText 		NVARCHAR(MAX),
   @PhoneNumber      NVARCHAR(32),
   @MsgType     		NVARCHAR(10), 
-  @CampaignId  		NVARCHAR(128), -- Empty String if not required
-  @CampDescription 	NVARCHAR(512), -- Empty String if not required
+  @CampaignId  		NVARCHAR(128),
+  @CampDescription 	NVARCHAR(512),
   @Priority    		SMALLINT,
   @ScheduledSendDateTime DATETIME = NULL,  -- Auto inserted in case of one message
   @IsSystemApproved BIT
@@ -61,8 +61,8 @@ BEGIN
     ,@hash
     ,CASE WHEN @isNew = 1 THEN @Pending ELSE @Duplicate END
     ,@Priority
-    ,@CampaignId
-    ,@CampDescription
+    ,NULLIF(@CampaignId, '')
+    ,NULLIF(@CampDescription, '')
     ,@IsSystemApproved
     ,0);
 
@@ -540,110 +540,86 @@ GO
 
 
 /*******************************************
- * 2.15) usp_ArchiveAllReadyWithNullChatId: This is being used for the background job
+ * 2.15) usp_ArchiveReady_NegativeStatuses_Daily: This is being used for the background job
  *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAllReadyWithNullChatId
-  @StatusId           SMALLINT      = NULL,
-  @StatusDescription  NVARCHAR(512) = N'NotSubscribed',
-  @TreatEmptyAsNull   BIT           = 1
+CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
+  @BatchSize INT = 50000
 AS
 BEGIN
   SET NOCOUNT ON;
   SET XACT_ABORT ON;
 
-  DECLARE @now DATETIME = GETDATE();
-
-  -- Resolve StatusId once if not provided
-  IF @StatusId IS NULL
+  WHILE 1 = 1
   BEGIN
-    SELECT TOP (1) @StatusId = ms.StatusID
-    FROM dbo.MessageStatus ms
-    WHERE UPPER(ms.StatusDescription) IN
-          (N'NOTSUBSCRIBED', N'NOT SUBSCRIBED', N'NO CHATID', N'MISSING_CHATID');
-  END;
-  IF @StatusId IS NULL
-    THROW 50001, 'MessageStatus for NotSubscribed/No ChatId not found. Create it or pass @StatusId.', 1;
+    DECLARE @now DATETIME = GETDATE();
 
-  -- (Optional) prevent overlaps if the job runs very frequently
-  DECLARE @lockResult INT;
-  EXEC @lockResult = sp_getapplock
-    @Resource = 'ArchiveAllReadyWithNullChatId',
-    @LockMode = 'Exclusive',
-    @LockOwner = 'Session',
-    @LockTimeout = 0;
-  IF @lockResult < 0 RETURN;
-
-  BEGIN TRY
-    BEGIN TRAN;
-
-    -- 1) Delete candidates, capture them into a table variable (no UDF here)
     DECLARE @del TABLE(
-      ID INT PRIMARY KEY,
-      CustomerId INT,
-      ChatId NVARCHAR(50) NULL,
-      BotId INT,
-      PhoneNumber NVARCHAR(32),
-      MessageText NVARCHAR(MAX),
-      MsgType NVARCHAR(10),
-      ReceivedDateTime DATETIME2,
+      ID                   INT           PRIMARY KEY,
+      CustomerId           INT,
+      ChatId               NVARCHAR(50)  NULL,
+      BotId                INT,
+      PhoneNumber          NVARCHAR(32),
+      MessageText          NVARCHAR(MAX),
+      MsgType              NVARCHAR(10),
+      ReceivedDateTime     DATETIME2,
       ScheduledSendDateTime DATETIME2,
-      MessageHash BINARY(32),
-      Priority SMALLINT,
-      CampaignId NVARCHAR(128),
-      CampDescription NVARCHAR(512),
-      IsSystemApproved BIT,
-      Paused BIT
+      GatewayDateTime      DATETIME2,
+      MessageHash          VARBINARY(32),
+      Priority             SMALLINT,
+      StatusId             SMALLINT,
+      CampaignId           NVARCHAR(128),
+      CampDescription      NVARCHAR(512),
+      IsSystemApproved     BIT,
+      Paused               BIT
     );
 
-    ;WITH Candidates AS (
-      SELECT r.*
-      FROM dbo.ReadyTable r WITH (HOLDLOCK)
-      WHERE
-        (r.ChatId IS NULL OR (@TreatEmptyAsNull = 1 AND
-           LEN(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(ISNULL(r.ChatId,N''))), NCHAR(9), N''), NCHAR(10), N''), NCHAR(13), N'')) = 0))
-        AND NOT EXISTS (SELECT 1 FROM dbo.ArchiveTable a WHERE a.ID = r.ID)
-    )
-    DELETE r
-    OUTPUT
-      DELETED.ID, DELETED.CustomerId, DELETED.ChatId, DELETED.BotId,
-      DELETED.PhoneNumber, DELETED.MessageText, DELETED.MsgType,
-      DELETED.ReceivedDateTime, DELETED.ScheduledSendDateTime,
-      DELETED.MessageHash, DELETED.Priority, DELETED.CampaignId,
-      DELETED.CampDescription, DELETED.IsSystemApproved, DELETED.Paused
-    INTO @del
-    FROM Candidates r;
+    BEGIN TRAN;
 
-    -- 2) Insert the captured rows into ArchiveTable, now call the UDF safely
-    INSERT dbo.ArchiveTable(
+    ;WITH pick AS (
+      SELECT TOP (@BatchSize) *
+      FROM dbo.ReadyTable WITH (READPAST, ROWLOCK)
+      WHERE StatusId IN (-1, -2, -3)
+      ORDER BY ID
+    )
+    DELETE FROM pick
+    OUTPUT
+      deleted.ID, deleted.CustomerId, deleted.ChatId, deleted.BotId,
+      deleted.PhoneNumber, deleted.MessageText, deleted.MsgType,
+      deleted.ReceivedDateTime, deleted.ScheduledSendDateTime,
+      @now,
+      deleted.MessageHash, deleted.Priority, deleted.StatusId,
+      deleted.CampaignId, deleted.CampDescription, deleted.IsSystemApproved, deleted.Paused
+    INTO @del(
       ID, CustomerId, ChatId, BotId, PhoneNumber, MessageText, MsgType,
       ReceivedDateTime, ScheduledSendDateTime, GatewayDateTime,
-      MessageHash, Priority, StatusId, StatusDescription, MobileCountry,
+      MessageHash, Priority, StatusId,
       CampaignId, CampDescription, IsSystemApproved, Paused
-    )
-    SELECT
-      d.ID, d.CustomerId, d.ChatId, d.BotId, d.PhoneNumber, d.MessageText, d.MsgType,
-      d.ReceivedDateTime, d.ScheduledSendDateTime, @now,
-      d.MessageHash, d.Priority, @StatusId, @StatusDescription,
-      CASE
-        WHEN OBJECT_ID(N'[A2A_iMessaging].[dbo].[GetCountryCode]') IS NOT NULL
+    );
+
+    IF EXISTS (SELECT 1 FROM @del)
+    BEGIN
+      INSERT dbo.ArchiveTable
+        (ID, CustomerId, ChatId, BotId, PhoneNumber, MessageText, MsgType,
+         ReceivedDateTime, ScheduledSendDateTime, GatewayDateTime,
+         MessageHash, Priority, StatusId, MobileCountry,
+         CampaignId, CampDescription, IsSystemApproved, Paused)
+      SELECT
+        d.ID, d.CustomerId, d.ChatId, d.BotId, d.PhoneNumber, d.MessageText, d.MsgType,
+        d.ReceivedDateTime, d.ScheduledSendDateTime, d.GatewayDateTime,
+        d.MessageHash, d.Priority, d.StatusId,
+        CASE WHEN OBJECT_ID(N'[A2A_iMessaging].[dbo].[GetCountryCode]') IS NOT NULL
              THEN [A2A_iMessaging].[dbo].[GetCountryCode](d.PhoneNumber)
-        ELSE N'UNK'
-      END,
-      d.CampaignId, d.CampDescription, d.IsSystemApproved, d.Paused
-    FROM @del AS d;
+             ELSE N'UNK' END,
+        d.CampaignId, d.CampDescription, d.IsSystemApproved, d.Paused
+      FROM @del AS d;
+
+      DELETE FROM @del; -- clear buffer for next loop
+    END
 
     COMMIT;
 
-    -- optional: how many archived this run
-    SELECT @@ROWCOUNT AS RowsArchived;
-  END TRY
-  BEGIN CATCH
-    IF XACT_STATE() <> 0 ROLLBACK;
-    EXEC sp_releaseapplock @Resource='ArchiveAllReadyWithNullChatId', @LockOwner='Session';
-    THROW;
-  END CATCH
-
-  EXEC sp_releaseapplock @Resource='ArchiveAllReadyWithNullChatId', @LockOwner='Session';
+    IF @@ROWCOUNT < @BatchSize BREAK; -- last batch was smaller → done
+  END
 END
 GO
 
@@ -759,77 +735,3 @@ BEGIN
     THROW;  -- re‐raise the error
   END CATCH
 END;
-
-
-/*******************************************
- * 3.3) usp_ArchiveAndPurgeReadyDuplicates
- *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndPurgeReadyDuplicates
-  @RetentionMinutes INT = 10,
-  @BatchSize        INT = 50000
-AS
-BEGIN
-  SET NOCOUNT ON; SET XACT_ABORT ON;
-
-  DECLARE @DuplicateId SMALLINT = -3;
-
-  WHILE 1=1
-  BEGIN
-    DECLARE @now DATETIME = GETDATE();
-
-    ;WITH pick AS (
-      SELECT TOP (@BatchSize) * FROM dbo.ReadyTable WITH (READPAST, ROWLOCK)
-      WHERE StatusId = @DuplicateId
-        AND ReceivedDateTime <= DATEADD(MINUTE, -@RetentionMinutes, @now)
-      ORDER BY ID
-    )
-
-    INSERT dbo.ArchiveTable
-        (ID, 
-         CustomerId, 
-         ChatId, 
-         BotId, 
-         PhoneNumber, 
-         MessageText, 
-         MsgType,
-         ReceivedDateTime, 
-         ScheduledSendDateTime, 
-         GatewayDateTime,
-         MessageHash, 
-         Priority, 
-         StatusId, 
-         MobileCountry,
-         CampaignId, 
-         CampDescription, 
-         IsSystemApproved, 
-         Paused)
-    SELECT
-      p.Id,
-      p.CustomerId, 
-      p.ChatId, 
-      p.BotId, 
-      p.PhoneNumber, 
-      p.MessageText, 
-      p.MsgType,
-      p.ReceivedDateTime, 
-      p.ScheduledSendDateTime, 
-      @now,
-      p.MessageHash, 
-      p.Priority, 
-      @DuplicateId,
-      [A2A_iMessaging].[dbo].[GetCountryCode](p.PhoneNumber),
-      p.CampaignId, 
-      p.CampDescription, 
-      p.IsSystemApproved, 
-      p.Paused
-    FROM pick p;
-
-    DELETE r FROM dbo.ReadyTable r
-    JOIN pick p ON p.ID = r.ID;
-
-    IF @@ROWCOUNT < @BatchSize BREAK;
-  END
-END
-GO
-
-
