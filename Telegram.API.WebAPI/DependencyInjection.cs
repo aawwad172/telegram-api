@@ -1,4 +1,4 @@
-﻿using A2ASerilog;
+﻿using A2ASMS.Utility.Logger;
 using FluentValidation;
 using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Commands.Bots;
@@ -21,10 +21,12 @@ public static class DependencyInjection
         services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
         services.Configure<TelegramOptions>(configuration.GetSection(nameof(TelegramOptions)));
 
-        AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>();
+        AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
+                    ?? throw new InvalidOperationException("AppSettings section is missing.");
 
-        LoggerService._logPath = appSettings!.LogPath;
-        LoggerService._flushPeriod = appSettings.LogFlushInterval;
+        A2ALoggerConfig.LogPath = appSettings!.LogPath;
+        A2ALoggerConfig.FlushInterval = appSettings.LogFlushInterval;
+        A2ALoggerConfig.LogEnabled = true;
 
         services.AddHealthChecks()
                 .AddCheck<DbConnectionHealthCheck>("Database Connection");

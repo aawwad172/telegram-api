@@ -7,6 +7,12 @@
     <RootNamespace>Telegram.API.WebAPI</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="13.0.0" />
@@ -22,11 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="A2A.Utils">
-      <HintPath>..\lib\A2A.Utils.dll</HintPath>
-    </Reference>
-    <Reference Include="A2ASerilog">
-      <HintPath>..\lib\A2ASerilog.dll</HintPath>
+    <Reference Include="A2ASMS.Utility.Net">
+      <HintPath>..\lib\A2ASMS.Utility.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 
