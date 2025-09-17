@@ -22,16 +22,29 @@ BEGIN
   DECLARE @now DATETIME = GETDATE();
   DECLARE @hash BINARY(32) = HASHBYTES('SHA2_256', CONCAT(ISNULL(@ChatId,N''),N'|',@BotId,N'|',ISNULL(@MessageText,N'')));
   DECLARE @Pending SMALLINT = 0;
-  DECLARE @Duplicate SMALLINT = -3
+  DECLARE @Duplicate SMALLINT = -3;
+  DECLARE @NotSubId SMALLINT = -2;
+  DECLARE @isMissingChat BIT =
+    CASE
+      WHEN @ChatId IS NULL OR
+           LEN(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(ISNULL(@ChatId,N''))), NCHAR(9), N''), NCHAR(10), N''), NCHAR(13), N'')) = 0
+      THEN 1 ELSE 0 END;
 
-   SET @ScheduledSendDateTime = ISNULL(@ScheduledSendDateTime, GETDATE());
+  SET @ScheduledSendDateTime = ISNULL(@ScheduledSendDateTime, @now);
 
 
-   BEGIN TRAN;
-    DECLARE @isNew BIT=0;
-    INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
+  BEGIN TRAN;
+  DECLARE @isNew BIT=0;
+    IF @isMissingChat = 0
+    BEGIN
+      INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
+      SELECT @hash, NULL, @now;
+      IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
+    END
+
+  INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
     SELECT @hash, NULL, @now;
-    IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
+  IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
 
  INSERT INTO dbo.ReadyTable
     (ChatId
@@ -59,7 +72,11 @@ BEGIN
     ,GETDATE()
     ,@ScheduledSendDateTime   -- ← use your variable here
     ,@hash
-    ,CASE WHEN @isNew = 1 THEN @Pending ELSE @Duplicate END
+    ,CASE
+        WHEN @isMissingChat = 1 THEN @NotSubId
+        WHEN @isNew = 1         THEN @Pending
+        ELSE                          @Duplicate
+     END
     ,@Priority
     ,NULLIF(@CampaignId, '')
     ,NULLIF(@CampDescription, '')
@@ -552,6 +569,7 @@ BEGIN
   WHILE 1 = 1
   BEGIN
     DECLARE @now DATETIME = GETDATE();
+    DECLARE @moved INT = 0;
 
     DECLARE @del TABLE(
       ID                   INT           PRIMARY KEY,
@@ -595,8 +613,9 @@ BEGIN
       MessageHash, Priority, StatusId,
       CampaignId, CampDescription, IsSystemApproved, Paused
     );
+    SET @moved = @@ROWCOUNT;
 
-    IF EXISTS (SELECT 1 FROM @del)
+    IF @moved > 0
     BEGIN
       INSERT dbo.ArchiveTable
         (ID, CustomerId, ChatId, BotId, PhoneNumber, MessageText, MsgType,
@@ -617,8 +636,7 @@ BEGIN
     END
 
     COMMIT;
-
-    IF @@ROWCOUNT < @BatchSize BREAK; -- last batch was smaller → done
+    IF @moved < @BatchSize BREAK; -- last batch was smaller → done
   END
 END
 GO
@@ -716,7 +734,11 @@ BEGIN
     GETDATE()     AS GatewayDateTime,
     MessageHash,
     Priority,
-    A2A_iMessaging.dbo.GetCountryCode(PhoneNumber),
+    CASE
+      WHEN OBJECT_ID(N'[A2A_iMessaging].[dbo].[GetCountryCode]') IS NOT NULL
+        THEN [A2A_iMessaging].[dbo].[GetCountryCode](PhoneNumber)
+      ELSE N'UNK'
+    END,
     CampaignId,
     CampDescription,
     IsSystemApproved,
