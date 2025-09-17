@@ -702,6 +702,8 @@ BEGIN
   BEGIN TRAN;
   BEGIN TRY
 
+  DECLARE @now DATETIME = GETDATE();
+
   INSERT INTO dbo.ArchiveTable
     (ID, 
      CustomerId,
@@ -731,7 +733,7 @@ BEGIN
     MsgType,
     ReceivedDateTime,
     ScheduledSendDateTime,
-    GETDATE()     AS GatewayDateTime,
+    @now     AS GatewayDateTime,
     MessageHash,
     Priority,
     CASE
@@ -747,9 +749,17 @@ BEGIN
   FROM dbo.ReadyTable
   WHERE ID = @Id;
 
+  IF @@ROWCOUNT <> 1
+    THROW 51001, 'Archive failed: Ready.ID not found or duplicate insert blocked.', 1;
+
   DELETE FROM dbo.ReadyTable
   WHERE ID = @Id;
- COMMIT TRAN;
+
+  IF @@ROWCOUNT <> 1
+    THROW 51002, 'Delete failed: Ready.ID not found after archive.', 1;
+
+  COMMIT TRAN;
+
   END TRY
   BEGIN CATCH
     IF XACT_STATE() <> 0
