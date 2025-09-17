@@ -21,7 +21,8 @@ public static class DependencyInjection
         services.Configure<AppSettings>(configuration.GetSection(nameof(AppSettings)));
         services.Configure<TelegramOptions>(configuration.GetSection(nameof(TelegramOptions)));
 
-        AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>();
+        AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
+                    ?? throw new InvalidOperationException("AppSettings section is missing.");
 
         A2ALoggerConfig.LogPath = appSettings!.LogPath;
         A2ALoggerConfig.FlushInterval = appSettings.LogFlushInterval;

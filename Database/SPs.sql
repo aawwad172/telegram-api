@@ -1,8 +1,5 @@
 /*******************************************
- * 2.1) usp_EnqueueOrArchiveIfDuplicate
- *******************************************/
-/*******************************************
- * 2.1) usp_EnqueueOrArchiveIfDuplicate
+ * 2.1) usp_Enqueue
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
   @CustomerId  		INT,
@@ -676,7 +673,7 @@ BEGIN
       ) AS rn
     FROM dbo.ReadyTable AS r WITH (READPAST, ROWLOCK)
     WHERE r.ScheduledSendDateTime <= GETDATE()
-      AND r.StatusId = 0            -- Ready
+      AND r.StatusId = 0            -- Pending
   ),
   picks AS
   (
@@ -807,7 +804,7 @@ BEGIN
          IsSystemApproved, 
          Paused)
     SELECT
-      NEXT VALUE FOR dbo.ArchiveIdSeq,
+      p.Id,
       p.CustomerId, 
       p.ChatId, 
       p.BotId, 

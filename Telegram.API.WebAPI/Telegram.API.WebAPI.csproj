@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="A2A.Utils">
+    <Reference Include="A2ASMS.Utility.Net">
       <HintPath>..\lib\A2ASMS.Utility.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
