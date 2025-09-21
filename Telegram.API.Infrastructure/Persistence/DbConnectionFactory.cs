@@ -12,7 +12,7 @@ public class DbConnectionFactory(IOptionsMonitor<DbSettings> options) : IDbConne
 
     public async Task<IDbConnection> CreateOpenConnection()
     {
-        SqlConnection conn = new(_options.CurrentValue.ConStr);
+        SqlConnection conn = new(_options.CurrentValue.ConnectionString);
         await conn.OpenAsync().ConfigureAwait(false);
         return conn;
     }

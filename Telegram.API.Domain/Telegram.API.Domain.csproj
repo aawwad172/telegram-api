@@ -10,5 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="A2ASMS.Utility.Net">
+      <HintPath>..\lib\A2ASMS.Utility.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 	
 </Project>

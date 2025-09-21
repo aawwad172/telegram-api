@@ -32,6 +32,6 @@ public class SendMessage : ICommandRoute<SendMessageCommand>
         SendMessageCommandResult result = await mediator.Send(sanitizedRequest);
 
         // Use this to prevent extra memory allocation
-        return Results.Ok(ApiResponse<SendMessageCommandResult>.SuccessResponse(result));
+        return Results.Ok(ReferenceApiResponse.SuccessResponse(referenceNumber: result.ReferenceNumber));
     }
 }

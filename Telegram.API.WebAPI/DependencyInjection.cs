@@ -24,9 +24,13 @@ public static class DependencyInjection
         AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
                     ?? throw new InvalidOperationException("AppSettings section is missing.");
 
+        appSettings.LoggerType = (A2ALoggerType)Enum.Parse(typeof(A2ALoggerType), configuration["AppSettings:LoggerType"]!, true);
+
+
         A2ALoggerConfig.LogPath = appSettings!.LogPath;
         A2ALoggerConfig.FlushInterval = appSettings.LogFlushInterval;
-        A2ALoggerConfig.LogEnabled = true;
+        A2ALoggerConfig.LogEnabled = appSettings.LogEnabled;
+        A2ALoggerConfig.LoggerType = appSettings.LoggerType;
 
         services.AddHealthChecks()
                 .AddCheck<DbConnectionHealthCheck>("Database Connection");
@@ -40,7 +44,6 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
         services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
         services.AddTransient<IValidator<RegisterBotCommand>, RegisterBotCommandValidator>();
-        services.AddTransient<IValidator<ReceiveUpdateCommand>, ReceiveUpdateCommandValidator>();
 
         return services;
     }

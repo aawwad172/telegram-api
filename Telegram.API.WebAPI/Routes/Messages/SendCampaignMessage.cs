@@ -26,9 +26,10 @@ public class SendCampaignMessage : ICommandRoute<SendCampaignMessageCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
+        SendCampaignMessageCommandResult result = await mediator.Send(sanitizedRequest);
         return Results.Ok(
-            ApiResponse<SendCampaignMessageCommandResult>.SuccessResponse(
-                await mediator.Send(sanitizedRequest)
+            ReferenceApiResponse.SuccessResponse(
+                referenceNumber: result.CampaignId.ToString()
             )
         );
     }

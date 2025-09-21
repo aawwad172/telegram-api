@@ -63,60 +63,38 @@ public class TelegramClient : ITelegramClient
             IReadOnlyCollection<string> allowedUpdates,
             bool dropPendingUpdates,
             CancellationToken ct = default)
-            => await SetWebhookAsync(botToken, url, newSecretToken, allowedUpdates, dropPendingUpdates, ct);
-
-    public async Task<bool> SendTextWithContactButtonAsync(
-            string botToken,
-            string chatId,
-            string text,
-            string buttonText,
-            CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(botToken))
-            throw new ArgumentException("Required.", nameof(botToken));
-
-        if (string.IsNullOrWhiteSpace(chatId))
-            throw new ArgumentException("Required.", nameof(chatId));
-
-        var payload = new
-        {
-            chat_id = chatId,
-            text,
-            reply_markup = new
-            {
-                keyboard = new[]
-                {
-                    new[] { new { text = buttonText, request_contact = true } }
-                },
-                resize_keyboard = true,
-                one_time_keyboard = true
-            }
-        };
-
-        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
-        return resp.Ok;
-    }
+                => await SetWebhookAsync(botToken, url, newSecretToken, allowedUpdates, dropPendingUpdates, ct);
 
     public async Task<bool> DeleteWebhookAsync(string botToken, bool dropPendingUpdates, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
+
         var payload = new { drop_pending_updates = dropPendingUpdates };
+
         TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/deleteWebhook", payload, ct);
         return resp.Ok;
     }
 
     public async Task<bool> SendTextAsync(
-           string botToken,
-           string chatId,
-           string text,
-           CancellationToken ct = default)
+        string botToken,
+        string chatId,
+        string text,
+        object? replyMarkup = null,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
         if (string.IsNullOrWhiteSpace(chatId)) throw new ArgumentException("Required.", nameof(chatId));
         if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Required.", nameof(text));
 
-        var payload = new { chat_id = chatId, text };
-        TelegramResponse<JsonElement> resp = await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
+        var payload = new
+        {
+            chat_id = chatId,
+            text,
+            reply_markup = replyMarkup
+        };
+
+        TelegramResponse<JsonElement> resp =
+            await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
         return resp.Ok;
     }
 
