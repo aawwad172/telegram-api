@@ -29,5 +29,4 @@ public class ApiResponse<T>
 
     public static ApiResponse<T> CreatedResponse(T response)
         => new(success: true, data: response, errorMessage: "Created", errorCode: "0");
-
 }

@@ -24,9 +24,20 @@ public static class DependencyInjection
         AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
                     ?? throw new InvalidOperationException("AppSettings section is missing.");
 
+        if (Enum.TryParse<A2ALoggerType>(configuration["AppSettings:LoggerType"], true, out var loggerType))
+        {
+            appSettings.LoggerType = loggerType;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Invalid LoggerType value: {configuration["AppSettings:LoggerType"]}. Valid values are: {string.Join(", ", Enum.GetNames<A2ALoggerType>())}");
+        }
+
+
         A2ALoggerConfig.LogPath = appSettings!.LogPath;
         A2ALoggerConfig.FlushInterval = appSettings.LogFlushInterval;
-        A2ALoggerConfig.LogEnabled = true;
+        A2ALoggerConfig.LogEnabled = appSettings.LogEnabled;
+        A2ALoggerConfig.LoggerType = appSettings.LoggerType;
 
         services.AddHealthChecks()
                 .AddCheck<DbConnectionHealthCheck>("Database Connection");
@@ -40,7 +51,6 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
         services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
         services.AddTransient<IValidator<RegisterBotCommand>, RegisterBotCommandValidator>();
-        services.AddTransient<IValidator<ReceiveUpdateCommand>, ReceiveUpdateCommandValidator>();
 
         return services;
     }

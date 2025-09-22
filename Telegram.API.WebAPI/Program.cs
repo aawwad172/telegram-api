@@ -40,7 +40,7 @@ app.UseHttpsRedirection();
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 // Create a route group with prefix "/telegram"
-RouteGroupBuilder telegramApp = app.MapGroup("/telegram/api");
+RouteGroupBuilder api = app.MapGroup("/api");
 
 #region Health Check
 // Add health check endpoint
@@ -51,43 +51,38 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
 #endregion
 
 #region User
-telegramApp.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
+api.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
     .WithTags("user")
     .WithOpenApi();
 #endregion
 
 #region Message
-telegramApp.MapPost("/message/send", SendMessage.RegisterRoute)
+api.MapPost("/message/send", SendMessage.RegisterRoute)
     .WithName("Send Message")
     .WithTags("messages")
     .WithOpenApi();
 
-telegramApp.MapPost("/message/send/batch", SendBatchMessages.RegisterRoute)
+api.MapPost("/message/send/batch", SendBatchMessages.RegisterRoute)
     .WithName("Send Batch Message")
     .WithTags("messages")
     .WithOpenApi();
 
-telegramApp.MapPost("/message/send/campaign", SendCampaignMessage.RegisterRoute)
+api.MapPost("/message/send/campaign", SendCampaignMessage.RegisterRoute)
     .WithName("Send Campaign Message")
     .WithTags("messages")
     .WithOpenApi();
 #endregion
 
 #region Bot
-telegramApp.MapPost("/bot/register", RegisterBot.RegisterRoute)
+api.MapPost("/bot/register", RegisterBot.RegisterRoute)
     .WithName("Register Bot")
     .WithTags("bots")
     .WithOpenApi();
 
-telegramApp.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
+api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithName("Webhook Info")
     .WithTags("bots")
-    .WithOpenApi();
-
-telegramApp.MapPost("/bot/webhook/{PublicId}", ReceiveUpdate.RegisterRoute)
-    .WithName("Telegram Updates Webhook")
-    .WithTags("updates")
     .WithOpenApi();
 #endregion
 

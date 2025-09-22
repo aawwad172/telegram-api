@@ -32,6 +32,6 @@ public class SendBatchMessages : ICommandRoute<SendBatchMessagesCommand>
 
         SendBatchMessageCommandResult result = await mediator.Send(sanitizedRequest);
 
-        return Results.Ok(ApiResponse<SendBatchMessageCommandResult>.SuccessResponse(result));
+        return Results.Ok(ReferenceApiResponse.SuccessResponse(referenceNumber: result.CampaignId));
     }
 }

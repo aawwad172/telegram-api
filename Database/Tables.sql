@@ -57,12 +57,12 @@ INSERT INTO dbo.MessageStatus (StatusID, StatusDescription)
 VALUES 
     (4, 'In Flight'),
     (3, 'Failed'),
-    (1, 'Sent'),
     (2, 'Ready'),
-    (0, 'Pending'),
+    (1, 'Pending'),
+    (0, 'Sent'),
     (-1, 'Blocked'),
     (-2, 'Not Subscribed'),
-    (-3, 'Duplicate');
+    (20, 'Duplicate');
 
 /*******************************************
  * 1.2) ReadyTable: pending messages queue
@@ -134,8 +134,6 @@ CREATE TABLE dbo.ArchiveTable
   [MobileCountry]           NVARCHAR(10)    NOT NULL,
   [CampaignId]              NVARCHAR(128)    NULL,
   [CampDescription]         NVARCHAR(512)   NULL,
-  [IsSystemApproved]        BIT             NOT NULL,
-  [Paused]                  BIT             NOT NULL,
 
   CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (ID),
   CONSTRAINT FK_ArchiveTable_Status FOREIGN KEY (StatusId) 
@@ -189,10 +187,7 @@ CREATE TABLE dbo.TelegramSentFiles
   [CampDescription]               NVARCHAR(256)  NULL,
   [ScheduledSendDateTime]         DATETIME2      NOT NULL,       -- NULL = send ASAP
   [CreationDate]                  DATETIME2      NOT NULL,
-  [isSystemApproved]              BIT            NOT NULL,
-  [isAdminApproved]               BIT            NOT NULL,
   [IsProcessed]                   BIT            NOT NULL
-  
   );
 GO
 
