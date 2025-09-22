@@ -101,7 +101,7 @@ public class TelegramClient : ITelegramClient
         string botToken,
         string chatId,
         string text,
-        object? replyMarkup = null,
+        object replyMarkup,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));

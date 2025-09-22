@@ -53,6 +53,6 @@ public interface ITelegramClient
             string botToken,
             string chatId,
             string text,
-            object? replyMarkup = null,
+            object replyMarkup,
             CancellationToken ct = default);
 }
