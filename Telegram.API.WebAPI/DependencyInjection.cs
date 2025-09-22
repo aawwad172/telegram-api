@@ -24,7 +24,14 @@ public static class DependencyInjection
         AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
                     ?? throw new InvalidOperationException("AppSettings section is missing.");
 
-        appSettings.LoggerType = (A2ALoggerType)Enum.Parse(typeof(A2ALoggerType), configuration["AppSettings:LoggerType"]!, true);
+        if (Enum.TryParse<A2ALoggerType>(configuration["AppSettings:LoggerType"], true, out var loggerType))
+        {
+            appSettings.LoggerType = loggerType;
+        }
+        else
+        {
+            throw new InvalidOperationException($"Invalid LoggerType value: {configuration["AppSettings:LoggerType"]}. Valid values are: {string.Join(", ", Enum.GetNames<A2ALoggerType>())}");
+        }
 
 
         A2ALoggerConfig.LogPath = appSettings!.LogPath;

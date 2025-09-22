@@ -21,8 +21,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
 
     DECLARE @now DATETIME = GETDATE();
     DECLARE @hash BINARY(32) = HASHBYTES('SHA2_256', CONCAT(ISNULL(@ChatId,N''),N'|',@BotId,N'|',ISNULL(@MessageText,N'')));
-    DECLARE @Pending SMALLINT = 0;
-    DECLARE @Duplicate SMALLINT = -3;
+    DECLARE @Pending SMALLINT = 1;
+    DECLARE @Duplicate SMALLINT = 20;
     DECLARE @NotSubId SMALLINT = -2;
     DECLARE @isMissingChat BIT =
       CASE
@@ -229,9 +229,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
     DECLARE @now DATETIME = GETDATE();
 
     -- Resolve status ids (Pending / Duplicate)
-    DECLARE @PendingId SMALLINT = 0;
+    DECLARE @PendingId SMALLINT = 1;
 
-    DECLARE @DuplicateId SMALLINT = -3
+    DECLARE @DuplicateId SMALLINT = 20
 
     DECLARE @NotSubId SMALLINT = -2;
 
@@ -578,7 +578,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
         Priority             SMALLINT,
         StatusId             SMALLINT,
         CampaignId           NVARCHAR(128),
-        CampDescription      NVARCHAR(512),
+        CampDescription      NVARCHAR(512)
       );
 
       BEGIN TRAN;
@@ -586,7 +586,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
       ;WITH pick AS (
         SELECT TOP (@BatchSize) *
         FROM dbo.ReadyTable WITH (READPAST, ROWLOCK)
-        WHERE StatusId IN (-1, -2, -3)
+        WHERE StatusId IN (-1, -2, 20)
         ORDER BY ID
       )
       DELETE FROM pick
@@ -658,7 +658,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
         ) AS rn
       FROM dbo.ReadyTable AS r WITH (READPAST, ROWLOCK)
       WHERE r.ScheduledSendDateTime <= GETDATE()
-        AND r.StatusId = 0            -- Pending
+        AND r.StatusId = 1            -- Pending
     ),
     picks AS
     (
@@ -676,7 +676,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
     FROM dbo.ReadyTable AS r WITH (ROWLOCK, READPAST)
     JOIN picks       AS p ON p.ID = r.ID
     JOIN dbo.Bots    AS b ON b.BotId = r.BotId
-    WHERE r.StatusId = 0;              -- ensures we don’t output rows already claimed
+    WHERE r.StatusId = 1; -- Pending             -- ensures we don’t output rows already claimed
   END
 GO
 
@@ -726,7 +726,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
       @now,
       rt.MessageHash,
       rt.Priority,
-      1, -- Delivered
+      0, -- Delivered
       ISNULL(ms.StatusDescription, N'Unknown') AS StatusDescription,
       CASE
         WHEN OBJECT_ID(N'[A2A_iMessaging].[dbo].[GetCountryCode]') IS NOT NULL
@@ -734,10 +734,10 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
         ELSE N'UNK'
       END,
       rt.CampaignId,
-      rt.CampDescription,
+      rt.CampDescription
     FROM dbo.ReadyTable AS rt
       LEFT JOIN dbo.MessageStatus AS ms
-      ON ms.StatusId = 1
+      ON ms.StatusId = 0
     WHERE rt.ID = @Id;
 
     IF @@ROWCOUNT <> 1

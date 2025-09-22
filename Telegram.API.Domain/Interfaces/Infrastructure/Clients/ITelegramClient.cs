@@ -44,6 +44,12 @@ public interface ITelegramClient
         CancellationToken ct = default);
 
     Task<bool> SendTextAsync(
+        string botToken,
+        string chatId,
+        string text,
+        CancellationToken ct = default);
+
+    Task<bool> SendTextAsync(
             string botToken,
             string chatId,
             string text,

@@ -76,6 +76,28 @@ public class TelegramClient : ITelegramClient
     }
 
     public async Task<bool> SendTextAsync(
+    string botToken,
+    string chatId,
+    string text,
+    CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(botToken)) throw new ArgumentException("Required.", nameof(botToken));
+        if (string.IsNullOrWhiteSpace(chatId)) throw new ArgumentException("Required.", nameof(chatId));
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Required.", nameof(text));
+
+        var payload = new
+        {
+            chat_id = chatId,
+            text
+        };
+
+        TelegramResponse<JsonElement> resp =
+            await PostJsonAsync<JsonElement>($"/bot{botToken}/sendMessage", payload, ct);
+        return resp.Ok;
+    }
+
+
+    public async Task<bool> SendTextAsync(
         string botToken,
         string chatId,
         string text,
