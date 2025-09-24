@@ -2,9 +2,9 @@
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Telegram.API.Application.CQRS.Commands;
-using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
+using Telegram.API.Domain.Entities.User;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
@@ -12,12 +12,12 @@ using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 namespace Telegram.API.Application.CQRS.CommandHandlers;
 
 public class SendMessageCommandHandler(
-    IUserRepository userRepository,
+    IRecipientRepository recipientRepository,
     IMessageRepository messageRepository,
     IAuthenticationService authenticationService)
     : IRequestHandler<SendMessageCommand, SendMessageCommandResult>
 {
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRecipientRepository _recipientRepository = recipientRepository;
     private readonly IAuthenticationService _authenticationService = authenticationService;
     private readonly IMessageRepository _messageRepository = messageRepository;
 
@@ -34,14 +34,14 @@ public class SendMessageCommandHandler(
             Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
 
             // Get Chat Id depending on the phone number
-            TelegramUserChat? user = await _userRepository.GetUserAsync(request.PhoneNumber, bot.BotId);
-            if (user is null || string.IsNullOrWhiteSpace(user.ChatId))
+            Recipient? recipient = await _recipientRepository.GetRecipientAsync(request.PhoneNumber, bot.BotId);
+            if (recipient is null || string.IsNullOrWhiteSpace(recipient.ChatId))
                 // If chatId is null or empty, throw an exception or the BotKey is wrong
                 throw new ChatIdNotFoundException($"Chat ID not found for phone number {request.PhoneNumber}.");
 
             // Create the TelegramMessage object and Map it
             // Adapt the tuple to TelegramMessage using Mapster
-            TelegramMessage message = (((customer, user), bot), request).Adapt<TelegramMessage>();
+            TelegramMessage message = (((customer, recipient), bot), request).Adapt<TelegramMessage>();
 
             // Call the repository to send the message
             int referenceNumber = await _messageRepository.SendMessageAsync(message);

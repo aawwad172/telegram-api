@@ -20,11 +20,11 @@ builder.Services.AddDomainServices()
                 .AddWebAPIServices(builder.Configuration);
 
 
-// builder.WebHost.ConfigureKestrel(k =>
-// {
-//     // e.g., 2 GB
-//     k.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
-// });
+builder.WebHost.ConfigureKestrel(k =>
+{
+    // e.g., 2 GB
+    k.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
+});
 
 WebApplication app = builder.Build();
 
@@ -51,10 +51,11 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
 #endregion
 
 #region User
-api.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
+api.MapGet("customer/recipient/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
     .WithTags("user")
     .WithOpenApi();
+
 #endregion
 
 #region Message
