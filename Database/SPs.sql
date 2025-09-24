@@ -116,7 +116,7 @@ GO
 
 /*******************************************
  * 2.5) usp_GetTelegramUser   (NEW)
- * Returns the TelegramUserChats row for a given BotId
+ * Returns the Recipient row for a given BotId
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
     @BotId                 INT,
@@ -125,7 +125,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
   BEGIN
     SET NOCOUNT ON;
 
-    SELECT * FROM dbo.TelegramUserChats
+    SELECT * FROM dbo.Recipient
     WHERE   BotId     = @BotId
       AND   PhoneNumber = @PhoneNumber;
   END
@@ -148,7 +148,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetChatIdsForPhones
         p.PhoneNumber,
         u.ChatId
     FROM @PhoneNumbers AS p
-    LEFT JOIN dbo.TelegramUserChats AS u
+    LEFT JOIN dbo.Recipient AS u
       ON u.BotId      = @BotId
     AND u.PhoneNumber  = p.PhoneNumber
     AND u.IsActive = 1;
@@ -512,9 +512,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBotByPublicId
 GO
 
 /*******************************************
- * 2.15) usp_TelegramUserChats_Upsert
+ * 2.15) usp_Recipient_Upsert
  *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
+CREATE OR ALTER PROCEDURE dbo.usp_Recipient_Upsert
     @BotId          INT,
     @ChatId         NVARCHAR(50),
     @PhoneNumber    NVARCHAR(32) = NULL,
@@ -527,7 +527,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
       SET NOCOUNT ON;
       DECLARE @now DATETIME = GETDATE();
 
-      UPDATE dbo.TelegramUserChats
+      UPDATE dbo.Recipient
       SET TelegramUserId          = @TelegramUserId,
           PhoneNumber             = COALESCE(@PhoneNumber, PhoneNumber),
           Username                = COALESCE(@Username, Username),
@@ -540,7 +540,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
 
       IF @@ROWCOUNT = 0
       BEGIN
-          INSERT INTO dbo.TelegramUserChats
+          INSERT INTO dbo.Recipient
               (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName, IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
           VALUES
               (@BotId, @ChatId, @TelegramUserId, @PhoneNumber, @Username, @FirstName, @IsActive, @now, @now, @now);

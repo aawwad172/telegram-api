@@ -35,12 +35,24 @@ IF OBJECT_ID('dbo.TelegramFiles','U') IS NOT NULL
   DROP TABLE dbo.TelegramFiles;
 GO
 
-IF OBJECT_ID('dbo.TelegramUserChats','U') IS NOT NULL
-  DROP TABLE dbo.TelegramUserChats;
+IF OBJECT_ID('dbo.Recipient','U') IS NOT NULL
+  DROP TABLE dbo.Recipient;
 GO
 
 IF OBJECT_ID('dbo.Bots','U') IS NOT NULL
   DROP TABLE dbo.Bots;
+GO
+
+IF OBJECT_ID('dbo.Table_SuperAdminTelegramProfile')
+  DROP TABLE dbo.Table_UserSMSProfile;
+GO
+
+IF OBJECT_ID('dbo.Table_AdminTelegramProfiles')
+  DROP TABLE dbo.Table_AdminTelegramProfiles;
+GO
+
+IF OBJECT_ID('dbo.Table_UserTelegramProfile')
+  DROP TABLE dbo.Table_UserSMSProfile;
 GO
 
 
@@ -273,12 +285,12 @@ CREATE TABLE dbo.Bots
 CREATE INDEX IX_Bots_CustomerId ON dbo.Bots(CustomerId);
 
 /*******************************************
- * 1.11) TelegramUserChats (Final schema)
+ * 1.11) Recipient (Final schema)
  *******************************************/
-CREATE TABLE dbo.TelegramUserChats
+CREATE TABLE dbo.Recipient
 (
   [BotId]                 INT          NOT NULL 
-    CONSTRAINT FK_TelegramUserChats_Bots REFERENCES dbo.Bots(BotId),
+    CONSTRAINT FK_Recipient_Bots REFERENCES dbo.Bots(BotId),
 
   [ChatId]                NVARCHAR(50) NOT NULL,         -- Telegram DM chat id (user id in DMs, may be negative for groups if reused)
   [TelegramUserId]        BIGINT       NOT NULL,         -- Id of the user in Telegram application.
@@ -292,16 +304,16 @@ CREATE TABLE dbo.TelegramUserChats
   [LastUpdatedDateTime]         DATETIME2(3) NOT NULL DEFAULT GETDATE(),
   [IsActive]              BIT          NOT NULL DEFAULT 1,
 
-  CONSTRAINT PK_TelegramUserChats PRIMARY KEY (BotId, ChatId)
+  CONSTRAINT PK_Recipient PRIMARY KEY (BotId, ChatId)
 );
 
 -- Recent/active fetch
-CREATE INDEX IX_TelegramUserChats_Bot_LastSeen
-  ON dbo.TelegramUserChats (BotId, LastSeenDateTime DESC);
+CREATE INDEX IX_Recipient_Bot_LastSeen
+  ON dbo.Recipient (BotId, LastSeenDateTime DESC);
 
 -- Helpful lookups
-CREATE UNIQUE INDEX IX_TelegramUserChats_Bot_TelegramUserId
-  ON dbo.TelegramUserChats (BotId, TelegramUserId);
+CREATE UNIQUE INDEX IX_Recipient_Bot_TelegramUserId
+  ON dbo.Recipient (BotId, TelegramUserId);
 
-CREATE INDEX IX_TelegramUserChats_Bot_Username
-  ON dbo.TelegramUserChats (BotId, Username);
+CREATE INDEX IX_Recipient_Bot_Username
+  ON dbo.Recipient (BotId, Username);
