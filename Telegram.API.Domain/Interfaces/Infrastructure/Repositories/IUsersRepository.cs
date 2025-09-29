@@ -2,7 +2,7 @@
 
 namespace Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
-public interface ICustomerRepository : IRepository<Customer>
+public interface IUsersRepository : IRepository<Customer>
 {
     Task<Customer?> GetCustomerByUsernameAsync(string username, CancellationToken cancellationToken = default);
 }

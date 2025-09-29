@@ -1,4 +1,3 @@
-
 using Telegram.API.Application;
 using Telegram.API.Domain;
 using Telegram.API.Infrastructure;
@@ -29,7 +28,7 @@ builder.WebHost.ConfigureKestrel(k =>
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -85,6 +84,10 @@ api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithName("Webhook Info")
     .WithTags("bots")
     .WithOpenApi();
+#endregion
+
+#region Portal
+
 #endregion
 
 app.Run();

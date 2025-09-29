@@ -6,14 +6,9 @@ using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace Telegram.API.Infrastructure.Persistence.Repositories;
 
-public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICustomerRepository
+public class UsersRepository(IDbConnectionFactory connectionFactory) : IUsersRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-
-    public Task<Customer> GetById(int id)
-    {
-        throw new NotImplementedException();
-    }
 
     public async Task<Customer?> GetCustomerByUsernameAsync(string username, CancellationToken cancellationToken = default)
     {
@@ -44,5 +39,10 @@ public class CustomerRepository(IDbConnectionFactory connectionFactory) : ICusto
             };
         }
         return null;
+    }
+
+    public Task<Customer> GetById(int id)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -1,26 +1,6 @@
 {
-    "github-enterprise.uri": "https://ssh.dev.azure.com",
-    "cSpell.words": [
-        "ICRUD"
-    ],
-    "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#00aaff",
-        "activityBar.background": "#00aaff",
-        "activityBar.foreground": "#15202b",
-        "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#ffdff4",
-        "activityBarBadge.foreground": "#15202b",
-        "commandCenter.border": "#e7e7e799",
-        "sash.hoverBorder": "#00aaff",
-        "statusBar.background": "#0088cc",
-        "statusBar.foreground": "#e7e7e7",
-        "statusBarItem.hoverBackground": "#00aaff",
-        "statusBarItem.remoteBackground": "#0088cc",
-        "statusBarItem.remoteForeground": "#e7e7e7",
-        "titleBar.activeBackground": "#0088cc",
-        "titleBar.activeForeground": "#e7e7e7",
-        "titleBar.inactiveBackground": "#0088cc99",
-        "titleBar.inactiveForeground": "#e7e7e799"
-    },
-    "peacock.color": "#0088CC"
+	"github-enterprise.uri": "https://ssh.dev.azure.com",
+	"cSpell.words": [
+		"ICRUD"
+	]
 }

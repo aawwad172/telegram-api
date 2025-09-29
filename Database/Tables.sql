@@ -43,15 +43,15 @@ IF OBJECT_ID('dbo.Bots','U') IS NOT NULL
   DROP TABLE dbo.Bots;
 GO
 
-IF OBJECT_ID('dbo.Table_SuperAdminTelegramProfile')
+IF OBJECT_ID('dbo.Table_SuperAdminTelegramProfile', 'U') IS NOT NULL
   DROP TABLE dbo.Table_UserSMSProfile;
 GO
 
-IF OBJECT_ID('dbo.Table_AdminTelegramProfiles')
+IF OBJECT_ID('dbo.Table_AdminTelegramProfiles', 'U') IS NOT NULL
   DROP TABLE dbo.Table_AdminTelegramProfiles;
 GO
 
-IF OBJECT_ID('dbo.Table_UserTelegramProfile')
+IF OBJECT_ID('dbo.Table_UserTelegramProfile', 'U') IS NOT NULL
   DROP TABLE dbo.Table_UserSMSProfile;
 GO
 
@@ -273,7 +273,8 @@ GO
 CREATE TABLE dbo.Bots
 (
   [BotId]                     INT           IDENTITY PRIMARY KEY,
-  [CustomerId]                INT           NOT NULL,                          -- FK to Table_UserSMSProfile.CustomerId
+  [CustomerId]                INT           NOT NULL,
+  [Name]                      NVARCHAR(50)  NOT NULL,                          -- FK to Table_UserSMSProfile.CustomerId
   [EncryptedBotKey]           NVARCHAR(256) NOT NULL  UNIQUE,                        -- encrypted token
   [PublicId]                  NVARCHAR(128) NOT NULL  UNIQUE,
   [WebhookSecret]             NVARCHAR(128) NOT NULL  UNIQUE,                -- per-bot secret_token
@@ -317,3 +318,85 @@ CREATE UNIQUE INDEX IX_Recipient_Bot_TelegramUserId
 
 CREATE INDEX IX_Recipient_Bot_Username
   ON dbo.Recipient (BotId, Username);
+
+
+/*******************************************
+  * 4) Portal tables
+  *******************************************/
+/*==============================
+  Admin
+==============================*/
+CREATE TABLE dbo.Table_AdminTelegramProfiles
+  (
+      Id              INT PRIMARY KEY,
+      CanViewContent  BIT NOT NULL CONSTRAINT DF_AdminTP_CanViewContent  DEFAULT (0),
+      IsPrepaid       BIT NOT NULL CONSTRAINT DF_AdminTP_IsPrepaid       DEFAULT (0),
+      CanViewReports  BIT NOT NULL CONSTRAINT DF_AdminTP_CanViewReports  DEFAULT (0),
+      HasOTP          BIT NOT NULL CONSTRAINT DF_AdminTP_HasOTP          DEFAULT (0),
+      CanManageUsers  BIT NOT NULL CONSTRAINT DF_AdminTP_CanManageUsers  DEFAULT (0),
+      HasOutbox       BIT NOT NULL CONSTRAINT DF_AdminTP_HasOutbox       DEFAULT (0),
+      HasSurvey       BIT NOT NULL CONSTRAINT DF_AdminTP_HasServey       DEFAULT (0),
+
+      -- hygiene (safe additions)
+      IsActive        BIT NOT NULL CONSTRAINT DF_AdminTP_IsActive        DEFAULT (1),
+      CreatedAt       DATETIME2(0)  NOT NULL CONSTRAINT DF_AdminTP_CreatedAt DEFAULT GETDATE(),
+      CreatedBy       NVARCHAR(128) NULL,
+      UpdatedAt       DATETIME2(0)  NULL,
+      UpdatedBy       NVARCHAR(128) NULL,
+      RowVer          ROWVERSION,
+
+      -- keep bits strictly 0/1 (paranoid)
+      CONSTRAINT CK_AdminTP_Bits CHECK (
+          CanViewContent IN (0,1) AND IsPrepaid IN (0,1) AND CanViewReports IN (0,1) AND
+          HasOTP IN (0,1) AND CanManageUsers IN (0,1) AND HasOutbox IN (0,1) AND HasSurvey IN (0,1) AND
+          IsActive IN (0,1)
+      )
+  );
+
+ CREATE INDEX IX_AdminTP_IsActive        ON dbo.Table_AdminTelegramProfiles(IsActive);
+
+/*==============================
+  SuperAdmin
+==============================*/
+CREATE TABLE dbo.Table_SuperAdminTelegramProfiles
+  (
+      Id              INT PRIMARY KEY,
+      CanViewContent  BIT NOT NULL CONSTRAINT DF_SuperTP_CanViewContent  DEFAULT (1),
+      IsPrepaid       BIT NOT NULL CONSTRAINT DF_SuperTP_IsPrepaid       DEFAULT (0),
+      CanViewReports  BIT NOT NULL CONSTRAINT DF_SuperTP_CanViewReports  DEFAULT (1),
+      HasOTP          BIT NOT NULL CONSTRAINT DF_SuperTP_HasOTP          DEFAULT (1),
+      CanManageUsers  BIT NOT NULL CONSTRAINT DF_SuperTP_CanManageUsers  DEFAULT (1),
+      HasOutbox       BIT NOT NULL CONSTRAINT DF_SuperTP_HasOutbox       DEFAULT (1),
+      HasSurvey       BIT NOT NULL CONSTRAINT DF_SuperTP_HasServey       DEFAULT (0),
+
+      IsActive        BIT NOT NULL CONSTRAINT DF_SuperTP_IsActive        DEFAULT (1),
+      CreatedAt       DATETIME2(0)  NOT NULL CONSTRAINT DF_SuperTP_CreatedAt DEFAULT GETDATE(),
+      CreatedBy       NVARCHAR(128) NULL,
+      UpdatedAt       DATETIME2(0)  NULL,
+      UpdatedBy       NVARCHAR(128) NULL,
+      RowVer          ROWVERSION,
+
+      CONSTRAINT CK_SuperTP_Bits CHECK (
+          CanViewContent IN (0,1) AND IsPrepaid IN (0,1) AND CanViewReports IN (0,1) AND
+          HasOTP IN (0,1) AND CanManageUsers IN (0,1) AND HasOutbox IN (0,1) AND HasSurvey IN (0,1) AND
+          IsActive IN (0,1)
+      )
+  );
+
+CREATE INDEX IX_SuperTP_IsActive        ON dbo.Table_SuperAdminTelegramProfiles(IsActive);
+
+/*==============================
+  User Telegram Profiles (bitmask)
+==============================*/
+CREATE TABLE dbo.Table_UserTelegramProfiles (
+  Id               INT          NOT NULL PRIMARY KEY,
+  CustomerId       INT          NULL,
+  PermissionsMask  BIGINT       NOT NULL DEFAULT (0),
+  OverridesAllow   BIGINT       NOT NULL DEFAULT (0),  -- optional
+  OverridesDeny    BIGINT       NOT NULL DEFAULT (0),  -- optional
+  IsActive         BIT          NOT NULL DEFAULT (1),
+  CreatedAt        DATETIME2(0) NOT NULL DEFAULT (GETDATE()),
+  RowVer           ROWVERSION
+);
+
+CREATE INDEX IX_UserTP_IsActive ON dbo.Table_UserTelegramProfiles(IsActive);

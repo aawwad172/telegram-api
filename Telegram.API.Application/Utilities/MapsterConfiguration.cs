@@ -1,5 +1,5 @@
 ﻿using Mapster;
-using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Application.CQRS.Queries;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;

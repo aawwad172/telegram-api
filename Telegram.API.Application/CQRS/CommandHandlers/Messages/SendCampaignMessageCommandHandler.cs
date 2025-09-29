@@ -1,6 +1,6 @@
 ﻿using Mapster;
 using MediatR;
-using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Entities.User;

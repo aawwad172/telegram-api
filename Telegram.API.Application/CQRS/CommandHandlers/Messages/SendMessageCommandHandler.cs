@@ -1,7 +1,7 @@
 ﻿using Mapster;
 using MediatR;
 using Microsoft.Data.SqlClient;
-using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Entities.User;
@@ -20,7 +20,6 @@ public class SendMessageCommandHandler(
     private readonly IRecipientRepository _recipientRepository = recipientRepository;
     private readonly IAuthenticationService _authenticationService = authenticationService;
     private readonly IMessageRepository _messageRepository = messageRepository;
-
     public async Task<SendMessageCommandResult> Handle(
         SendMessageCommand request,
         CancellationToken cancellationToken)
