@@ -2,7 +2,7 @@ namespace Telegram.API.Domain.Entities.Bot;
 
 public sealed class Bot
 {
-    public int BotId { get; init; }
+    public int Id { get; init; }
     public required int CustomerId { get; init; }
     public required string PublicId { get; set; }
     public required string EncryptedBotKey { get; init; }

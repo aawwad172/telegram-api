@@ -99,7 +99,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         {
             Console.WriteLine($"BotIsNotActiveException {ex.Message}");
             A2ALogger.Error($"BotIsNotActiveException {ex.Message}");
-            await HandleExceptionAsync(context, "-33", "BOT_KEY_NOT_ACTIVE", StatusCodes.Status403Forbidden);
+            await HandleExceptionAsync(context, "-33", "BOT_INACTIVE", StatusCodes.Status403Forbidden);
         }
         catch (DatabaseException ex)
         {

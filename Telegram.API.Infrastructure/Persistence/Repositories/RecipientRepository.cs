@@ -1,15 +1,15 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Data;
-using Telegram.API.Domain.Entities;
+﻿using System.Data;
+using Microsoft.Data.SqlClient;
+using Telegram.API.Domain.Entities.User;
 using Telegram.API.Domain.Interfaces.Infrastructure;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace Telegram.API.Infrastructure.Persistence.Repositories;
 
-public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepository
+public class RecipientRepository(IDbConnectionFactory connectionFactory) : IRecipientRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-    public async Task<TelegramUserChat?> GetUserAsync(string phoneNumber, int botId)
+    public async Task<Recipient?> GetRecipientAsync(string phoneNumber, int botId)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -29,7 +29,7 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
         using SqlDataReader reader = await cmd.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
-            return new TelegramUserChat
+            return new Recipient
             {
                 BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
                 ChatId = reader.GetString(reader.GetOrdinal("ChatId")),
@@ -89,4 +89,20 @@ public class UserRepository(IDbConnectionFactory connectionFactory) : IUserRepos
 
         return map;
     }
+
+    public Task DeactivateAsync(int botId, string chatId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IReadOnlyCollection<Recipient>> GetActiveChatsAsync(int botId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Recipient?> GetAsync(int botId, string chatId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
 }

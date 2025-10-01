@@ -1,9 +1,9 @@
 ﻿using Mapster;
-using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Application.CQRS.Queries;
-using Telegram.API.Domain.Entities;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
+using Telegram.API.Domain.Entities.User;
 using Telegram.API.Domain.Enums;
 
 namespace Telegram.API.Application.Utilities;
@@ -20,17 +20,17 @@ public static class MapsterConfiguration
 
         //  Add additional mappings as needed
 
-        TypeAdapterConfig<TelegramUserChat, SubscriptionInfoQueryResult>
+        TypeAdapterConfig<Recipient, SubscriptionInfoQueryResult>
             .NewConfig()
             .Map(dest => dest.ChatId, src => src.ChatId)
             .Map(dest => dest.CreationDate, src => src.CreationDateTime)
             .Map(dest => dest.Subscribed, _ => true);
 
-        TypeAdapterConfig<(((Customer customer, TelegramUserChat user) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
+        TypeAdapterConfig<(((Customer customer, Recipient recipient) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.data.customerUser.customer.CustomerId)
-            .Map(dest => dest.ChatId, src => src.data.customerUser.user.ChatId!)
-            .Map(dest => dest.BotId, src => src.data.bot.BotId)
+            .Map(dest => dest.ChatId, src => src.data.customerUser.recipient.ChatId!)
+            .Map(dest => dest.BotId, src => src.data.bot.Id)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.PhoneNumber, src => src.request.PhoneNumber)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.A.ToString())
@@ -40,7 +40,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendBatchMessagesCommand request), TelegramMessagePackage<BatchMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.BotId, src => src.customerBot.bot.BotId)
+            .Map(dest => dest.BotId, src => src.customerBot.bot.Id)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AF.ToString())
             .Map(dest => dest.CampaignId, src => $"{src.customerBot.customer.CustomerId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}")
@@ -51,7 +51,7 @@ public static class MapsterConfiguration
         TypeAdapterConfig<((Customer customer, Bot bot) customerBot, SendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customer.CustomerId)
-            .Map(dest => dest.BotId, src => src.customerBot.bot.BotId)
+            .Map(dest => dest.BotId, src => src.customerBot.bot.Id)
             .Map(dest => dest.IsSystemApproved, _ => true)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.MessageType, _ => MessageTypeEnum.AC.ToString())

@@ -1,7 +1,8 @@
-﻿using A2ASMS.Utility.Logger;
+﻿using System.Text.Json;
+using A2ASMS.Utility.Logger;
 using FluentValidation;
-using Telegram.API.Application.CQRS.Commands;
 using Telegram.API.Application.CQRS.Commands.Bots;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Application.CQRS.Queries;
 using Telegram.API.Application.CQRS.Queries.Bots;
 using Telegram.API.Domain.Settings;
@@ -32,6 +33,13 @@ public static class DependencyInjection
         {
             throw new InvalidOperationException($"Invalid LoggerType value: {configuration["AppSettings:LoggerType"]}. Valid values are: {string.Join(", ", Enum.GetNames<A2ALoggerType>())}");
         }
+
+        services.ConfigureHttpJsonOptions(o =>
+        {
+            o.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            o.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+            // PropertyNameCaseInsensitive is true by default
+        });
 
 
         A2ALoggerConfig.LogPath = appSettings!.LogPath;

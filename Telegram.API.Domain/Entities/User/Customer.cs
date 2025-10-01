@@ -1,4 +1,4 @@
-﻿namespace Telegram.API.Domain.Entities;
+﻿namespace Telegram.API.Domain.Entities.User;
 
 public class Customer
 {

@@ -1,0 +1,9 @@
+# normalize text to LF in repo; checkout as LF everywhere
+* text=auto eol=lf
+
+# windows-specific stuff can opt into CRLF if you really need it
+*.cmd eol=crlf
+*.bat eol=crlf
+
+# shell scripts should stay LF + executable
+*.sh text eol=lf

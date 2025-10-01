@@ -1,5 +1,5 @@
 using FluentValidation;
-using Telegram.API.Application.CQRS.Commands;
+using Telegram.API.Application.CQRS.Commands.Message;
 
 namespace Telegram.API.WebAPI.Validators.Commands.Messages;
 

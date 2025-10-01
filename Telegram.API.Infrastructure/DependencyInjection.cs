@@ -22,11 +22,10 @@ public static class DependencyInjection
 
         services.AddTransient<DbConnectionHealthCheck>();
         services.AddTransient<IMessageRepository, MessageRepository>();
-        services.AddTransient<ICustomerRepository, CustomerRepository>();
-        services.AddTransient<IUserRepository, UserRepository>();
+        services.AddTransient<IUsersRepository, UsersRepository>();
+        services.AddTransient<IRecipientRepository, RecipientRepository>();
         services.AddTransient<IJsonFileRepository, JsonFileRepository>();
         services.AddTransient<IBotRepository, BotRepository>();
-        services.AddTransient<ITelegramUserChatsRepository, TelegramUserChatsRepository>();
 
         services.AddOptions<TelegramOptions>()
                 .Bind(configuration.GetRequiredSection(nameof(TelegramOptions)))

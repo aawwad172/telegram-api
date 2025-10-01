@@ -2,7 +2,7 @@
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Domain;
 
-namespace Telegram.API.Application.CQRS.Commands;
+namespace Telegram.API.Application.CQRS.Commands.Message;
 
 public sealed record SendBatchMessagesCommand
     : IRequest<SendBatchMessageCommandResult>,

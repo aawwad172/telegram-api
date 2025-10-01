@@ -1,9 +1,9 @@
 ﻿using Mapster;
 using MediatR;
-using Telegram.API.Application.CQRS.Commands;
-using Telegram.API.Domain.Entities;
+using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Entities.Message;
+using Telegram.API.Domain.Entities.User;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
@@ -13,12 +13,12 @@ namespace Telegram.API.Application.CQRS.CommandHandlers;
 public class SendBatchMessageCommandHandler(
     IAuthenticationService authenticatedService,
     IMessageRepository messageRepository,
-    IUserRepository userRepository)
+    IRecipientRepository recipientRepository)
     : IRequestHandler<SendBatchMessagesCommand, SendBatchMessageCommandResult>
 {
     private readonly IAuthenticationService _authenticationService = authenticatedService;
     private readonly IMessageRepository _messageRepository = messageRepository;
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRecipientRepository _recipientRepository = recipientRepository;
     public async Task<SendBatchMessageCommandResult> Handle(SendBatchMessagesCommand request, CancellationToken cancellationToken)
     {
         Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
@@ -36,7 +36,7 @@ public class SendBatchMessageCommandHandler(
                                                   .Distinct(StringComparer.Ordinal);
 
         // 2) One DB call
-        IDictionary<string, string?> phoneToChat = await _userRepository.GetChatIdsAsync(phones, bot.BotId);
+        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id);
 
         // 3) Build messages without further DB calls
         List<BatchMessage> messages = new(request.Items.Count());

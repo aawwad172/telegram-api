@@ -1,5 +1,5 @@
-﻿using Telegram.API.Domain.Entities;
-using Telegram.API.Domain.Entities.Bot;
+﻿using Telegram.API.Domain.Entities.Bot;
+using Telegram.API.Domain.Entities.User;
 
 namespace Telegram.API.Domain.Interfaces.Application;
 

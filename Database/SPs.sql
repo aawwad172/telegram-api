@@ -37,16 +37,16 @@ CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
     DECLARE @isNew BIT=0;
       IF @isMissingChat = 0
       BEGIN
-        INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
+        INSERT dbo.Table_Telegram_RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
         SELECT @hash, NULL, @now;
         IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
       END
 
-    INSERT dbo.RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
+    INSERT dbo.Table_Telegram_RecentMessages(MessageHash, ReadyId, ReceivedDateTime)
       SELECT @hash, NULL, @now;
     IF @@ROWCOUNT = 1 SET @isNew = 1;  -- first writer wins
 
-  INSERT INTO dbo.ReadyTable
+  INSERT INTO dbo.Table_Telegram_ReadyTable
       (ChatId
       ,CustomerId
       ,BotId
@@ -84,7 +84,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Enqueue
       ,0);
 
       DECLARE @id INT = SCOPE_IDENTITY();
-      IF @isNew=1 UPDATE dbo.RecentMessages SET ReadyId=@id, ReceivedDateTime=@now WHERE MessageHash=@hash;
+      IF @isNew=1 UPDATE dbo.Table_Telegram_RecentMessages SET ReadyId=@id, ReceivedDateTime=@now WHERE MessageHash=@hash;
 
     COMMIT;
     SELECT @id AS NewId;
@@ -116,7 +116,7 @@ GO
 
 /*******************************************
  * 2.5) usp_GetTelegramUser   (NEW)
- * Returns the TelegramUserChats row for a given BotId
+ * Returns the Table_Telegram_Recipients row for a given BotId
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
     @BotId                 INT,
@@ -125,7 +125,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
   BEGIN
     SET NOCOUNT ON;
 
-    SELECT * FROM dbo.TelegramUserChats
+    SELECT * FROM dbo.Table_Telegram_Recipients
     WHERE   BotId     = @BotId
       AND   PhoneNumber = @PhoneNumber;
   END
@@ -148,7 +148,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetChatIdsForPhones
         p.PhoneNumber,
         u.ChatId
     FROM @PhoneNumbers AS p
-    LEFT JOIN dbo.TelegramUserChats AS u
+    LEFT JOIN dbo.Table_Telegram_Recipients AS u
       ON u.BotId      = @BotId
     AND u.PhoneNumber  = p.PhoneNumber
     AND u.IsActive = 1;
@@ -179,7 +179,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_AddBatchFile
 
       DECLARE @Now DATETIME = GETDATE();
 
-      INSERT INTO dbo.TelegramFiles
+      INSERT INTO dbo.Table_Telegram_TelegramFiles
       (
           CustomerId,
           BotId,
@@ -279,9 +279,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
     BEGIN TRAN;
 
     -------------------------------------------------------------
-    -- 2) NotSubscribed (skip RecentMessages)
+    -- 2) NotSubscribed (skip Table_Telegram_RecentMessages)
     -------------------------------------------------------------
-    INSERT dbo.ReadyTable
+    INSERT dbo.Table_Telegram_ReadyTable
       (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
       ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
       CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
@@ -296,7 +296,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
     -- 3) Register hashes for rows with ChatId present (1st-writer wins)
     -------------------------------------------------------------
     DECLARE @newHashes TABLE (MessageHash BINARY(32) PRIMARY KEY);
-    INSERT dbo.RecentMessages (MessageHash, ReadyId, ReceivedDateTime)
+    INSERT dbo.Table_Telegram_RecentMessages (MessageHash, ReadyId, ReceivedDateTime)
     OUTPUT inserted.MessageHash INTO @newHashes(MessageHash)
     SELECT t.MessageHash, NULL, @now
     FROM @t AS t
@@ -321,11 +321,11 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
     WHERE x.rn = 1;
 
     -------------------------------------------------------------
-    -- 5) Winners -> Ready (Pending), capture IDs to backfill RecentMessages
+    -- 5) Winners -> Ready (Pending), capture IDs to backfill Table_Telegram_RecentMessages
     -------------------------------------------------------------
     DECLARE @insNew TABLE (MessageHash BINARY(32), ReadyId INT, ReceivedDateTime DATETIME2);
 
-    INSERT dbo.ReadyTable
+    INSERT dbo.Table_Telegram_ReadyTable
       (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
       ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
       CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
@@ -341,13 +341,13 @@ CREATE OR ALTER PROCEDURE dbo.usp_ReadyTable_BulkEnqueue
     UPDATE rm
       SET rm.ReadyId = i.ReadyId,
           rm.ReceivedDateTime = i.ReceivedDateTime
-    FROM dbo.RecentMessages rm
+    FROM dbo.Table_Telegram_RecentMessages rm
     JOIN @insNew i ON i.MessageHash = rm.MessageHash;
 
     -------------------------------------------------------------
     -- 6) All other Chat-present rows -> Ready (Duplicate)
     -------------------------------------------------------------
-    INSERT dbo.ReadyTable
+    INSERT dbo.Table_Telegram_ReadyTable
       (ChatId, CustomerId, BotId, PhoneNumber, MessageText, MsgType,
       ReceivedDateTime, ScheduledSendDateTime, MessageHash, Priority,
       CampaignId, CampDescription, IsSystemApproved, Paused, StatusId)
@@ -373,7 +373,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBulkMessageByCampaignId
       SET NOCOUNT ON;
 
       SELECT *
-      FROM dbo.TelegramFiles
+      FROM dbo.Table_Telegram_TelegramFiles
       WHERE CampaignId = @CampaignId AND IsProcessed = 0 AND IsSystemApproved = 1;
   END;
 GO
@@ -390,8 +390,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveTelegramFileByCampaignId
       BEGIN TRY
           BEGIN TRANSACTION;
 
-          -- Insert into TelegramSentFiles the matching campaign
-          INSERT INTO dbo.TelegramSentFiles (
+          -- Insert into Table_Telegram_TelegramSentFiles the matching campaign
+          INSERT INTO dbo.Table_Telegram_TelegramSentFiles (
               CustomerId, BotId, MsgText, MsgType, Priority,
               FilePath, FileType, CampaignId, CampDescription,
               ScheduledSendDateTime, CreationDate, IsProcessed
@@ -400,11 +400,11 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveTelegramFileByCampaignId
               CustomerId, BotId, MsgText, MsgType, Priority,
               FilePath, FileType, CampaignId, CampDescription,
               ScheduledSendDateTime, CreationDate, 1
-          FROM dbo.TelegramFiles
+          FROM dbo.Table_Telegram_TelegramFiles
           WHERE CampaignId = @CampaignId;
 
-          -- Delete from TelegramFiles after successful insert
-          DELETE FROM dbo.TelegramFiles
+          -- Delete from Table_Telegram_TelegramFiles after successful insert
+          DELETE FROM dbo.Table_Telegram_TelegramFiles
           WHERE CampaignId = @CampaignId;
 
           COMMIT TRANSACTION;
@@ -428,8 +428,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBotById
   BEGIN
     SET NOCOUNT ON;
 
-    SELECT TOP 1 * FROM dbo.Bots
-    WHERE BotId = @BotId
+    SELECT TOP 1 * FROM dbo.Table_Telegram_Bots
+    WHERE Id = @BotId
     AND CustomerId = @CustomerId
   END
 GO
@@ -444,9 +444,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_Bot_UpdateActivity
   BEGIN
       SET NOCOUNT ON;
 
-      UPDATE dbo.Bots
+      UPDATE dbo.Table_Telegram_Bots
       SET IsActive = @IsActive
-      WHERE BotId = @BotId;
+      WHERE Id = @BotId;
   END
 GO
 
@@ -454,6 +454,7 @@ GO
  * 2.13) usp_Bot_CreateBot
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
+    @BotName          NVARCHAR(50),
     @CustomerId       INT,
     @IsActive         BIT,
     @PublicId         NVARCHAR(128),
@@ -464,7 +465,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
   BEGIN
       SET NOCOUNT ON;
 
-      INSERT INTO dbo.Bots (
+      INSERT INTO dbo.Table_Telegram_Bots (
+          Name,
           CustomerId,
           IsActive,
           PublicId,
@@ -474,6 +476,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
           CreationDateTime
       )
       VALUES (
+          @BotName,
           @CustomerId,
           @IsActive,
           @PublicId,
@@ -484,8 +487,8 @@ CREATE OR ALTER PROCEDURE dbo.usp_Bot_CreateBot
       );
 
     SELECT *
-    FROM dbo.Bots
-    WHERE BotId = SCOPE_IDENTITY();
+    FROM dbo.Table_Telegram_Bots
+    WHERE Id = SCOPE_IDENTITY();
   END
 GO
 /*******************************************
@@ -498,7 +501,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBotByPublicId
       SET NOCOUNT ON;
 
       SELECT TOP 1
-          BotId,
+          Id,
           CustomerId,
           EncryptedBotKey,
           PublicId,
@@ -506,15 +509,15 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBotByPublicId
           WebhookUrl,
           IsActive,
           CreationDateTime
-      FROM dbo.Bots
+      FROM dbo.Table_Telegram_Bots
       WHERE PublicId = @PublicId;
   END
 GO
 
 /*******************************************
- * 2.15) usp_TelegramUserChats_Upsert
+ * 2.15) usp_Recipient_Upsert
  *******************************************/
-CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
+CREATE OR ALTER PROCEDURE dbo.usp_Recipient_Upsert
     @BotId          INT,
     @ChatId         NVARCHAR(50),
     @PhoneNumber    NVARCHAR(32) = NULL,
@@ -527,7 +530,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
       SET NOCOUNT ON;
       DECLARE @now DATETIME = GETDATE();
 
-      UPDATE dbo.TelegramUserChats
+      UPDATE dbo.Table_Telegram_Recipients
       SET TelegramUserId          = @TelegramUserId,
           PhoneNumber             = COALESCE(@PhoneNumber, PhoneNumber),
           Username                = COALESCE(@Username, Username),
@@ -540,7 +543,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_TelegramUserChats_Upsert
 
       IF @@ROWCOUNT = 0
       BEGIN
-          INSERT INTO dbo.TelegramUserChats
+          INSERT INTO dbo.Table_Telegram_Recipients
               (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName, IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
           VALUES
               (@BotId, @ChatId, @TelegramUserId, @PhoneNumber, @Username, @FirstName, @IsActive, @now, @now, @now);
@@ -585,7 +588,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
 
       ;WITH pick AS (
         SELECT TOP (@BatchSize) *
-        FROM dbo.ReadyTable WITH (READPAST, ROWLOCK)
+        FROM dbo.Table_Telegram_ReadyTable WITH (READPAST, ROWLOCK)
         WHERE StatusId IN (-1, -2, 20)
         ORDER BY ID
       )
@@ -607,7 +610,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
 
       IF @moved > 0
       BEGIN
-        INSERT dbo.ArchiveTable
+        INSERT dbo.Table_Telegram_ArchiveTable
         (ID, CustomerId, ChatId, BotId, PhoneNumber, MessageText, MsgType,
          ReceivedDateTime, ScheduledSendDateTime, GatewayDateTime,
          MessageHash, Priority, StatusId, StatusDescription, MobileCountry,
@@ -622,7 +625,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveReady_NegativeStatuses_Daily
               ELSE N'UNK' END,
           d.CampaignId, d.CampDescription
         FROM @del AS d
-        LEFT JOIN dbo.MessageStatus AS ms
+        LEFT JOIN dbo.Table_Telegram_MessageStatus AS ms
           ON ms.StatusId = d.StatusId;
 
         DELETE FROM @del; -- clear buffer for next loop
@@ -656,7 +659,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
           PARTITION BY r.ChatId
           ORDER BY r.Priority DESC, r.ReceivedDateTime ASC
         ) AS rn
-      FROM dbo.ReadyTable AS r WITH (READPAST, ROWLOCK)
+      FROM dbo.Table_Telegram_ReadyTable AS r WITH (READPAST, ROWLOCK)
       WHERE r.ScheduledSendDateTime <= GETDATE()
         AND r.StatusId = 1            -- Pending
     ),
@@ -673,9 +676,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetPendingReadyMessages
           inserted.MessageText,
           inserted.ChatId,
           b.EncryptedBotKey
-    FROM dbo.ReadyTable AS r WITH (ROWLOCK, READPAST)
-    JOIN picks       AS p ON p.ID = r.ID
-    JOIN dbo.Bots    AS b ON b.BotId = r.BotId
+    FROM dbo.Table_Telegram_ReadyTable AS r WITH (ROWLOCK, READPAST)
+    JOIN picks       AS p ON p.Id = r.Id
+    JOIN dbo.Table_Telegram_Bots    AS b ON b.Id = r.BotId
     WHERE r.StatusId = 1; -- Pending             -- ensures we don’t output rows already claimed
   END
 GO
@@ -684,7 +687,7 @@ GO
  * 3.2) usp_ArchiveAndDeleteQueuedMessage
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
-  @Id INT  -- this is the ReadyTable.ID
+  @Id INT  -- this is the Table_Telegram_ReadyTable.ID
   AS
   BEGIN
     SET NOCOUNT ON;
@@ -695,7 +698,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
 
     DECLARE @now DATETIME = GETDATE();
 
-    INSERT INTO dbo.ArchiveTable
+    INSERT INTO dbo.Table_Telegram_ArchiveTable
       (ID,
        CustomerId,
        ChatId,
@@ -735,15 +738,15 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
       END,
       rt.CampaignId,
       rt.CampDescription
-    FROM dbo.ReadyTable AS rt
-      LEFT JOIN dbo.MessageStatus AS ms
+    FROM dbo.Table_Telegram_ReadyTable AS rt
+      LEFT JOIN dbo.Table_Telegram_MessageStatus AS ms
       ON ms.StatusId = 0
     WHERE rt.ID = @Id;
 
     IF @@ROWCOUNT <> 1
       THROW 51001, 'Archive failed: Ready.ID not found or duplicate insert blocked.', 1;
 
-    DELETE FROM dbo.ReadyTable
+    DELETE FROM dbo.Table_Telegram_ReadyTable
     WHERE ID = @Id;
 
     IF @@ROWCOUNT <> 1

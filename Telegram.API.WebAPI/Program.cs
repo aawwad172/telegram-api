@@ -1,4 +1,3 @@
-
 using Telegram.API.Application;
 using Telegram.API.Domain;
 using Telegram.API.Infrastructure;
@@ -20,16 +19,16 @@ builder.Services.AddDomainServices()
                 .AddWebAPIServices(builder.Configuration);
 
 
-// builder.WebHost.ConfigureKestrel(k =>
-// {
-//     // e.g., 2 GB
-//     k.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
-// });
+builder.WebHost.ConfigureKestrel(k =>
+{
+    // e.g., 2 GB
+    k.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
+});
 
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -51,10 +50,11 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
 #endregion
 
 #region User
-api.MapGet("customer/user/subscription", SubscriptionInfo.RegisterRoute)
+api.MapGet("customer/recipient/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
-    .WithTags("user")
+    .WithTags("recipients")
     .WithOpenApi();
+
 #endregion
 
 #region Message
@@ -85,5 +85,6 @@ api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithTags("bots")
     .WithOpenApi();
 #endregion
+
 
 app.Run();

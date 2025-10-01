@@ -1,6 +1,6 @@
-﻿namespace Telegram.API.Domain.Entities;
+﻿namespace Telegram.API.Domain.Entities.User;
 
-public sealed class TelegramUserChat
+public sealed class Recipient
 {
     public required int BotId { get; set; }
     public required string ChatId { get; set; }

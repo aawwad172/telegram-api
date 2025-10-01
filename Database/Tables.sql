@@ -2,24 +2,24 @@
  * 0) Dropping Tables
  *******************************************/
 
-IF OBJECT_ID('dbo.ReadyTable','U') IS NOT NULL
-  DROP TABLE dbo.ReadyTable;
+IF OBJECT_ID('dbo.Table_Telegram_ReadyTable','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_ReadyTable;
 GO
 
-IF OBJECT_ID('dbo.ArchiveTable', 'U') IS NOT NULL
-  DROP TABLE dbo.ArchiveTable;
+IF OBJECT_ID('dbo.Table_Telegram_ArchiveTable', 'U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_ArchiveTable;
 GO
 
- IF OBJECT_ID('dbo.MessageStatus','U') IS NOT NULL
-  DROP TABLE dbo.MessageStatus;
+ IF OBJECT_ID('dbo.Table_Telegram_MessageStatus','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_MessageStatus;
 GO
 
-IF OBJECT_ID('dbo.RecentMessages','U') IS NOT NULL
-  DROP TABLE dbo.RecentMessages;
+IF OBJECT_ID('dbo.Table_Telegram_RecentMessages','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_RecentMessages;
 GO
 
-IF OBJECT_ID('dbo.TelegramSentFiles','U') IS NOT NULL
-  DROP TABLE dbo.TelegramSentFiles;
+IF OBJECT_ID('dbo.Table_Telegram_TelegramSentFiles','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_TelegramSentFiles;
 GO
 
 -- Drop TVPs safely (use TYPE_ID for types)
@@ -31,29 +31,41 @@ IF TYPE_ID(N'dbo.TelegramMessage_Tvp') IS NOT NULL
   DROP TYPE dbo.TelegramMessage_Tvp;
 GO
 
-IF OBJECT_ID('dbo.TelegramFiles','U') IS NOT NULL
-  DROP TABLE dbo.TelegramFiles;
+IF OBJECT_ID('dbo.Table_Telegram_TelegramFiles','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_TelegramFiles;
 GO
 
-IF OBJECT_ID('dbo.TelegramUserChats','U') IS NOT NULL
-  DROP TABLE dbo.TelegramUserChats;
+IF OBJECT_ID('dbo.Table_Telegram_Recipients','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_Recipients;
 GO
 
-IF OBJECT_ID('dbo.Bots','U') IS NOT NULL
-  DROP TABLE dbo.Bots;
+IF OBJECT_ID('dbo.Table_Telegram_Bots','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_Bots;
+GO
+
+IF OBJECT_ID('dbo.Table_Telegram_SuperAdminTelegramProfiles', 'U') IS NOT NULL
+   DROP TABLE dbo.Table_Telegram_SuperAdminTelegramProfiles; 
+GO
+
+IF OBJECT_ID('dbo.Table_Telegram_AdminTelegramProfiles', 'U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_AdminTelegramProfiles;
+GO
+
+IF OBJECT_ID('dbo.Table_Telegram_UserTelegramProfiles', 'U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_UserTelegramProfiles;
 GO
 
 
 /*******************************************
- * 1.1) MessageStatus: Enum for message status
+ * 1.1) Table_Telegram_MessageStatus: Enum for message status
  *******************************************/
-CREATE TABLE dbo.MessageStatus (
-    StatusID SMALLINT NOT NULL PRIMARY KEY,
+CREATE TABLE dbo.Table_Telegram_MessageStatus (
+    Id                SMALLINT NOT NULL PRIMARY KEY,
     StatusDescription NVARCHAR(50) NOT NULL UNIQUE
 );
 
 -- Insert your enum values
-INSERT INTO dbo.MessageStatus (StatusID, StatusDescription)
+INSERT INTO dbo.Table_Telegram_MessageStatus (Id, StatusDescription)
 VALUES 
     (4, 'In Flight'),
     (3, 'Failed'),
@@ -65,11 +77,11 @@ VALUES
     (20, 'Duplicate');
 
 /*******************************************
- * 1.2) ReadyTable: pending messages queue
+ * 1.2) Table_Telegram_ReadyTable: pending messages queue
  *******************************************/
-CREATE TABLE dbo.ReadyTable
+CREATE TABLE dbo.Table_Telegram_ReadyTable
 (
-  [ID]           			    INT					          IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
+  [Id]           			    INT					          IDENTITY(1,1) NOT NULL CONSTRAINT PK_ReadyTable PRIMARY KEY CLUSTERED,
   [CustomerId]			      INT				 	          NOT NULL,
   [ChatId]       			    NVARCHAR(50)          NULL,
   [BotId]                 INT  		              NOT NULL,
@@ -87,35 +99,35 @@ CREATE TABLE dbo.ReadyTable
   [Paused]				        BIT					          NOT NULL,
 
   CONSTRAINT FK_ReadyTable_Status FOREIGN KEY (StatusId) 
-      REFERENCES dbo.MessageStatus(StatusID)
+      REFERENCES dbo.Table_Telegram_MessageStatus(Id)
   );
 GO
 
 CREATE NONCLUSTERED INDEX IX_ReadyTable_MessageHash_ReadyDate
-  ON dbo.ReadyTable (MessageHash, ID);
+  ON dbo.Table_Telegram_ReadyTable (MessageHash, Id);
 GO
 
 CREATE NONCLUSTERED INDEX IX_ReadyTable_ID_Priority
-  ON dbo.ReadyTable (ID, Priority);
+  ON dbo.Table_Telegram_ReadyTable (Id, Priority);
 GO
 
 CREATE NONCLUSTERED INDEX IX_ReadyTable_ChatId_Null
-    ON dbo.ReadyTable (ID)
+    ON dbo.Table_Telegram_ReadyTable (Id)
     WHERE ChatId IS NULL;
 GO
 
 CREATE NONCLUSTERED INDEX IX_Ready_Pending_ID 
-    ON dbo.ReadyTable(ID) 
-  WHERE StatusId = 0;
+    ON dbo.Table_Telegram_ReadyTable(Id) 
+  WHERE StatusId = 1;  -- Pending
 GO
 
 
 /*******************************************
- * 1.3) ArchiveTable: all sent or deduped msgs
+ * 1.3) Table_Telegram_ArchiveTable: all sent or deduped msgs
  *******************************************/
-CREATE TABLE dbo.ArchiveTable
+CREATE TABLE dbo.Table_Telegram_ArchiveTable
 (
-  [ID]                      INT             NOT NULL,  -- surrogate PK
+  [Id]                      INT             NOT NULL,  -- surrogate PK
   [CustomerId]              INT             NOT NULL,
   [ChatId]                  NVARCHAR(50)    NULL,
   [BotId]                   INT             NOT NULL,
@@ -135,20 +147,20 @@ CREATE TABLE dbo.ArchiveTable
   [CampaignId]              NVARCHAR(128)    NULL,
   [CampDescription]         NVARCHAR(512)   NULL,
 
-  CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (ID),
+  CONSTRAINT PK_ArchiveTable_ID PRIMARY KEY CLUSTERED (Id),
   CONSTRAINT FK_ArchiveTable_Status FOREIGN KEY (StatusId) 
-      REFERENCES dbo.MessageStatus(StatusID)
+      REFERENCES dbo.Table_Telegram_MessageStatus(Id)
 );
 GO
 
 CREATE NONCLUSTERED INDEX IX_ArchiveTable_MessageHash
-  ON dbo.ArchiveTable (MessageHash);
+  ON dbo.Table_Telegram_ArchiveTable (MessageHash);
 GO
 
 /*******************************************
- * 1.4) RecentMessages: 5-minute dedupe window
+ * 1.4) Table_Telegram_RecentMessages: 5-minute dedupe window
  *******************************************/
-CREATE TABLE dbo.RecentMessages
+CREATE TABLE dbo.Table_Telegram_RecentMessages
 (
   MessageHash  		    BINARY(32)     NOT NULL,
   ReceivedDateTime      DATETIME      NOT NULL,
@@ -157,23 +169,23 @@ CREATE TABLE dbo.RecentMessages
 GO
 
 CREATE NONCLUSTERED INDEX IX_RecentMessages_ReadyDate
-  ON dbo.RecentMessages (ReceivedDateTime);
+  ON dbo.Table_Telegram_RecentMessages (ReceivedDateTime);
 GO
 
 CREATE NONCLUSTERED INDEX IX_RecentMessages_ReadyId
-  ON dbo.RecentMessages (ReadyId);
+  ON dbo.Table_Telegram_RecentMessages (ReadyId);
 GO
 
 CREATE UNIQUE INDEX UX_RecentMessages_MessageHash 
-  ON dbo.RecentMessages(MessageHash) WITH (IGNORE_DUP_KEY = ON);
+  ON dbo.Table_Telegram_RecentMessages(MessageHash) WITH (IGNORE_DUP_KEY = ON);
 GO
 
 /*******************************************
- * 1.6) TelegramSentFiles: Table for files sent via Telegram (Batch or Campaign)
+ * 1.6) Table_Telegram_TelegramSentFiles: Table for files sent via Telegram (Batch or Campaign)
  *******************************************/
-CREATE TABLE dbo.TelegramSentFiles
+CREATE TABLE dbo.Table_Telegram_TelegramSentFiles
 (
-  [ID]                            BIGINT IDENTITY(1,1) NOT NULL
+  [Id]                            BIGINT IDENTITY(1,1) NOT NULL
       CONSTRAINT PK_TelegramSentFiles PRIMARY KEY,
 
   [CustomerId]                    INT            NOT NULL,
@@ -193,7 +205,7 @@ GO
 
 -- Helpful indexes
 CREATE INDEX IX_TelegramSentFiles_Campaign
-  ON dbo.TelegramSentFiles (CampaignId);
+  ON dbo.Table_Telegram_TelegramSentFiles (CampaignId);
 
 
  /*******************************************
@@ -228,13 +240,13 @@ CREATE TYPE dbo.TelegramMessage_Tvp AS TABLE
 GO
 
 /*******************************************
- * 1.9) TelegramFiles: Table for files to be processed via Telegram (Batch or Campaign)
+ * 1.9) Table_Telegram_TelegramFiles: Table for files to be processed via Telegram (Batch or Campaign)
  *******************************************/
   -- Table to store batch files to be processed
 
-CREATE TABLE dbo.TelegramFiles
+CREATE TABLE dbo.Table_Telegram_TelegramFiles
 (
-  [ID]                     BIGINT IDENTITY(1,1) NOT NULL
+  [Id]                     BIGINT IDENTITY(1,1) NOT NULL
       CONSTRAINT PK_TelegramFiles PRIMARY KEY,
 
   [CustomerId]                    INT            NOT NULL,
@@ -255,13 +267,14 @@ CREATE TABLE dbo.TelegramFiles
 GO
 
 /*******************************************
- * 1.10) Bots: Table for storing bot information
+ * 1.10) Table_Telegram_Bots: Table for storing bot information
  *******************************************/
 
-CREATE TABLE dbo.Bots
+CREATE TABLE dbo.Table_Telegram_Bots
 (
-  [BotId]                     INT           IDENTITY PRIMARY KEY,
-  [CustomerId]                INT           NOT NULL,                          -- FK to Table_UserSMSProfile.CustomerId
+  [Id]                        INT           IDENTITY PRIMARY KEY,
+  [Name]                      NVARCHAR(50)  NOT NULL,                          -- Bot name
+  [CustomerId]                INT           NOT NULL, -- FK to Table_UserSMSProfile.CustomerId
   [EncryptedBotKey]           NVARCHAR(256) NOT NULL  UNIQUE,                        -- encrypted token
   [PublicId]                  NVARCHAR(128) NOT NULL  UNIQUE,
   [WebhookSecret]             NVARCHAR(128) NOT NULL  UNIQUE,                -- per-bot secret_token
@@ -270,15 +283,15 @@ CREATE TABLE dbo.Bots
   [CreationDateTime]          DATETIME2     NOT NULL DEFAULT GETDATE()
 );
 
-CREATE INDEX IX_Bots_CustomerId ON dbo.Bots(CustomerId);
+CREATE INDEX IX_Bots_CustomerId ON dbo.Table_Telegram_Bots(CustomerId);
 
 /*******************************************
- * 1.11) TelegramUserChats (Final schema)
+ * 1.11) Table_Telegram_Recipients (Final schema)
  *******************************************/
-CREATE TABLE dbo.TelegramUserChats
+CREATE TABLE dbo.Table_Telegram_Recipients
 (
   [BotId]                 INT          NOT NULL 
-    CONSTRAINT FK_TelegramUserChats_Bots REFERENCES dbo.Bots(BotId),
+    CONSTRAINT FK_Recipient_Bots REFERENCES dbo.Table_Telegram_Bots(Id),
 
   [ChatId]                NVARCHAR(50) NOT NULL,         -- Telegram DM chat id (user id in DMs, may be negative for groups if reused)
   [TelegramUserId]        BIGINT       NOT NULL,         -- Id of the user in Telegram application.
@@ -292,16 +305,98 @@ CREATE TABLE dbo.TelegramUserChats
   [LastUpdatedDateTime]         DATETIME2(3) NOT NULL DEFAULT GETDATE(),
   [IsActive]              BIT          NOT NULL DEFAULT 1,
 
-  CONSTRAINT PK_TelegramUserChats PRIMARY KEY (BotId, ChatId)
+  CONSTRAINT PK_Recipient PRIMARY KEY (BotId, ChatId)
 );
 
 -- Recent/active fetch
-CREATE INDEX IX_TelegramUserChats_Bot_LastSeen
-  ON dbo.TelegramUserChats (BotId, LastSeenDateTime DESC);
+CREATE INDEX IX_Recipient_Bot_LastSeen
+  ON dbo.Table_Telegram_Recipients (BotId, LastSeenDateTime DESC);
 
 -- Helpful lookups
-CREATE UNIQUE INDEX IX_TelegramUserChats_Bot_TelegramUserId
-  ON dbo.TelegramUserChats (BotId, TelegramUserId);
+CREATE UNIQUE INDEX IX_Recipient_Bot_TelegramUserId
+  ON dbo.Table_Telegram_Recipients (BotId, TelegramUserId);
 
-CREATE INDEX IX_TelegramUserChats_Bot_Username
-  ON dbo.TelegramUserChats (BotId, Username);
+CREATE INDEX IX_Recipient_Bot_Username
+  ON dbo.Table_Telegram_Recipients (BotId, Username);
+
+
+/*******************************************
+  * 4) Portal tables
+  *******************************************/
+/*==============================
+  Admin
+==============================*/
+CREATE TABLE dbo.Table_Telegram_AdminTelegramProfiles
+  (
+      Id              INT PRIMARY KEY,
+      CanViewContent  BIT NOT NULL CONSTRAINT DF_AdminTP_CanViewContent  DEFAULT (0),
+      IsPrepaid       BIT NOT NULL CONSTRAINT DF_AdminTP_IsPrepaid       DEFAULT (0),
+      CanViewReports  BIT NOT NULL CONSTRAINT DF_AdminTP_CanViewReports  DEFAULT (0),
+      HasOTP          BIT NOT NULL CONSTRAINT DF_AdminTP_HasOTP          DEFAULT (0),
+      CanManageUsers  BIT NOT NULL CONSTRAINT DF_AdminTP_CanManageUsers  DEFAULT (0),
+      HasOutbox       BIT NOT NULL CONSTRAINT DF_AdminTP_HasOutbox       DEFAULT (0),
+      HasSurvey       BIT NOT NULL CONSTRAINT DF_AdminTP_HasSurvey       DEFAULT (0),
+
+      -- hygiene (safe additions)
+      IsActive        BIT NOT NULL CONSTRAINT DF_AdminTP_IsActive        DEFAULT (1),
+      CreatedAt       DATETIME2(0)  NOT NULL CONSTRAINT DF_AdminTP_CreatedAt DEFAULT GETDATE(),
+      CreatedBy       NVARCHAR(128) NULL,
+      UpdatedAt       DATETIME2(0)  NULL,
+      UpdatedBy       NVARCHAR(128) NULL,
+      RowVer          ROWVERSION,
+
+      -- keep bits strictly 0/1 (paranoid)
+      CONSTRAINT CK_AdminTP_Bits CHECK (
+          CanViewContent IN (0,1) AND IsPrepaid IN (0,1) AND CanViewReports IN (0,1) AND
+          HasOTP IN (0,1) AND CanManageUsers IN (0,1) AND HasOutbox IN (0,1) AND HasSurvey IN (0,1) AND
+          IsActive IN (0,1)
+      )
+  );
+
+ CREATE INDEX IX_AdminTP_IsActive        ON dbo.Table_Telegram_AdminTelegramProfiles(IsActive);
+
+/*==============================
+  SuperAdmin
+==============================*/
+CREATE TABLE dbo.Table_SuperAdminTelegramProfiles
+  (
+      Id              INT PRIMARY KEY,
+      CanViewContent  BIT NOT NULL CONSTRAINT DF_SuperTP_CanViewContent  DEFAULT (1),
+      IsPrepaid       BIT NOT NULL CONSTRAINT DF_SuperTP_IsPrepaid       DEFAULT (0),
+      CanViewReports  BIT NOT NULL CONSTRAINT DF_SuperTP_CanViewReports  DEFAULT (1),
+      HasOTP          BIT NOT NULL CONSTRAINT DF_SuperTP_HasOTP          DEFAULT (1),
+      CanManageUsers  BIT NOT NULL CONSTRAINT DF_SuperTP_CanManageUsers  DEFAULT (1),
+      HasOutbox       BIT NOT NULL CONSTRAINT DF_SuperTP_HasOutbox       DEFAULT (1),
+      HasSurvey       BIT NOT NULL CONSTRAINT DF_SuperTP_HasSurvey       DEFAULT (0),
+
+      IsActive        BIT NOT NULL CONSTRAINT DF_SuperTP_IsActive        DEFAULT (1),
+      CreatedAt       DATETIME2(0)  NOT NULL CONSTRAINT DF_SuperTP_CreatedAt DEFAULT GETDATE(),
+      CreatedBy       NVARCHAR(128) NULL,
+      UpdatedAt       DATETIME2(0)  NULL,
+      UpdatedBy       NVARCHAR(128) NULL,
+      RowVer          ROWVERSION,
+
+      CONSTRAINT CK_SuperTP_Bits CHECK (
+          CanViewContent IN (0,1) AND IsPrepaid IN (0,1) AND CanViewReports IN (0,1) AND
+          HasOTP IN (0,1) AND CanManageUsers IN (0,1) AND HasOutbox IN (0,1) AND HasSurvey IN (0,1) AND
+          IsActive IN (0,1)
+      )
+  );
+
+CREATE INDEX IX_SuperTP_IsActive        ON dbo.Table_SuperAdminTelegramProfiles(IsActive);
+
+/*==============================
+  User Telegram Profiles (bitmask)
+==============================*/
+CREATE TABLE dbo.Table_Telegram_UserTelegramProfiles (
+  Id               INT          NOT NULL PRIMARY KEY,
+  CustomerId       INT          NULL,
+  PermissionsMask  BIGINT       NOT NULL DEFAULT (0),
+  OverridesAllow   BIGINT       NOT NULL DEFAULT (0),  -- optional
+  OverridesDeny    BIGINT       NOT NULL DEFAULT (0),  -- optional
+  IsActive         BIT          NOT NULL DEFAULT (1),
+  CreatedAt        DATETIME2(0) NOT NULL DEFAULT (GETDATE()),
+  RowVer           ROWVERSION
+);
+
+CREATE INDEX IX_UserTP_IsActive ON dbo.Table_Telegram_UserTelegramProfiles(IsActive);

@@ -1,15 +1,15 @@
-﻿using Telegram.API.Domain.Entities;
-using Telegram.API.Domain.Entities.Bot;
+﻿using Telegram.API.Domain.Entities.Bot;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Application;
 using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 using A2ASMS.Utility.Data;
+using Telegram.API.Domain.Entities.User;
 
 namespace Telegram.API.Application.HelperServices;
 
-public class AuthenticationService(ICustomerRepository customerRepository, IBotRepository botRepository) : IAuthenticationService
+public class AuthenticationService(IUsersRepository customerRepository, IBotRepository botRepository) : IAuthenticationService
 {
-    private readonly ICustomerRepository _customerRepository = customerRepository;
+    private readonly IUsersRepository _customerRepository = customerRepository;
     private readonly IBotRepository _botRepository = botRepository;
 
     /// <summary>
