@@ -31,7 +31,7 @@ public class SubscriptionInfoQueryHandler(
                 throw new UnauthorizedException("Invalid Bot Key.");
 
 
-            Recipient? user = await _userRepository.GetRecipientAsync(request.PhoneNumber, bot.BotId) ?? throw new NotFoundException("User Not Subscribed!");
+            Recipient? user = await _userRepository.GetRecipientAsync(request.PhoneNumber, bot.Id) ?? throw new NotFoundException("User Not Subscribed!");
 
             SubscriptionInfoQueryResult result = user.Adapt<SubscriptionInfoQueryResult>();
 

@@ -25,14 +25,15 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         { Value = customerId }
         );
 
-        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
         cmd.CommandTimeout = 30;
+        using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
         if (!await reader.ReadAsync())
             return null; // Not Found
 
         return new Bot
         {
-            BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
+            Id = reader.GetInt32(reader.GetOrdinal("Id")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
@@ -62,7 +63,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         // map
         return new Bot
         {
-            BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
+            Id = reader.GetInt32(reader.GetOrdinal("Id")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             PublicId = reader.GetString(reader.GetOrdinal("PublicId")),
@@ -99,7 +100,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         {
             return new Bot
             {
-                BotId = reader.GetInt32(reader.GetOrdinal("BotId")),
+                Id = reader.GetInt32(reader.GetOrdinal("Id")),
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 PublicId = reader.GetString(reader.GetOrdinal("PublicId")),

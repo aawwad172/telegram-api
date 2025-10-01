@@ -36,7 +36,7 @@ public class SendBatchMessageCommandHandler(
                                                   .Distinct(StringComparer.Ordinal);
 
         // 2) One DB call
-        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.BotId);
+        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id);
 
         // 3) Build messages without further DB calls
         List<BatchMessage> messages = new(request.Items.Count());

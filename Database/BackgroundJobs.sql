@@ -4,8 +4,8 @@ USE msdb;
 GO
 
 -- 3.1 Drop existing job & schedule if present
-IF EXISTS (SELECT 1 FROM dbo.sysjobs_view WHERE name = N'Purge RecentMessages')
-  EXEC dbo.sp_delete_job @job_name = N'Purge RecentMessages', @delete_unused_schedule = 1;
+IF EXISTS (SELECT 1 FROM dbo.sysjobs_view WHERE name = N'Purge Table_Telegram_RecentMessages')
+  EXEC dbo.sp_delete_job @job_name = N'Purge Table_Telegram_RecentMessages', @delete_unused_schedule = 1;
 GO
 IF EXISTS (SELECT 1 FROM dbo.sysschedules WHERE name = N'Every 1 Minute')
   EXEC dbo.sp_delete_schedule @schedule_name = N'Every 1 Minute';
@@ -13,19 +13,19 @@ GO
 
 -- 3.2 Create the job
 EXEC dbo.sp_add_job
-  @job_name    = N'Purge RecentMessages',
+  @job_name    = N'Purge Table_Telegram_RecentMessages',
   @enabled     = 1,
-  @description = N'Delete entries older than 5 minutes from RecentMessages';
+  @description = N'Delete entries older than 5 minutes from Table_Telegram_RecentMessages';
 GO
 
 -- 3.3 Add the T-SQL step
 EXEC dbo.sp_add_jobstep
-  @job_name      = N'Purge RecentMessages',
+  @job_name      = N'Purge Table_Telegram_RecentMessages',
   @step_name     = N'Delete aged rows',
   @subsystem     = N'TSQL',
   @database_name = N'YourDatabaseName', -- Add your DB name here
   @command       = N'
-    DELETE FROM dbo.RecentMessages
+    DELETE FROM dbo.Table_Telegram_RecentMessages
     WHERE ReceivedDateTime < DATEADD(MINUTE, -5, GETDATE());
   ';
 GO
@@ -43,13 +43,13 @@ GO
 
 -- 3.5 Attach schedule to job
 EXEC dbo.sp_attach_schedule
-  @job_name      = N'Purge RecentMessages',
+  @job_name      = N'Purge Table_Telegram_RecentMessages',
   @schedule_name = N'Every 1 Minute';
 GO
 
 -- 3.6 Target local server
 EXEC dbo.sp_add_jobserver
-  @job_name    = N'Purge RecentMessages',
+  @job_name    = N'Purge Table_Telegram_RecentMessages',
   @server_name = N'(LOCAL)';
 GO
 

@@ -52,7 +52,7 @@ app.MapGet("/health", HealthCheck.RegisterRoute)
 #region User
 api.MapGet("customer/recipient/subscription", SubscriptionInfo.RegisterRoute)
     .WithName("Subscription Info")
-    .WithTags("user")
+    .WithTags("recipients")
     .WithOpenApi();
 
 #endregion
@@ -86,8 +86,5 @@ api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithOpenApi();
 #endregion
 
-#region Portal
-
-#endregion
 
 app.Run();

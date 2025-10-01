@@ -31,7 +31,7 @@ public class SendCampaignMessageCommandHandler(
                                                   .Where(x => !string.IsNullOrWhiteSpace(x))
                                                   .Distinct(StringComparer.Ordinal);
 
-        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.BotId);
+        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id);
 
         // 3) Build messages without further DB calls
         List<CampaignMessage> messages = new(request.Items.Count());

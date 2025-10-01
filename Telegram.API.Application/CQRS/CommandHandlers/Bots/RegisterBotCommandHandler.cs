@@ -64,7 +64,7 @@ public class RegisterBotCommandHandler(
             if (bot is null)
                 throw new ConflictException("Failed to persist bot.");
 
-            botId = bot.BotId; // Extract the ID only after confirming bot is not null
+            botId = bot.Id; // Extract the ID only after confirming bot is not null
 
             // Add webhook to bot through api
             bool success = await _telegramClient.SetWebhookAsync(
@@ -80,7 +80,7 @@ public class RegisterBotCommandHandler(
 
             await _botRepository.UpdateBotActivityAsync(botId, true, cancellationToken);
 
-            return new RegisterBotCommandResult(BotId: bot.BotId);
+            return new RegisterBotCommandResult(BotId: bot.Id);
         }
         catch (HttpRequestException ex)
         {

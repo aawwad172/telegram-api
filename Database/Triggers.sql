@@ -4,7 +4,7 @@
    - Keeping it ensures correctness if someone inserts directly.
    ============================================ */
 CREATE OR ALTER TRIGGER dbo.trg_ArchiveTable_StatusDescription
-ON dbo.ArchiveTable
+ON dbo.Table_Telegram_ArchiveTable
 AFTER INSERT, UPDATE
 AS
 BEGIN
@@ -12,7 +12,7 @@ BEGIN
 
   UPDATE a
      SET a.StatusDescription = ms.StatusDescription
-  FROM dbo.ArchiveTable a
+  FROM dbo.Table_Telegram_ArchiveTable a
   JOIN inserted i              ON a.ID = i.ID
   JOIN dbo.MessageStatus ms    ON ms.StatusID = a.StatusId
   WHERE a.StatusDescription IS NULL
