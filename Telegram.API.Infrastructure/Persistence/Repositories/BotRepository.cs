@@ -34,6 +34,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         return new Bot
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Name = reader.GetString(reader.GetOrdinal("Name")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
@@ -64,6 +65,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         return new Bot
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Name = reader.GetString(reader.GetOrdinal("Name")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             PublicId = reader.GetString(reader.GetOrdinal("PublicId")),
@@ -81,6 +83,8 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
 
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_Bot_CreateBot";
+
+        cmd.Parameters.Add(new SqlParameter("@Name", SqlDbType.NVarChar, 50) { Value = entity.Name });
 
         cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int) { Value = entity.CustomerId });
 
@@ -101,6 +105,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
             return new Bot
             {
                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                Name = reader.GetString(reader.GetOrdinal("Name")),
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 PublicId = reader.GetString(reader.GetOrdinal("PublicId")),

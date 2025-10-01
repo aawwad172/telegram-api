@@ -1,3 +1,6 @@
+use TelegramTestDB;
+GO
+
 /*******************************************
  * 0) Dropping Tables
  *******************************************/
@@ -358,7 +361,7 @@ CREATE TABLE dbo.Table_Telegram_AdminTelegramProfiles
 /*==============================
   SuperAdmin
 ==============================*/
-CREATE TABLE dbo.Table_SuperAdminTelegramProfiles
+CREATE TABLE dbo.Table_Telegram_SuperAdminTelegramProfiles
   (
       Id              INT PRIMARY KEY,
       CanViewContent  BIT NOT NULL CONSTRAINT DF_SuperTP_CanViewContent  DEFAULT (1),
@@ -383,20 +386,5 @@ CREATE TABLE dbo.Table_SuperAdminTelegramProfiles
       )
   );
 
-CREATE INDEX IX_SuperTP_IsActive        ON dbo.Table_SuperAdminTelegramProfiles(IsActive);
-
-/*==============================
-  User Telegram Profiles (bitmask)
-==============================*/
-CREATE TABLE dbo.Table_Telegram_UserTelegramProfiles (
-  Id               INT          NOT NULL PRIMARY KEY,
-  CustomerId       INT          NULL,
-  PermissionsMask  BIGINT       NOT NULL DEFAULT (0),
-  OverridesAllow   BIGINT       NOT NULL DEFAULT (0),  -- optional
-  OverridesDeny    BIGINT       NOT NULL DEFAULT (0),  -- optional
-  IsActive         BIT          NOT NULL DEFAULT (1),
-  CreatedAt        DATETIME2(0) NOT NULL DEFAULT (GETDATE()),
-  RowVer           ROWVERSION
-);
-
-CREATE INDEX IX_UserTP_IsActive ON dbo.Table_Telegram_UserTelegramProfiles(IsActive);
+CREATE INDEX IX_SuperTP_IsActive        ON dbo.Table_Telegram_SuperAdminTelegramProfiles(IsActive);
+GO
