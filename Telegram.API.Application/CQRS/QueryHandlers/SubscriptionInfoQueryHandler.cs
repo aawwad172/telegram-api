@@ -11,11 +11,11 @@ namespace Telegram.API.Application.CQRS.QueryHandlers;
 
 public class SubscriptionInfoQueryHandler(
     IAuthenticationService authenticationService,
-    IRecipientRepository userRepository)
+    IRecipientRepository recipientRepository)
     : IRequestHandler<SubscriptionInfoQuery, SubscriptionInfoQueryResult>
 {
     private readonly IAuthenticationService _authenticationService = authenticationService;
-    private readonly IRecipientRepository _userRepository = userRepository;
+    private readonly IRecipientRepository _recipientRepository = recipientRepository;
     public async Task<SubscriptionInfoQueryResult> Handle(SubscriptionInfoQuery request, CancellationToken cancellationToken)
     {
         try
@@ -31,7 +31,8 @@ public class SubscriptionInfoQueryHandler(
                 throw new UnauthorizedException("Invalid Bot Key.");
 
 
-            Recipient? user = await _userRepository.GetRecipientAsync(request.PhoneNumber, bot.Id) ?? throw new NotFoundException("User Not Subscribed!");
+            Recipient? user = await _recipientRepository.GetRecipientAsync(request.PhoneNumber, bot.Id)
+                ?? throw new NotFoundException("User Not Subscribed!");
 
             SubscriptionInfoQueryResult result = user.Adapt<SubscriptionInfoQueryResult>();
 

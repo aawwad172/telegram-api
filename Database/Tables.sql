@@ -35,16 +35,16 @@ IF OBJECT_ID('dbo.Table_Telegram_TelegramFiles','U') IS NOT NULL
   DROP TABLE dbo.Table_Telegram_TelegramFiles;
 GO
 
-IF OBJECT_ID('dbo.Table_Telegram_Recipient','U') IS NOT NULL
-  DROP TABLE dbo.Table_Telegram_Recipient;
+IF OBJECT_ID('dbo.Table_Telegram_Recipients','U') IS NOT NULL
+  DROP TABLE dbo.Table_Telegram_Recipients;
 GO
 
 IF OBJECT_ID('dbo.Table_Telegram_Bots','U') IS NOT NULL
   DROP TABLE dbo.Table_Telegram_Bots;
 GO
 
-IF OBJECT_ID('dbo.Table_Telegram_SuperAdminTelegramProfile', 'U') IS NOT NULL
-   DROP TABLE dbo.Table_Telegram_SuperAdminTelegramProfile; 
+IF OBJECT_ID('dbo.Table_Telegram_SuperAdminTelegramProfiles', 'U') IS NOT NULL
+   DROP TABLE dbo.Table_Telegram_SuperAdminTelegramProfiles; 
 GO
 
 IF OBJECT_ID('dbo.Table_Telegram_AdminTelegramProfiles', 'U') IS NOT NULL
@@ -118,7 +118,7 @@ GO
 
 CREATE NONCLUSTERED INDEX IX_Ready_Pending_ID 
     ON dbo.Table_Telegram_ReadyTable(Id) 
-  WHERE StatusId = 0;
+  WHERE StatusId = 1;  -- Pending
 GO
 
 
@@ -286,9 +286,9 @@ CREATE TABLE dbo.Table_Telegram_Bots
 CREATE INDEX IX_Bots_CustomerId ON dbo.Table_Telegram_Bots(CustomerId);
 
 /*******************************************
- * 1.11) Table_Telegram_Recipient (Final schema)
+ * 1.11) Table_Telegram_Recipients (Final schema)
  *******************************************/
-CREATE TABLE dbo.Table_Telegram_Recipient
+CREATE TABLE dbo.Table_Telegram_Recipients
 (
   [BotId]                 INT          NOT NULL 
     CONSTRAINT FK_Recipient_Bots REFERENCES dbo.Table_Telegram_Bots(Id),
@@ -310,14 +310,14 @@ CREATE TABLE dbo.Table_Telegram_Recipient
 
 -- Recent/active fetch
 CREATE INDEX IX_Recipient_Bot_LastSeen
-  ON dbo.Table_Telegram_Recipient (BotId, LastSeenDateTime DESC);
+  ON dbo.Table_Telegram_Recipients (BotId, LastSeenDateTime DESC);
 
 -- Helpful lookups
 CREATE UNIQUE INDEX IX_Recipient_Bot_TelegramUserId
-  ON dbo.Table_Telegram_Recipient (BotId, TelegramUserId);
+  ON dbo.Table_Telegram_Recipients (BotId, TelegramUserId);
 
 CREATE INDEX IX_Recipient_Bot_Username
-  ON dbo.Table_Telegram_Recipient (BotId, Username);
+  ON dbo.Table_Telegram_Recipients (BotId, Username);
 
 
 /*******************************************

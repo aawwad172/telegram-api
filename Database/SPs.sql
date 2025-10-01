@@ -116,7 +116,7 @@ GO
 
 /*******************************************
  * 2.5) usp_GetTelegramUser   (NEW)
- * Returns the Table_Telegram_Recipient row for a given BotId
+ * Returns the Table_Telegram_Recipients row for a given BotId
  *******************************************/
 CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
     @BotId                 INT,
@@ -125,7 +125,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetTelegramUser
   BEGIN
     SET NOCOUNT ON;
 
-    SELECT * FROM dbo.Table_Telegram_Recipient
+    SELECT * FROM dbo.Table_Telegram_Recipients
     WHERE   BotId     = @BotId
       AND   PhoneNumber = @PhoneNumber;
   END
@@ -148,7 +148,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetChatIdsForPhones
         p.PhoneNumber,
         u.ChatId
     FROM @PhoneNumbers AS p
-    LEFT JOIN dbo.Table_Telegram_Recipient AS u
+    LEFT JOIN dbo.Table_Telegram_Recipients AS u
       ON u.BotId      = @BotId
     AND u.PhoneNumber  = p.PhoneNumber
     AND u.IsActive = 1;
@@ -530,7 +530,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Recipient_Upsert
       SET NOCOUNT ON;
       DECLARE @now DATETIME = GETDATE();
 
-      UPDATE dbo.Table_Telegram_Recipient
+      UPDATE dbo.Table_Telegram_Recipients
       SET TelegramUserId          = @TelegramUserId,
           PhoneNumber             = COALESCE(@PhoneNumber, PhoneNumber),
           Username                = COALESCE(@Username, Username),
@@ -543,7 +543,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_Recipient_Upsert
 
       IF @@ROWCOUNT = 0
       BEGIN
-          INSERT INTO dbo.Table_Telegram_Recipient
+          INSERT INTO dbo.Table_Telegram_Recipients
               (BotId, ChatId, TelegramUserId, PhoneNumber, Username, FirstName, IsActive, CreationDateTime, LastSeenDateTime, LastUpdatedDateTime)
           VALUES
               (@BotId, @ChatId, @TelegramUserId, @PhoneNumber, @Username, @FirstName, @IsActive, @now, @now, @now);

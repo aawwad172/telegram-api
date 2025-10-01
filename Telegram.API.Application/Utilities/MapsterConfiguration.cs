@@ -26,10 +26,10 @@ public static class MapsterConfiguration
             .Map(dest => dest.CreationDate, src => src.CreationDateTime)
             .Map(dest => dest.Subscribed, _ => true);
 
-        TypeAdapterConfig<(((Customer customer, Recipient user) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
+        TypeAdapterConfig<(((Customer customer, Recipient recipient) customerUser, Bot bot) data, SendMessageCommand request), TelegramMessage>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.data.customerUser.customer.CustomerId)
-            .Map(dest => dest.ChatId, src => src.data.customerUser.user.ChatId!)
+            .Map(dest => dest.ChatId, src => src.data.customerUser.recipient.ChatId!)
             .Map(dest => dest.BotId, src => src.data.bot.Id)
             .Map(dest => dest.MessageText, src => src.request.MessageText)
             .Map(dest => dest.PhoneNumber, src => src.request.PhoneNumber)
