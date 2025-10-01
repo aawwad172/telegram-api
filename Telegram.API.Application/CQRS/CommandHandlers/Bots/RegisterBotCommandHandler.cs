@@ -49,6 +49,7 @@ public class RegisterBotCommandHandler(
         string encryptedBotKey = _authenticationService.Encrypt(request.BotKey, cancellationToken);
         Bot? bot = new()
         {
+            Name = request.BotName,
             CustomerId = customer.CustomerId,
             EncryptedBotKey = encryptedBotKey,
             IsActive = false,

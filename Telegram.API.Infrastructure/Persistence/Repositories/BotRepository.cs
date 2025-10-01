@@ -34,6 +34,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         return new Bot
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Name = reader.GetString(reader.GetOrdinal("Name")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
@@ -64,6 +65,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         return new Bot
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
+            Name = reader.GetString(reader.GetOrdinal("Name")),
             CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
             EncryptedBotKey = reader.GetString(reader.GetOrdinal("EncryptedBotKey")),
             PublicId = reader.GetString(reader.GetOrdinal("PublicId")),
@@ -74,7 +76,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         };
     }
 
-    public async Task<Bot?> CreateAsync(Bot entity, CancellationToken cancellationToken = default)
+    public async Task<Bot?> CreateAsync(Bot bot, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _dbConnectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();
@@ -82,17 +84,19 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.CommandText = "usp_Bot_CreateBot";
 
-        cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int) { Value = entity.CustomerId });
+        cmd.Parameters.Add(new SqlParameter("@BotName", SqlDbType.NVarChar, 50) { Value = bot.Name });
 
-        cmd.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = entity.IsActive });
+        cmd.Parameters.Add(new SqlParameter("@CustomerId", SqlDbType.Int) { Value = bot.CustomerId });
 
-        cmd.Parameters.Add(new SqlParameter("@PublicId", SqlDbType.NVarChar, 128) { Value = entity.PublicId });
+        cmd.Parameters.Add(new SqlParameter("@IsActive", SqlDbType.Bit) { Value = bot.IsActive });
 
-        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar, 128) { Value = entity.EncryptedBotKey });
+        cmd.Parameters.Add(new SqlParameter("@PublicId", SqlDbType.NVarChar, 128) { Value = bot.PublicId });
 
-        cmd.Parameters.Add(new SqlParameter("@WebhookSecret", SqlDbType.NVarChar, 128) { Value = entity.WebhookSecret });
+        cmd.Parameters.Add(new SqlParameter("@EncryptedBotKey", SqlDbType.NVarChar, 128) { Value = bot.EncryptedBotKey });
 
-        cmd.Parameters.Add(new SqlParameter("@WebhookUrl", SqlDbType.NVarChar, 512) { Value = entity.WebhookUrl });
+        cmd.Parameters.Add(new SqlParameter("@WebhookSecret", SqlDbType.NVarChar, 128) { Value = bot.WebhookSecret });
+
+        cmd.Parameters.Add(new SqlParameter("@WebhookUrl", SqlDbType.NVarChar, 512) { Value = bot.WebhookUrl });
 
         using SqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
@@ -101,6 +105,7 @@ public class BotRepository(IDbConnectionFactory dbConnectionFactory) : IBotRepos
             return new Bot
             {
                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                Name = reader.GetString(reader.GetOrdinal("Name")),
                 CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 PublicId = reader.GetString(reader.GetOrdinal("PublicId")),

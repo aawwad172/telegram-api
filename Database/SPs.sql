@@ -502,6 +502,7 @@ CREATE OR ALTER PROCEDURE dbo.usp_GetBotByPublicId
 
       SELECT TOP 1
           Id,
+          Name,
           CustomerId,
           EncryptedBotKey,
           PublicId,
