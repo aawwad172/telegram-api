@@ -33,6 +33,12 @@ public interface IHasCustomerId
 {
     int CustomerId { get; }
 }
+
+public interface IHasEncryptedCustomerId
+{
+    string EncryptedCustomerId { get; }
+}
+
 public interface IHasPriority
 {
     int Priority { get; }
@@ -41,7 +47,7 @@ public interface IHasApprovalStatus
 {
     bool IsSystemApproved { get; }
 }
-public interface IHasCamaignId
+public interface IHasCampaignId
 {
     string CampaignId { get; }
 }

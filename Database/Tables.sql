@@ -214,7 +214,7 @@ CREATE INDEX IX_TelegramSentFiles_Campaign
   -- Table type to pass phone numbers
 CREATE TYPE dbo.PhoneList AS TABLE
 (
-  PhoneNumber NVARCHAR(32) NOT NULL PRIMARY KEY
+  PhoneNumber NVARCHAR(32) NOT NULL
 );
 GO
 

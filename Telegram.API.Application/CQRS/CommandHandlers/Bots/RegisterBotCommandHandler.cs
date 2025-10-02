@@ -49,7 +49,7 @@ public class RegisterBotCommandHandler(
         string encryptedBotKey = _authenticationService.Encrypt(request.BotKey, cancellationToken);
         Bot? bot = new()
         {
-            CustomerId = customer.CustomerId,
+            CustomerId = customer.Id,
             EncryptedBotKey = encryptedBotKey,
             IsActive = false,
             WebhookUrl = url.ToString(),

@@ -25,7 +25,7 @@ public static class DependencyInjection
         AppSettings? appSettings = configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()
                     ?? throw new InvalidOperationException("AppSettings section is missing.");
 
-        if (Enum.TryParse<A2ALoggerType>(configuration["AppSettings:LoggerType"], true, out var loggerType))
+        if (Enum.TryParse(configuration["AppSettings:LoggerType"], true, out A2ALoggerType loggerType))
         {
             appSettings.LoggerType = loggerType;
         }
@@ -59,6 +59,7 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SendCampaignMessageCommand>, SendCampaignMessageCommandValidator>();
         services.AddTransient<IValidator<GetWebhookInfoQuery>, GetWebhookInfoQueryValidator>();
         services.AddTransient<IValidator<RegisterBotCommand>, RegisterBotCommandValidator>();
+        services.AddTransient<IValidator<PortalSendCampaignCommand>, PortalSendCampaignCommandValidator>();
 
         return services;
     }

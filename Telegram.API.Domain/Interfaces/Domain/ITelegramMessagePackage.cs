@@ -1,7 +1,7 @@
 ﻿namespace Telegram.API.Domain.Interfaces.Domain;
 
 public interface ITelegramMessagePackage<TItem>
-    : IHasCamaignId,
+    : IHasCampaignId,
     IHasItems<TItem>,
     IHasCustomerId,
     IHasApprovalStatus,

@@ -23,7 +23,7 @@ public class SendCampaignMessageCommandHandler(
     {
         Customer customer = await _authenticationService.AuthenticateAsync(request.Username, request.Password);
 
-        Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
+        Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.Id);
 
         TelegramMessagePackage<CampaignMessage> campaignMessage = ((customer, bot), request).Adapt<TelegramMessagePackage<CampaignMessage>>();
 

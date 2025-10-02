@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using System.Data;
-using Telegram.API.Application.HelperServices;
+using Telegram.API.Application.Utilities;
 using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure;

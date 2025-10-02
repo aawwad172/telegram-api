@@ -50,7 +50,6 @@ public class RecipientRepository(IDbConnectionFactory connectionFactory) : IReci
         // Deduplicate + materialize once
         List<string> list = phoneNumbers
             .Where(p => !string.IsNullOrWhiteSpace(p))
-            .Distinct(StringComparer.Ordinal)
             .ToList();
 
         // Build TVP
