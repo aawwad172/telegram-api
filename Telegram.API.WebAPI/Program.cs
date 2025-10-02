@@ -86,5 +86,12 @@ api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithOpenApi();
 #endregion
 
+#region Portal
+api.MapGet("/portal/message/send", PortalSendMessage.RegisterRoute)
+    .WithName("Portal Send Message")
+    .WithTags("portal")
+    .WithOpenApi();
+
+#endregion
 
 app.Run();

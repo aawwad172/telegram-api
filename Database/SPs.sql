@@ -762,3 +762,25 @@ CREATE OR ALTER PROCEDURE dbo.usp_ArchiveAndDeleteReadyMessage
     END CATCH
   END;
 GO
+
+/*******************************************
+ * 3.3) usp_GetTelegramBotsByCustomerId
+ *******************************************/
+CREATE OR ALTER PROCEDURE usp_GetTelegramBotsByCustomerId
+		@CustomerId INT
+AS
+	BEGIN
+		SELECT * FROM [dbo].[Table_Telegram_Bots]
+		where CustomerId = @CustomerId
+	END
+
+/*******************************************
+ * 3.4) usp_GetTelegramUserProfileByCustomerId
+ *******************************************/
+CREATE OR ALTER PROCEDURE usp_GetTelegramUserProfileByCustomerId
+    @CustomerId INT
+  AS
+  BEGIN
+      SELECT * FROM [dbo].[Table_Telegram_Recipients];
+  END
+GO

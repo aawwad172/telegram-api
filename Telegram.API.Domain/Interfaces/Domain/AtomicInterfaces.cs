@@ -1,4 +1,6 @@
-﻿namespace Telegram.API.Domain.Interfaces.Domain;
+﻿using Telegram.API.Domain.Entities.Fields;
+
+namespace Telegram.API.Domain.Interfaces.Domain;
 
 public interface IHasMessageText
 {
@@ -61,4 +63,14 @@ public interface IHasSchedule
 public interface IHasItems<TItem>
 {
     List<TItem> Items { get; }
+}
+
+public interface IHasRemoveDuplicates
+{
+    bool? RemoveDuplicates { get; }
+}
+
+public interface IHasSplitBulk
+{
+    SplitBulk SplitBulk { get; }
 }
