@@ -1,4 +1,6 @@
-﻿namespace Telegram.API.Domain.Interfaces.Domain;
+﻿using Telegram.API.Domain.Entities.Fields;
+
+namespace Telegram.API.Domain.Interfaces.Domain;
 
 public interface IHasMessageText
 {
@@ -31,6 +33,12 @@ public interface IHasCustomerId
 {
     int CustomerId { get; }
 }
+
+public interface IHasEncryptedCustomerId
+{
+    string EncryptedCustomerId { get; }
+}
+
 public interface IHasPriority
 {
     int Priority { get; }
@@ -39,7 +47,7 @@ public interface IHasApprovalStatus
 {
     bool IsSystemApproved { get; }
 }
-public interface IHasCamaignId
+public interface IHasCampaignId
 {
     string CampaignId { get; }
 }
@@ -61,4 +69,14 @@ public interface IHasSchedule
 public interface IHasItems<TItem>
 {
     List<TItem> Items { get; }
+}
+
+public interface IHasRemoveDuplicates
+{
+    bool? RemoveDuplicates { get; }
+}
+
+public interface IHasSplitBulk
+{
+    SplitBulk? SplitBulk { get; }
 }

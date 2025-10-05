@@ -26,7 +26,7 @@ public class SendBatchMessageCommandHandler(
         if (customer is null)
             throw new UnauthenticatedException("Invalid username or password.");
 
-        Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId);
+        Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.Id);
 
         TelegramMessagePackage<BatchMessage> batchMessages = ((customer, bot), request).Adapt<TelegramMessagePackage<BatchMessage>>();
 

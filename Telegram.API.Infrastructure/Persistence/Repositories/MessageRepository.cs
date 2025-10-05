@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using System.Data;
-using Telegram.API.Application.HelperServices;
+using Telegram.API.Application.Utilities;
 using Telegram.API.Domain.Entities.Message;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.Domain.Interfaces.Infrastructure;
@@ -18,7 +18,7 @@ public class MessageRepository(
     private readonly IJsonFileRepository _jsonFileRepository = jsonFileRepository;
     private readonly IOptionsMonitor<TelegramOptions> _telegramOptions = options;
 
-    public async Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages)
+    public async Task SendBatchMessagesAsync<T>(TelegramMessagePackage<T> messages, CancellationToken cancellationToken = default)
     {
         string finalName = FileNameHelper.ComposeCampaignFileName(messages.CampaignId);
         string fullPath = Path.Combine(_telegramOptions.CurrentValue.BulkFolderPath, finalName);
@@ -53,7 +53,7 @@ public class MessageRepository(
     /// <param name="message">The <see cref="TelegramMessage"/> object containing the message content and recipient details. Cannot be null.</param>
     /// <returns>Returns the ID of the inserted row (reference number), or null if the operation fails</returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<int> SendMessageAsync(TelegramMessage message)
+    public async Task<int> SendMessageAsync(TelegramMessage message, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
         using SqlCommand cmd = (SqlCommand)conn.CreateCommand();

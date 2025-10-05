@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using A2ASMS.Utility.Logger;
+using Microsoft.Data.SqlClient;
 using Telegram.API.Domain.Exceptions;
 using Telegram.API.WebAPI.Models;
 namespace Telegram.API.WebAPI.Middlewares;
@@ -51,6 +52,12 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
             A2ALogger.Warning($"CustomValidationException {ex.Message} {joined}");
             await HandleExceptionAsync(context, "-1", joined, StatusCodes.Status400BadRequest);
         }
+        catch (SqlException ex)
+        {
+            Console.WriteLine($"SQL Server Exception: {ex.Message}");
+            A2ALogger.Error($"SQL Server Exception: {ex.Message}");
+            await HandleExceptionAsync(context, "-100", "DATABASE_EXCEPTION", StatusCodes.Status500InternalServerError);
+        }
         catch (TelegramApiException ex)
         {
             Console.WriteLine($"Telegram API Exception: {ex.Message}");
@@ -60,7 +67,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next)
         }
         catch (BadRequestException ex)
         {
-            System.Console.WriteLine($"BadRequestException {ex.Message}");
+            Console.WriteLine($"BadRequestException {ex.Message}");
             A2ALogger.Error($"BadRequestException {ex.Message}");
 
             await HandleExceptionAsync(context, "-33", "BAD_REQUEST", StatusCodes.Status400BadRequest);

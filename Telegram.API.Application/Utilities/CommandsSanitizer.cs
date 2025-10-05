@@ -1,7 +1,7 @@
 ﻿using Telegram.API.Application.CQRS.Commands.Message;
 using Telegram.API.Domain.Exceptions;
 
-namespace Telegram.API.Application.HelperServices;
+namespace Telegram.API.Application.Utilities;
 
 public class CommandsSanitizer
 {
@@ -40,6 +40,30 @@ public class CommandsSanitizer
             Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList() ?? []
+        };
+    }
+
+    public static PortalSendCampaignMessageCommand Sanitize(PortalSendCampaignMessageCommand command)
+    {
+        return command with
+        {
+            MessageText = command.MessageText?.Trim() ?? string.Empty,
+            Items = command.Items?.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList() ?? []
+        };
+    }
+
+    public static PortalSendBatchMessageCommand Sanitize(PortalSendBatchMessageCommand command)
+    {
+        return command with
+        {
+            Items = command.Items?.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+                MessageText = i.MessageText?.Trim() ?? string.Empty
             }).ToList() ?? []
         };
     }

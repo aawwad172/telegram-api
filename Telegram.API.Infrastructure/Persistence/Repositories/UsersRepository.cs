@@ -28,7 +28,7 @@ public class UsersRepository(IDbConnectionFactory connectionFactory) : IUsersRep
             {
                 // This is the only column that is named CustId since it is linked to an old table and we can't change it's name :)
                 // Note we have added an Alies to this so now you can use it with "CustomerId"
-                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                 Username = reader.GetString(reader.GetOrdinal("Username")),
                 PasswordHash = reader.GetString(reader.GetOrdinal("Password")),
                 RequireSystemApprove = reader.GetBoolean(reader.GetOrdinal("RequireSystemApprove")),

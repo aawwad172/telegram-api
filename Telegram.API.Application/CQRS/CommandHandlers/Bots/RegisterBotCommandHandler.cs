@@ -50,7 +50,7 @@ public class RegisterBotCommandHandler(
         Bot? bot = new()
         {
             Name = request.BotName,
-            CustomerId = customer.CustomerId,
+            CustomerId = customer.Id,
             EncryptedBotKey = encryptedBotKey,
             IsActive = false,
             WebhookUrl = url.ToString(),

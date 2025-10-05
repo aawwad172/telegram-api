@@ -5,7 +5,7 @@ using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 using A2ASMS.Utility.Data;
 using Telegram.API.Domain.Entities.User;
 
-namespace Telegram.API.Application.HelperServices;
+namespace Telegram.API.Application.Services;
 
 public class AuthenticationService(IUsersRepository customerRepository, IBotRepository botRepository) : IAuthenticationService
 {

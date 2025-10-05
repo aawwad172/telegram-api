@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Telegram.API.Application.HelperServices;
+namespace Telegram.API.Application.Utilities;
 
 public class CommandSanitizerHelpers
 {

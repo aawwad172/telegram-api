@@ -19,5 +19,5 @@ public interface IDispatchInfo :
 
 // Optional business tagging
 public interface IBusinessTags :
-    IHasCamaignId, IHasMessageType
+    IHasCampaignId, IHasMessageType
 { }

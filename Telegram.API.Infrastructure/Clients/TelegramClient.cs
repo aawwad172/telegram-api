@@ -146,7 +146,7 @@ public class TelegramClient : ITelegramClient
 
     private async Task<TelegramResponse<T>> PostJsonAsync<T>(string path, object payload, CancellationToken ct)
     {
-        using StringContent content = new StringContent(JsonSerializer.Serialize(payload, _json), Encoding.UTF8, "application/json");
+        using StringContent content = new(JsonSerializer.Serialize(payload, _json), Encoding.UTF8, "application/json");
         using HttpResponseMessage res = await _http.PostAsync(path, content, ct);
         string body = await res.Content.ReadAsStringAsync(ct);
 

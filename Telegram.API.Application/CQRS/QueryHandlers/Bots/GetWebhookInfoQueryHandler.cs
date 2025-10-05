@@ -26,7 +26,7 @@ public class GetWebhookInfoQueryHandler(
             if (customer is null)
                 throw new UnauthorizedException("Invalid username or password.");
 
-            Bot? bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.CustomerId, cancellationToken);
+            Bot? bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customer.Id, cancellationToken);
             if (bot is null)
                 throw new UnauthorizedException("Invalid Bot Key.");
 
