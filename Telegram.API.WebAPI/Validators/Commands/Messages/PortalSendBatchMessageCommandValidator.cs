@@ -40,7 +40,9 @@ public class PortalBatchMessageItemValidator : AbstractValidator<BatchMessageIte
 
         RuleFor(x => x.MessageText)
             .NotEmpty()
-            .WithMessage("MessageText is required");
+            .WithMessage("MessageText is required")
+            .MaximumLength(4096)
+            .WithMessage("Message text cannot exceed 4096 characters.");
     }
 }
 

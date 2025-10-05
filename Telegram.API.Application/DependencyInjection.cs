@@ -4,7 +4,7 @@ using Telegram.API.Application.CQRS.CommandHandlers.Bots;
 using Telegram.API.Application.CQRS.CommandHandlers.Messages;
 using Telegram.API.Application.CQRS.QueryHandlers;
 using Telegram.API.Application.CQRS.QueryHandlers.Bots;
-using Telegram.API.Application.HelperServices;
+using Telegram.API.Application.Services;
 using Telegram.API.Application.Utilities;
 using Telegram.API.Domain.Interfaces.Application;
 

@@ -9,7 +9,7 @@ namespace Telegram.API.Infrastructure.Persistence.Repositories;
 public class RecipientRepository(IDbConnectionFactory connectionFactory) : IRecipientRepository
 {
     private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-    public async Task<Recipient?> GetRecipientAsync(string phoneNumber, int botId)
+    public async Task<Recipient?> GetRecipientAsync(string phoneNumber, int botId, CancellationToken cancellationToken = default)
     {
         using IDbConnection conn = await _connectionFactory.CreateOpenConnection();
 
@@ -45,7 +45,7 @@ public class RecipientRepository(IDbConnectionFactory connectionFactory) : IReci
         return null;
     }
 
-    public async Task<IDictionary<string, string?>> GetChatIdsAsync(IEnumerable<string> phoneNumbers, int botId)
+    public async Task<IDictionary<string, string?>> GetChatIdsAsync(IEnumerable<string> phoneNumbers, int botId, CancellationToken cancellationToken = default)
     {
         // Deduplicate + materialize once
         List<string> list = phoneNumbers
@@ -89,17 +89,17 @@ public class RecipientRepository(IDbConnectionFactory connectionFactory) : IReci
         return map;
     }
 
-    public Task DeactivateAsync(int botId, string chatId, CancellationToken ct)
+    public Task DeactivateAsync(int botId, string chatId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyCollection<Recipient>> GetActiveChatsAsync(int botId, CancellationToken ct)
+    public Task<IReadOnlyCollection<Recipient>> GetActiveChatsAsync(int botId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Recipient?> GetAsync(int botId, string chatId, CancellationToken ct)
+    public Task<Recipient?> GetAsync(int botId, string chatId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

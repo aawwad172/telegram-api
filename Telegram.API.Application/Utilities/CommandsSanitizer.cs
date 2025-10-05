@@ -48,7 +48,7 @@ public class CommandsSanitizer
     {
         return command with
         {
-            MessageText = command.MessageText.Trim() ?? string.Empty,
+            MessageText = command.MessageText?.Trim() ?? string.Empty,
             Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),

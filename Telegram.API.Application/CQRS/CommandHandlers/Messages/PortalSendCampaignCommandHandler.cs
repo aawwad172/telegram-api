@@ -20,26 +20,26 @@ public class PortalSendCampaignCommandHandler(
     private readonly IAuthenticationService _authenticationService = authenticationService;
     public async Task<PortalSendCampaignCommandResult> Handle(PortalSendCampaignMessageCommand request, CancellationToken cancellationToken)
     {
-        string stringCustomerId = _authenticationService.Decrypt(request.EncryptedCustomerId);
+        string decrypted = _authenticationService.Decrypt(request.EncryptedCustomerId);
 
-        if (!int.TryParse(_authenticationService.Decrypt(request.EncryptedCustomerId), out var customerId))
+        if (!int.TryParse(decrypted, out var customerId))
             throw new UnauthenticatedException("Invalid customer id.");
 
         Bot bot = await _authenticationService.ValidateBotIdAsync(request.BotId, customerId, cancellationToken);
 
         // 0) Validate split options
-        int batchSize = request.SplitBulk?.BatchSize > 0 ? request.SplitBulk.BatchSize : int.MaxValue; // no split if not set
+        int batchSize = request.SplitBulk is { BatchSize: > 0 } s ? s.BatchSize : int.MaxValue; // no split if not set
         int minutesGap = Math.Max(0, request.SplitBulk?.MinutesBetweenBatches ?? 0);
-        TimeSpan interval = TimeSpan.FromMinutes(minutesGap);
 
         // Represent the full list batch with or without duplicates removed depending on the flag
-        IEnumerable<CampaignMessageItem> fullList = BulkHelpers.TryRemoveDuplicates(request, request.Items);
+        List<CampaignMessageItem> fullList = BulkHelpers.TryRemoveDuplicates(request, request.Items).ToList();
+        PortalSendCampaignMessageCommand effectiveRequest = request with { Items = fullList };
 
         IEnumerable<string> phones = fullList.Select(x => x.PhoneNumber).Where(x => !string.IsNullOrWhiteSpace(x));
 
-        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id);
+        IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id, cancellationToken);
 
-        List<TelegramMessagePackage<CampaignMessage>> batches = BulkHelpers.SplitList(request, phoneToChat, batchSize, minutesGap, customerId);
+        List<TelegramMessagePackage<CampaignMessage>> batches = BulkHelpers.SplitList(effectiveRequest, phoneToChat, batchSize, minutesGap, customerId);
 
         if (batches.Count == 0)
         {
@@ -48,7 +48,7 @@ public class PortalSendCampaignCommandHandler(
 
         foreach (TelegramMessagePackage<CampaignMessage> batch in batches)
         {
-            await _messageRepository.SendBatchMessagesAsync(batch);
+            await _messageRepository.SendBatchMessagesAsync(batch, cancellationToken);
         }
 
         return new PortalSendCampaignCommandResult(batches.First().CampaignId);

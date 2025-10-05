@@ -78,5 +78,5 @@ public interface IHasRemoveDuplicates
 
 public interface IHasSplitBulk
 {
-    SplitBulk SplitBulk { get; }
+    SplitBulk? SplitBulk { get; }
 }

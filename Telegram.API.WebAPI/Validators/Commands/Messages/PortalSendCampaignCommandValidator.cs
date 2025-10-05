@@ -16,7 +16,9 @@ public class PortalSendCampaignCommandValidator : AbstractValidator<PortalSendCa
 
         RuleFor(x => x.MessageText)
             .NotEmpty()
-            .WithMessage("MessageText is required");
+            .WithMessage("MessageText is required")
+            .MaximumLength(4096)
+            .WithMessage("Message text cannot exceed 4096 characters.");
 
         RuleFor(x => x.EncryptedCustomerId)
             .NotEmpty()

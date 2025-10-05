@@ -4,7 +4,7 @@ using Telegram.API.Domain.Enums;
 
 namespace Telegram.API.Application.Utilities;
 
-public class BulkHelpers
+public static class BulkHelpers
 {
     public static IEnumerable<CampaignMessageItem> TryRemoveDuplicates(PortalSendCampaignMessageCommand request, IEnumerable<CampaignMessageItem> items)
     {
@@ -108,7 +108,9 @@ public class BulkHelpers
 
             fullList.Add(new BatchMessage
             {
-                ChatId = chatId!, // null if not mapped
+                // Intentionally allow null ChatId to mark unsubscribed numbers
+                // for reporting and invoice exclusion purposes
+                ChatId = chatId!,
                 MessageText = item.MessageText,
                 PhoneNumber = item.PhoneNumber
             });

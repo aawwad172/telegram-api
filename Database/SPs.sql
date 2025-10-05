@@ -782,6 +782,6 @@ CREATE OR ALTER PROCEDURE usp_GetTelegramUserProfileByCustomerId
     @CustomerId INT
   AS
   BEGIN
-      SELECT * FROM [dbo].[Table_Telegram_Recipients];
+      SELECT * FROM [dbo].[Table_Telegram_UserTelegramProfiles] where CustomerId = @CustomerId;
   END
 GO
