@@ -52,6 +52,8 @@ public static class BulkHelpers
             .Select(kv => new CampaignMessage
             {
                 PhoneNumber = kv.Key,
+                // Intentionally allow null ChatId to mark unsubscribed numbers
+                // for reporting and invoice exclusion purposes
                 ChatId = kv.Value ?? null!,
             })
             .ToList();
@@ -139,8 +141,8 @@ public static class BulkHelpers
                 CampDescription = command.CampDescription ?? null!,
                 ScheduledSendDateTime = scheduledTime,
                 IsSystemApproved = true,
-                MessageType = MessageTypeEnum.C.ToString(),
-                Priority = (int)MessagePriorityEnum.PortalCampaignMessage,
+                MessageType = MessageTypeEnum.CF.ToString(),
+                Priority = (int)MessagePriorityEnum.PortalBatchMessage,
                 Items = batchItems
             };
 
