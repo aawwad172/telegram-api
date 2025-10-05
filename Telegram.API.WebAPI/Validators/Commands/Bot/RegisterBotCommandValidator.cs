@@ -13,6 +13,12 @@ public class RegisterBotCommandValidator : AbstractValidator<RegisterBotCommand>
         .MaximumLength(50)
         .WithMessage("Bot key should not exceed 50 characters");
 
+        RuleFor(x => x.BotName)
+            .NotEmpty()
+            .WithMessage("Bot name is required.")
+            .MaximumLength(50)
+            .WithMessage("Bot name should not exceed 50 characters.");
+
 
         RuleFor(x => x.Username)
             .NotEmpty()

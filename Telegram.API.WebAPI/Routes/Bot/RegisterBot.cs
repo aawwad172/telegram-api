@@ -1,3 +1,4 @@
+using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ public class RegisterBot : ICommandRoute<RegisterBotCommand>
     public static async Task<IResult> RegisterRoute(
         [FromBody] RegisterBotCommand request,
         [FromServices] IMediator mediator,
-        [FromServices] FluentValidation.IValidator<RegisterBotCommand> validator)
+        [FromServices] IValidator<RegisterBotCommand> validator)
     {
         ValidationResult validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
