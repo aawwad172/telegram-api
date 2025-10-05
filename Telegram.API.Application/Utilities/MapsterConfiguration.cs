@@ -65,7 +65,7 @@ public static class MapsterConfiguration
             .Map(dest => dest.Priority, _ => MessagePriorityEnum.CampaignMessage);
 
         // PortalSendCampaignCommand to TelegramMessagePackage<CampaignMessage> Mapping
-        TypeAdapterConfig<((int customerId, Bot bot) customerBot, PortalSendCampaignCommand request), TelegramMessagePackage<CampaignMessage>>
+        TypeAdapterConfig<((int customerId, Bot bot) customerBot, PortalSendCampaignMessageCommand request), TelegramMessagePackage<CampaignMessage>>
             .NewConfig()
             .Map(dest => dest.CustomerId, src => src.customerBot.customerId)
             .Map(dest => dest.BotId, src => src.customerBot.bot.Id)

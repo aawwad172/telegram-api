@@ -80,6 +80,7 @@ api.MapPost("/bot/register", RegisterBot.RegisterRoute)
     .WithTags("bots")
     .WithOpenApi();
 
+
 api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
     .WithName("Webhook Info")
     .WithTags("bots")
@@ -87,8 +88,13 @@ api.MapGet("/bot/webhookInfo", GetWebhookInfo.RegisterRoute)
 #endregion
 
 #region Portal
-api.MapPost("/portal/message/send/campaign", PortalSendMessage.RegisterRoute)
-    .WithName("Portal Send Message")
+api.MapPost("/portal/message/send/campaign", PortalSendCampaignMessage.RegisterRoute)
+    .WithName("Portal Send Campaign Message")
+    .WithTags("portal")
+    .WithOpenApi();
+
+api.MapPost("/portal/message/send/batch", PortalSendBatchMessage.RegisterRoute)
+    .WithName("Portal Send Batch")
     .WithTags("portal")
     .WithOpenApi();
 

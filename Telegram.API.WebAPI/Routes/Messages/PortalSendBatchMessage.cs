@@ -10,14 +10,14 @@ using Telegram.API.WebAPI.Models;
 
 namespace Telegram.API.WebAPI.Routes.Messages;
 
-public class PortalSendMessage : ICommandRoute<PortalSendCampaignCommand>
+public class PortalSendBatchMessage : ICommandRoute<PortalSendBatchMessageCommand>
 {
     public static async Task<IResult> RegisterRoute(
-        [FromBody] PortalSendCampaignCommand request,
+        [FromBody] PortalSendBatchMessageCommand request,
         [FromServices] IMediator mediator,
-        [FromServices] IValidator<PortalSendCampaignCommand> validator)
+        [FromServices] IValidator<PortalSendBatchMessageCommand> validator)
     {
-        PortalSendCampaignCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
+        PortalSendBatchMessageCommand sanitizedRequest = CommandsSanitizer.Sanitize(request);
         ValidationResult validationResult = validator.Validate(sanitizedRequest);
 
         if (!validationResult.IsValid)
@@ -29,10 +29,10 @@ public class PortalSendMessage : ICommandRoute<PortalSendCampaignCommand>
             throw new CustomValidationException("Validation failed ", errors);
         }
 
-        PortalSendCampaignCommandResult result = await mediator.Send(sanitizedRequest);
+        PortalSendBatchMessageCommandResult result = await mediator.Send(sanitizedRequest);
         return Results.Ok(
             ReferenceApiResponse.SuccessResponse(
-                referenceNumber: result.ReferenceId
+                referenceNumber: result.ReferenceNumber
             )
         );
     }

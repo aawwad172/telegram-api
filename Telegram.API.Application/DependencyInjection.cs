@@ -28,6 +28,7 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(typeof(GetWebhookInfoQueryHandler).Assembly);
             cfg.RegisterServicesFromAssembly(typeof(RegisterBotCommandHandler).Assembly);
             cfg.RegisterServicesFromAssembly(typeof(PortalSendCampaignCommandHandler).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(PortalSendBatchMessageCommandHandler).Assembly);
         });
 
         MapsterConfiguration.RegisterMappings();

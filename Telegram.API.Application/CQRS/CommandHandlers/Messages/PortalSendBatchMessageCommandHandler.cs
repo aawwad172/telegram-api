@@ -9,16 +9,17 @@ using Telegram.API.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace Telegram.API.Application.CQRS.CommandHandlers.Messages;
 
-public class PortalSendCampaignCommandHandler(
+public class PortalSendBatchMessageCommandHandler(
     IRecipientRepository recipientRepository,
     IMessageRepository messageRepository,
     IAuthenticationService authenticationService)
-    : IRequestHandler<PortalSendCampaignMessageCommand, PortalSendCampaignCommandResult>
+    : IRequestHandler<PortalSendBatchMessageCommand, PortalSendBatchMessageCommandResult>
 {
     private readonly IRecipientRepository _recipientRepository = recipientRepository;
     private readonly IMessageRepository _messageRepository = messageRepository;
     private readonly IAuthenticationService _authenticationService = authenticationService;
-    public async Task<PortalSendCampaignCommandResult> Handle(PortalSendCampaignMessageCommand request, CancellationToken cancellationToken)
+
+    public async Task<PortalSendBatchMessageCommandResult> Handle(PortalSendBatchMessageCommand request, CancellationToken cancellationToken)
     {
         string stringCustomerId = _authenticationService.Decrypt(request.EncryptedCustomerId);
 
@@ -33,24 +34,24 @@ public class PortalSendCampaignCommandHandler(
         TimeSpan interval = TimeSpan.FromMinutes(minutesGap);
 
         // Represent the full list batch with or without duplicates removed depending on the flag
-        IEnumerable<CampaignMessageItem> fullList = BulkHelpers.TryRemoveDuplicates(request, request.Items);
+        IEnumerable<BatchMessageItem> fullList = BulkHelpers.TryRemoveDuplicates(request, request.Items);
 
         IEnumerable<string> phones = fullList.Select(x => x.PhoneNumber).Where(x => !string.IsNullOrWhiteSpace(x));
 
         IDictionary<string, string?> phoneToChat = await _recipientRepository.GetChatIdsAsync(phones, bot.Id);
 
-        List<TelegramMessagePackage<CampaignMessage>> batches = BulkHelpers.SplitList(request, phoneToChat, batchSize, minutesGap, customerId);
+        List<TelegramMessagePackage<BatchMessage>> batches = BulkHelpers.SplitList(request, phoneToChat, batchSize, minutesGap, customerId);
 
         if (batches.Count == 0)
         {
             throw new EmptyMessagesPackageException($"{nameof(batches)} The batches collection cannot be null or empty.");
         }
 
-        foreach (TelegramMessagePackage<CampaignMessage> batch in batches)
+        foreach (TelegramMessagePackage<BatchMessage> batch in batches)
         {
             await _messageRepository.SendBatchMessagesAsync(batch);
         }
 
-        return new PortalSendCampaignCommandResult(batches.First().CampaignId);
+        return new PortalSendBatchMessageCommandResult(batches.First().CampaignId);
     }
 }

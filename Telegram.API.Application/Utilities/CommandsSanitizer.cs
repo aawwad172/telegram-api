@@ -44,7 +44,7 @@ public class CommandsSanitizer
         };
     }
 
-    public static PortalSendCampaignCommand Sanitize(PortalSendCampaignCommand command)
+    public static PortalSendCampaignMessageCommand Sanitize(PortalSendCampaignMessageCommand command)
     {
         return command with
         {
@@ -52,6 +52,18 @@ public class CommandsSanitizer
             Items = command.Items?.Select(i => i with
             {
                 PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+            }).ToList() ?? []
+        };
+    }
+
+    public static PortalSendBatchMessageCommand Sanitize(PortalSendBatchMessageCommand command)
+    {
+        return command with
+        {
+            Items = command.Items?.Select(i => i with
+            {
+                PhoneNumber = NormalizeOrThrow(i.PhoneNumber),
+                MessageText = i.MessageText?.Trim() ?? string.Empty
             }).ToList() ?? []
         };
     }
